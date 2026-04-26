@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POWER-IMS</title>
+    <style>
+        :root {
+            --primary-green: #217346;
+            --border-color: #d1d1d1;
+            --header-bg: #f3f3f3;
+            --nav-bg: #2d2d2d;
+            --error-red: #d32f2f;
+            --aptos: 'Aptos', 'Segoe UI', 'Ubuntu', sans-serif;
+        }
+
+        body {
+            font-family: var(--aptos);
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 10px 10px 75px 10px;
+            font-size: 14px;
+        }
+
+        .worksheet-container {
+            width: 100%;
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            overflow-x: auto;
+        }
+
+        .sheet-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-green);
+        }
+
+        h3 { color: var(--primary-green); margin: 0; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; margin-bottom: 20px; }
+        
+        @media (min-width: 768px) {
+            table { min-width: 100%; font-size: 14px; }
+            body { padding: 20px 40px 80px 40px; }
+        }
+
+        th { background: var(--header-bg); border: 1px solid var(--border-color); padding: 0; position: relative; }
+        .header-label { display: block; font-size: 11px; font-weight: 700; color: #444; padding: 10px 5px; text-align: left; }
+        
+        .hdr-filter {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: none; background: transparent; color: transparent; padding: 10px 5px;
+            font-size: 12px; outline: none; z-index: 1; font-family: var(--aptos);
+        }
+        .hdr-filter:focus, .hdr-filter:not(:placeholder-shown) { background: #fffde7; color: #d32f2f; font-weight: bold; z-index: 2; }
+
+        td { border: 1px solid var(--border-color); padding: 0; }
+        input, select {
+            width: 100%; border: none; padding: 10px 5px; font-size: 13px;
+            outline: none; background: transparent; font-family: var(--aptos); box-sizing: border-box;
+        }
+        input:focus { background-color: #fffde7; box-shadow: inset 0 0 0 1px var(--primary-green); }
+        input[readonly] { background-color: #f9f9f9; color: #777; cursor: not-allowed; }
+        
+        .num-align { text-align: right; font-weight: 500; padding-right: 10px; }
+        .del-btn { color: #bbb; cursor: pointer; text-align: center; width: 30px; font-weight: bold; border: none; background: none; font-size: 18px; }
+        .del-btn:hover { color: var(--error-red); }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--nav-bg); padding: 8px;
+            display: flex; justify-content: center; gap: 6px; z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+        }
+        .nav-btn {
+            padding: 12px 8px; border: none; border-radius: 4px;
+            background: #444; color: #bbb; cursor: pointer; font-size: 10px;
+            font-weight: 600; text-transform: uppercase; font-family: var(--aptos);
+            flex: 1; max-width: 120px; text-align: center;
+        }
+        .nav-btn.active { background: white; color: black; box-shadow: inset 0 -3px 0 var(--primary-green); }
+        
+        .report-label { color: #444; font-weight: 500; padding: 12px; width: 60%; }
+        .report-value { text-align: right; font-weight: 700; padding: 12px; }
+        .report-total-row { background-color: #f1f8f4; border-top: 2px solid var(--primary-green); border-bottom: 2px solid var(--primary-green); }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<datalist id="party-suggestions"></datalist>
+<datalist id="item-suggestions"></datalist>
+
+<div class="worksheet-container">
+    <div class="sheet-header">
+        <h3 id="sheet-title">ITEMS</h3>
+    </div>
+    
+    <div id="content-area">
+        <table id="data-table">
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+        <div id="report-extras"></div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('ITEMS')">ITEMS</button>
+    <button class="nav-btn" onclick="switchTab('PURCHASE')">PURCHASE</button>
+    <button class="nav-btn" onclick="switchTab('SALES')">SALES</button>
+    <button class="nav-btn" onclick="switchTab('BALANCE')">BALANCE</button>
+    <button class="nav-btn" onclick="switchTab('EXPENSE')">EXPENSE</button>
+    <button class="nav-btn" onclick="switchTab('REPORT')">REPORT</button>
+</div>
+
+<script>
+    function getNow() { return new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+
+    let beginningBalance = parseFloat(localStorage.getItem('beginningBalance')) || 0;
+    let masterItems = JSON.parse(localStorage.getItem('masterItems')) || [{ id: "", name: "", desc: "" }];
+    let tabsData = JSON.parse(localStorage.getItem('tabsData')) || { 
+        PURCHASE: [{id:"", name:"", desc:"", date:getNow(), party:"Supplier1", qty:0, uPrice:0, status:"CASH"}], 
+        SALES: [{id:"", name:"", desc:"", date:getNow(), party:"Customer", qty:0, sPrice:0, status:"CASH"}], 
+        EXPENSE: [{date:getNow(), reason:"", amt:0}] 
+    };
+
+    function saveData() {
+        localStorage.setItem('masterItems', JSON.stringify(masterItems));
+        localStorage.setItem('tabsData', JSON.stringify(tabsData));
+        localStorage.setItem('beginningBalance', beginningBalance);
+    }
+
+    function formatMoney(n) { return n ? parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "0.00"; }
+
+    function handleInput(idx, field, val, element) {
+        focusedId = element.id;
+        cursorPosition = (element.selectionStart !== undefined) ? element.selectionStart : 0; 
+        
+        if(currentTab === 'ITEMS') {
+            masterItems[idx][field] = val;
+        } else {
+            tabsData[currentTab][idx][field] = (['qty','uPrice','sPrice','amt'].includes(field)) ? parseFloat(val)||0 : val;
+        }
+        
+        if (field !== 'id') {
+            const rowAdded = checkAndAddRow(idx);
+            saveData();
+            if (rowAdded) renderTable();
+            else if (currentTab === 'PURCHASE' || currentTab === 'SALES') updateRowTotal(idx);
+        } else {
+            saveData(); 
+        }
+    }
+
+    // --- MIRROR LOGIC ---
+    function validateAndLink(idx, val) {
+        if (!val) return;
+        const item = masterItems.find(m => m.id === val);
+        if(!item) {
+            alert(`ID "${val}" not found in Items tab.`);
+            tabsData[currentTab][idx].id = "";
+            tabsData[currentTab][idx].name = "";
+            tabsData[currentTab][idx].desc = "";
+        } else {
+            // This pulls BOTH name and description from the master list
+            tabsData[currentTab][idx].name = item.name;
+            tabsData[currentTab][idx].desc = item.desc;
+            checkAndAddRow(idx);
+        }
+        saveData();
+        renderTable();
+    }
+
+    function checkAndAddRow(idx) {
+        let rows = (currentTab === 'ITEMS') ? masterItems : tabsData[currentTab];
+        if (idx === rows.length - 1) {
+            if (currentTab === 'ITEMS') masterItems.push({id:"", name:"", desc:""});
+            else if (currentTab === 'EXPENSE') tabsData.EXPENSE.push({date:getNow(), reason:"", amt:0});
+            else if (currentTab === 'PURCHASE') tabsData.PURCHASE.push({id:"", name:"", desc:"", date:getNow(), party:"Supplier1", qty:0, uPrice:0, status:"CASH"});
+            else if (currentTab === 'SALES') tabsData.SALES.push({id:"", name:"", desc:"", date:getNow(), party:"Customer", qty:0, sPrice:0, status:"CASH"});
+            return true;
+        }
+        return false;
+    }
+
+    function updateRowTotal(idx) {
+        if (currentTab !== 'PURCHASE' && currentTab !== 'SALES') return;
+        const row = tabsData[currentTab][idx];
+        const displayVal = currentTab === 'PURCHASE'
+            ? ((row.qty || 0) * (row.uPrice || 0))
+            : (((row.qty || 0) * (row.sPrice || 0)) - calculateFIFOCost(row.id, row.qty || 0, idx));
+        const totalCell = document.getElementById(`${currentTab}_${idx}_total`);
+        if (totalCell) totalCell.textContent = formatMoney(displayVal);
+    }
+
+    function deleteRow(idx) {
+        if(!confirm("Delete this entry?")) return;
+        if(currentTab === 'ITEMS') masterItems.splice(idx, 1);
+        else tabsData[currentTab].splice(idx, 1);
+        saveData(); renderTable();
+    }
+
+    function calculateFIFOCost(itemId, qtyToSell, salesIdx) {
+        if (!itemId || qtyToSell <= 0) return 0;
+        let buys = tabsData.PURCHASE.filter(p => p.id === itemId).sort((a,b) => new Date(a.date) - new Date(b.date)).map(p => ({...p, rem: parseFloat(p.qty)}));
+        let soldBefore = tabsData.SALES.filter((s, i) => s.id === itemId && i < salesIdx).reduce((a, b) => a + (parseFloat(b.qty)||0), 0);
+        for(let b of buys) { let take = Math.min(b.rem, soldBefore); b.rem -= take; soldBefore -= take; }
+        let cost = 0, needed = qtyToSell;
+        for(let b of buys) { if(needed <= 0) break; let take = Math.min(b.rem, needed); cost += take * (parseFloat(b.uPrice)||0); needed -= take; }
+        return cost;
+    }
+
+    let currentTab = 'ITEMS';
+    let focusedId = null;
+    let cursorPosition = 0;
+    let filters = {};
+
+    function switchTab(tab) {
+        currentTab = tab; filters = {}; focusedId = null;
+        document.getElementById('sheet-title').innerText = tab;
+        document.querySelectorAll('.nav-btn').forEach(b => {
+            const label = b.innerText === 'ITEMS' ? 'ITEMS' : b.innerText;
+            b.classList.toggle('active', label === tab);
+        });
+        updateSuggestions();
+        renderTable();
+    }
+
+    function updateSuggestions() {
+        const pList = document.getElementById('party-suggestions');
+        const ds = currentTab === 'PURCHASE' ? tabsData.PURCHASE : tabsData.SALES;
+        pList.innerHTML = [...new Set(ds.map(r => r.party))].filter(n => n).map(n => `<option value="${n}">`).join('');
+
+        const iList = document.getElementById('item-suggestions');
+        iList.innerHTML = masterItems.filter(m => m.id).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+    }
+
+    function createHdr(label, field) {
+        return `<th><span class="header-label">${label}</span>
+            ${field ? `<input id="filter-${field}" class="hdr-filter" placeholder=" " value="${filters[field]||''}"
+                oninput="filters['${field}']=this.value.toLowerCase(); focusedId=this.id; cursorPosition=this.selectionStart||0;"
+                onkeyup="renderTable();"
+            >` : ''}
+        </th>`;
+    }
+
+    function renderTable() {
+        const body = document.getElementById('table-body');
+        const head = document.getElementById('table-head');
+        const extras = document.getElementById('report-extras');
+        body.innerHTML = ''; head.innerHTML = ''; extras.innerHTML = '';
+
+        if (currentTab === 'ITEMS') {
+            head.innerHTML = `<tr><th style="width:40px"></th>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}${createHdr('DESCRIPTION','desc')}</tr>`;
+            masterItems.forEach((row, i) => {
+                if (filters.id && !row.id.toLowerCase().includes(filters.id)) return;
+                if (filters.name && !row.name.toLowerCase().includes(filters.name)) return;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
+                    <td><input id="ITEMS_${i}_id" value="${row.id}" oninput="handleInput(${i},'id',this.value,this)"></td>
+                    <td><input id="ITEMS_${i}_name" value="${row.name}" oninput="handleInput(${i},'name',this.value,this)"></td>
+                    <td><input id="ITEMS_${i}_desc" value="${row.desc}" oninput="handleInput(${i},'desc',this.value,this)"></td>`;
+                body.appendChild(tr);
+            });
+        } 
+        else if (currentTab === 'PURCHASE' || currentTab === 'SALES') {
+            const isP = currentTab === 'PURCHASE';
+            // Column selector UI
+            if (!window.columnPrefs) window.columnPrefs = {date:true,party:true,id:true,name:true,desc:true,qty:true,price:true,total:true,status:true};
+            // Date range filter
+            if (!window.tabDateRange) window.tabDateRange = {from:'',to:''};
+            extras.innerHTML = `<div style='margin-bottom:8px;'>
+                <label style='font-size:12px;margin-right:8px;'>Show Columns:</label>
+                ${['date','party','id','name','desc','qty','price','total','status'].map(col=>`<label style='margin-right:6px;'><input type='checkbox' onchange='window.columnPrefs["${col}"]=this.checked;renderTable();' ${window.columnPrefs[col]?'checked':''}/> ${col.toUpperCase()}</label>`).join('')}
+                <span style='margin-left:20px;'></span>
+                <label style='font-size:12px;'>From: <input type='date' value='${window.tabDateRange.from}' onchange='window.tabDateRange.from=this.value;renderTable();'></label>
+                <label style='font-size:12px;margin-left:10px;'>To: <input type='date' value='${window.tabDateRange.to}' onchange='window.tabDateRange.to=this.value;renderTable();'></label>
+            </div>`;
+            head.innerHTML = `<tr><th style="width:40px"></th>
+                ${window.columnPrefs.date?createHdr('DATE','date'):''}
+                ${window.columnPrefs.party?createHdr(isP?'SUPPLIER':'CUSTOMER','party'):''}
+                ${window.columnPrefs.id?createHdr('ID','id'):''}
+                ${window.columnPrefs.name?createHdr('NAME','name'):''}
+                ${window.columnPrefs.desc?createHdr('DESC','desc'):''}
+                ${window.columnPrefs.qty?createHdr('QTY',null):''}
+                ${window.columnPrefs.price?createHdr(isP?'U.PRICE':'S.PRICE',null):''}
+                ${window.columnPrefs.total?createHdr(isP?'TOTAL':'NET',null):''}
+                ${window.columnPrefs.status?createHdr('STATUS','status'):''}
+            </tr>`;
+            
+            tabsData[currentTab].forEach((row, i) => {
+                // Date range filter
+                if(window.tabDateRange && window.tabDateRange.from && row.date && row.date.slice(0,10)<window.tabDateRange.from) return;
+                if(window.tabDateRange && window.tabDateRange.to && row.date && row.date.slice(0,10)>window.tabDateRange.to) return;
+                if (Object.keys(filters).some(f => filters[f] && !String(row[f]||'').toLowerCase().includes(filters[f]))) return;
+                // Validation: warn if selling more than in stock
+                let stock = 0;
+                if(currentTab==='SALES' && row.id) {
+                    const inQ = tabsData.PURCHASE.filter(p => p.id === row.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
+                    const outQ = tabsData.SALES.filter((s, idx2) => s.id === row.id && idx2 < i).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
+                    stock = inQ - outQ;
+                }
+                let displayVal = isP ? (row.qty * row.uPrice) : ((row.qty * row.sPrice) - calculateFIFOCost(row.id, row.qty, i));
+                let warn = '';
+                if(currentTab==='SALES' && row.qty > stock) warn = '<span style="color:red;font-size:11px;">Not enough stock!</span>';
+                if((currentTab==='PURCHASE'||currentTab==='SALES') && (!row.id||!row.qty||!(isP?row.uPrice:row.sPrice))) warn = '<span style="color:red;font-size:11px;">Fill all required fields!</span>';
+                const tr = document.createElement('tr');
+                let tds = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>`;
+                if(window.columnPrefs.date) tds += `<td><input id="${currentTab}_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>`;
+                if(window.columnPrefs.party) tds += `<td><input id="${currentTab}_${i}_party" list="party-suggestions" value="${row.party||''}" oninput="handleInput(${i},'party',this.value,this)"></td>`;
+                if(window.columnPrefs.id) tds += `<td><input id="${currentTab}_${i}_id" list="item-suggestions" value="${row.id||''}" oninput="tabsData['${currentTab}'][${i}].id=this.value" onchange="validateAndLink(${i},this.value)"></td>`;
+                if(window.columnPrefs.name) tds += `<td><input value="${row.name||''}" readonly tabindex="-1"></td>`;
+                if(window.columnPrefs.desc) tds += `<td><input value="${row.desc||''}" readonly tabindex="-1"></td>`;
+                if(window.columnPrefs.qty) tds += `<td><input id="${currentTab}_${i}_qty" type="number" class="num-align" value="${row.qty||''}" oninput="handleInput(${i},'qty',this.value,this)"></td>`;
+                if(window.columnPrefs.price) tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${isP?row.uPrice:row.sPrice}" oninput="handleInput(${i},'${isP?'uPrice':'sPrice'}',this.value,this)"></td>`;
+                if(window.columnPrefs.total) tds += `<td id="${currentTab}_${i}_total" class="num-align">${formatMoney(displayVal)}</td>`;
+                if(window.columnPrefs.status) tds += `<td><select id="${currentTab}_${i}_status" onchange="handleInput(${i},'status',this.value,this)">
+                        <option value="CASH" ${row.status=='CASH'?'selected':''}>CASH</option>
+                        <option value="CREDIT" ${row.status=='CREDIT'?'selected':''}>CREDIT</option>
+                    </select></td>`;
+                tr.innerHTML = tds + (warn?`<td colspan="2">${warn}</td>`:'');
+                body.appendChild(tr);
+            });
+        }
+        else if (currentTab === 'BALANCE') {
+            head.innerHTML = `<tr>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}<th class="num-align">STOCK IN</th><th class="num-align">STOCK OUT</th><th class="num-align">ON HAND</th><th class="num-align">VALUATION</th></tr>`;
+            let totalV = 0;
+            masterItems.filter(m => m.id).forEach(item => {
+                const inQ = tabsData.PURCHASE.filter(p => p.id === item.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
+                const outQ = tabsData.SALES.filter(s => s.id === item.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
+                const stock = inQ - outQ;
+                const cost = tabsData.PURCHASE.filter(p => p.id === item.id).reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
+                const avg = inQ > 0 ? (cost / inQ) : 0;
+                totalV += (stock * avg);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding:10px">${item.id}</td><td style="padding:10px">${item.name}</td><td class="num-align">${inQ}</td><td class="num-align">${outQ}</td><td class="num-align" style="${stock<=0?'color:red;font-weight:bold':''}">${stock}</td><td class="num-align">${formatMoney(stock*avg)}</td>`;
+                body.appendChild(tr);
+            });
+            extras.innerHTML = `<div style="background:#f1f8f4; padding:15px; border:2px solid var(--primary-green); display:flex; justify-content:space-between; font-weight:bold"><span>TOTAL INVENTORY VALUE</span><span>${formatMoney(totalV)}</span></div>`;
+        }
+        else if (currentTab === 'EXPENSE') {
+            head.innerHTML = `<tr><th style="width:40px"></th>${createHdr('DATE','date')}${createHdr('REASON','reason')}${createHdr('AMOUNT',null)}</tr>`;
+            tabsData.EXPENSE.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
+                    <td><input id="EXPENSE_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>
+                    <td><input id="EXPENSE_${i}_reason" value="${row.reason||''}" oninput="handleInput(${i},'reason',this.value,this)"></td>
+                    <td><input id="EXPENSE_${i}_amt" type="number" class="num-align" value="${row.amt||''}" oninput="handleInput(${i},'amt',this.value,this)"></td>`;
+                body.appendChild(tr);
+            });
+        }
+        else if (currentTab === 'REPORT') {
+            head.innerHTML = `<tr><th colspan="2" style="padding:15px; text-align:center">FINANCIAL SUMMARY <button onclick="window.print()" style="float:right;padding:4px 12px;font-size:12px;border-radius:4px;border:none;background:var(--primary-green);color:white;cursor:pointer;">Print</button></th></tr>`;
+            // Date range filter for reports
+            if(!window.reportDateRange) window.reportDateRange = {from:'',to:''};
+            extras.innerHTML = `<div style='margin-bottom:10px;'>
+                <label style='font-size:12px;'>From: <input type='date' value='${window.reportDateRange.from}' onchange='window.reportDateRange.from=this.value;renderTable();'></label>
+                <label style='font-size:12px;margin-left:10px;'>To: <input type='date' value='${window.reportDateRange.to}' onchange='window.reportDateRange.to=this.value;renderTable();'></label>
+            </div>`;
+            // Date range filter for report calculations
+            let purchaseRows = tabsData.PURCHASE;
+            let salesRows = tabsData.SALES;
+            let expenseRows = tabsData.EXPENSE;
+            if(window.reportDateRange && window.reportDateRange.from) {
+                purchaseRows = purchaseRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
+                salesRows = salesRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
+                expenseRows = expenseRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
+            }
+            if(window.reportDateRange && window.reportDateRange.to) {
+                purchaseRows = purchaseRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
+                salesRows = salesRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
+                expenseRows = expenseRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
+            }
+            const totalPurchaseCash = purchaseRows.filter(p => p.status === 'CASH').reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
+            const totalPurchaseCredit = purchaseRows.filter(p => p.status === 'CREDIT').reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
+            const totalSalesCash = salesRows.filter(s => s.status === 'CASH').reduce((a, b) => a + ((b.qty || 0) * (b.sPrice || 0)), 0);
+            const totalSalesCredit = salesRows.filter(s => s.status === 'CREDIT').reduce((a, b) => a + ((b.qty || 0) * (b.sPrice || 0)), 0);
+            const totalExpense = expenseRows.reduce((a, b) => a + (parseFloat(b.amt) || 0), 0);
+            const net = (totalSalesCash + totalSalesCredit) - (totalPurchaseCash + totalPurchaseCredit) - totalExpense;
+            const cashOnHand = (beginningBalance + totalSalesCash) - (totalPurchaseCash + totalExpense);
+
+            const rows = [
+                { l: "Initial Cash Balance", v: beginningBalance, ed: true },
+                { l: "Total Purchases on Credit", v: totalPurchaseCredit, neg: true },
+                { l: "Total Purchases on Cash", v: totalPurchaseCash, neg: true },
+                { l: "Total Sales on Cash", v: totalSalesCash, pos: true },
+                { l: "Total Sales on Credit", v: totalSalesCredit, pos: true },
+                { l: "Total Expense", v: totalExpense, neg: true },
+                { l: "Net", v: net, total: true },
+                { l: "Cash on Hand", v: cashOnHand, total: true }
+            ];
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = r.total ? 'report-total-row' : '';
+                tr.innerHTML = `<td class="report-label">${r.l}</td><td class="report-value ${r.total ? '' : (r.neg ? 'report-negative' : (r.pos ? '' : ''))}">
+                ${r.ed ? `<input style="text-align:right; font-weight:bold" type="number" value="${r.v}" onchange="beginningBalance=parseFloat(this.value)||0; renderTable(); saveData();">` : formatMoney(r.v)}</td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        if (focusedId && focusedId.startsWith('filter-')) {
+            const el = document.getElementById(focusedId);
+            if (el) {
+                el.focus();
+                if (el.setSelectionRange && typeof cursorPosition === 'number') el.setSelectionRange(cursorPosition, cursorPosition);
+            }
+        }
+    }
+
+    // --- KEYBOARD NAV ---
+    window.addEventListener('keydown', e => {
+        const active = document.activeElement;
+        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'SELECT')) return;
+        const inputs = Array.from(document.querySelectorAll('tbody input:not([readonly]), tbody select'));
+        const currIdx = inputs.indexOf(active);
+        const row = active.closest('tr');
+        if(!row) return;
+        const rowInputs = Array.from(row.querySelectorAll('input:not([readonly]), select'));
+        const numCols = rowInputs.length;
+        switch (e.key) {
+            case 'Enter':
+                e.preventDefault();
+                if (currIdx + numCols < inputs.length) inputs[currIdx + numCols].focus();
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                if (currIdx + numCols < inputs.length) inputs[currIdx + numCols].focus();
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                if (currIdx - numCols >= 0) inputs[currIdx - numCols].focus();
+                break;
+            case 'ArrowRight':
+                if (active.tagName === 'SELECT' || active.selectionEnd === active.value.length) {
+                    if (currIdx + 1 < inputs.length) inputs[currIdx + 1].focus();
+                }
+                break;
+            case 'ArrowLeft':
+                if (active.tagName === 'SELECT' || active.selectionStart === 0) {
+                    if (currIdx - 1 >= 0) inputs[currIdx - 1].focus();
+                }
+                break;
+        }
+    });
+
+    switchTab('ITEMS');
+</script>
+</body>
+</html>

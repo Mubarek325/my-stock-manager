@@ -6,10 +6,10 @@
     <title>POWER-IMS</title>
     <style>
         :root {
-            --primary-green: #217346;
+            --primary-green: #0f0094;
             --border-color: #d1d1d1;
             --header-bg: #f3f3f3;
-            --nav-bg: #2d2d2d;
+            --nav-bg: #00014d;
             --error-red: #d32f2f;
             --aptos: 'Aptos', 'Segoe UI', 'Ubuntu', sans-serif;
         }
@@ -27,7 +27,7 @@
             background: white;
             padding: 12px;
             border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(207, 11, 11, 0.08);
             box-sizing: border-box;
             overflow-x: auto;
         }
@@ -40,7 +40,18 @@
 
         h3 { color: var(--primary-green); margin: 0; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; margin-bottom: 20px; table-layout: fixed; }
+        th, td { position: relative; }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            z-index: 10;
+            user-select: none;
+        }
         
         @media (min-width: 768px) {
             table { min-width: 100%; font-size: 14px; }
@@ -68,6 +79,10 @@
         .num-align { text-align: right; font-weight: 500; padding-right: 10px; }
         .del-btn { color: #bbb; cursor: pointer; text-align: center; width: 30px; font-weight: bold; border: none; background: none; font-size: 18px; }
         .del-btn:hover { color: var(--error-red); }
+        .status-error { background: rgba(210, 47, 47, 0.12); }
+        .status-error select { background: transparent; }
+        .stock-warning { color: var(--error-red); font-size: 11px; }
+        .summary-row td { background: #f1f8f4; font-weight: 700; }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -86,9 +101,80 @@
         .report-label { color: #444; font-weight: 500; padding: 12px; width: 60%; }
         .report-value { text-align: right; font-weight: 700; padding: 12px; }
         .report-total-row { background-color: #f1f8f4; border-top: 2px solid var(--primary-green); border-bottom: 2px solid var(--primary-green); }
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            background: linear-gradient(90deg, #0f0094, #1a1aff);
+            color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12); margin-bottom: 15px;
+        }
+        .app-title { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.04em; }
+        .app-user { opacity: 0.85; font-size: 0.8rem; margin-top: 4px; }
+        .settings-wrap { position: relative; }
+        .settings-button {
+            width: 42px; height: 42px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.14); color: white; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 18px; transition: background .2s ease;
+        }
+        .settings-button:hover { background: rgba(255,255,255,0.24); }
+        .settings-menu {
+            display: none; position: absolute; right: 0; top: 52px;
+            background: white; border: 1px solid #dadada; border-radius: 10px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.16); min-width: 160px; overflow: hidden;
+        }
+        .settings-menu.open { display: block; }
+        .settings-menu button {
+            width: 100%; border: none; background: transparent; padding: 12px 14px;
+            text-align: left; cursor: pointer; font-family: var(--aptos); font-size: 14px;
+            color: #222; transition: background .15s ease;
+        }
+        .settings-menu button:hover { background: #f4f4f4; }
+        .login-screen {
+            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.45); z-index: 2000;
+        }
+        .login-box {
+            background: white; padding: 28px; border-radius: 14px; width: min(420px, 92%);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+        }
+        .login-box h2 { margin: 0 0 18px; color: #0f0094; }
+        .login-box label { display: block; margin-bottom: 12px; font-weight: 700; color: #333; }
+        .login-box input { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 10px; margin-top: 6px; }
+        .login-box button { margin-top: 18px; width: 100%; padding: 12px; border: none; border-radius: 10px; background: #0f0094; color: white; font-weight: 700; cursor: pointer; }
+        .login-error { margin-top: 12px; color: var(--error-red); font-size: 13px; min-height: 18px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
+
+<div class="app-header" id="app-header">
+    <div>
+        <div class="app-title">Inventory Manager</div>
+        <div class="app-user" id="current-user-label"></div>
+    </div>
+    <div class="settings-wrap">
+        <button id="settings-button" class="settings-button" type="button" onclick="toggleSettingsMenu()" aria-label="Settings">⚙</button>
+        <div id="settings-menu" class="settings-menu">
+            <button type="button" onclick="addUser()">Add user</button>
+            <button type="button" onclick="logout()">Log out</button>
+            <button type="button" onclick="logout()">mmmmmmm</button>
+        </div>
+    </div>
+</div>
+<div id="login-screen" class="login-screen">
+    <div class="login-box">
+        <h2>Inventory Manager Login</h2>
+        <form onsubmit="handleLogin(event)">
+            <label>Username
+                <input id="login-user" autocomplete="username">
+            </label>
+            <label>Password
+                <input id="login-pass" type="password" autocomplete="current-password">
+            </label>
+            <button type="submit">Log In</button>
+            <div id="login-error" class="login-error"></div>
+        </form>
+    </div>
+</div>
 
 <datalist id="party-suggestions"></datalist>
 <datalist id="item-suggestions"></datalist>
@@ -140,11 +226,20 @@
         cursorPosition = (element.selectionStart !== undefined) ? element.selectionStart : 0; 
         
         if(currentTab === 'ITEMS') {
+            if(field === 'id' && val) {
+                // Check for duplicate ID (excluding current row)
+                if(masterItems.some((item, i) => item.id === val && i !== idx)) {
+                    alert('Error: Duplicate ID is not allowed.');
+                    element.value = '';
+                    masterItems[idx][field] = '';
+                    renderTable();
+                    return;
+                }
+            }
             masterItems[idx][field] = val;
         } else {
             tabsData[currentTab][idx][field] = (['qty','uPrice','sPrice','amt'].includes(field)) ? parseFloat(val)||0 : val;
         }
-        
         if (field !== 'id') {
             const rowAdded = checkAndAddRow(idx);
             saveData();
@@ -217,6 +312,84 @@
     let focusedId = null;
     let cursorPosition = 0;
     let filters = {};
+    let users = JSON.parse(localStorage.getItem('imsUsers')) || [{ username: 'admin', password: 'admin' }];
+    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+
+    function saveUsers() {
+        localStorage.setItem('imsUsers', JSON.stringify(users));
+    }
+    function saveSession() {
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    }
+    function updateHeaderTitle() {
+        document.getElementById('current-user-label').textContent = currentUser ? `User: ${currentUser.username}` : '';
+        document.getElementById('sheet-title').innerText = currentTab;
+    }
+    function toggleSettingsMenu() {
+        const menu = document.getElementById('settings-menu');
+        menu.classList.toggle('open');
+    }
+    function closeSettingsMenu() {
+        const menu = document.getElementById('settings-menu');
+        menu.classList.remove('open');
+    }
+    function showLogin() {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('app-header').style.display = 'none';
+        document.querySelector('.worksheet-container').style.display = 'none';
+        document.querySelector('.bottom-nav').style.display = 'none';
+        document.getElementById('settings-menu').classList.remove('open');
+        document.getElementById('login-error').textContent = '';
+        setTimeout(() => document.getElementById('login-user').focus(), 100);
+    }
+    function hideLogin() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-header').style.display = 'flex';
+        document.querySelector('.worksheet-container').style.display = 'block';
+        document.querySelector('.bottom-nav').style.display = 'flex';
+    }
+    function authenticateUser(username, password) {
+        return users.find(u => u.username === username && u.password === password);
+    }
+    function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('login-user').value.trim();
+        const password = document.getElementById('login-pass').value;
+        const user = authenticateUser(username, password);
+        if (!user) {
+            document.getElementById('login-error').textContent = 'Invalid username or password.';
+            return;
+        }
+        currentUser = { username: user.username };
+        saveSession();
+        updateHeaderTitle();
+        hideLogin();
+        updateSuggestions();
+        switchTab(currentTab);
+    }
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem('currentUser');
+        closeSettingsMenu();
+        showLogin();
+    }
+    function addUser() {
+        closeSettingsMenu();
+        const username = prompt('Enter new username:');
+        if (!username) return;
+        const password = prompt('Enter password for ' + username + ':');
+        if (!password) return;
+        if (users.some(u => u.username === username)) {
+            alert('User already exists.');
+            return;
+        }
+        users.push({ username, password });
+        saveUsers();
+        alert('User added successfully.');
+    }
+    document.addEventListener('click', event => {
+        if (!event.target.closest('.settings-wrap')) closeSettingsMenu();
+    });
 
     function switchTab(tab) {
         currentTab = tab; filters = {}; focusedId = null;
@@ -239,12 +412,66 @@
     }
 
     function createHdr(label, field) {
-        return `<th><span class="header-label">${label}</span>
+        // Add a resize handle to each header
+        return `<th style="width:auto;"><span class="header-label">${label}</span>
             ${field ? `<input id="filter-${field}" class="hdr-filter" placeholder=" " value="${filters[field]||''}"
                 oninput="filters['${field}']=this.value.toLowerCase(); focusedId=this.id; cursorPosition=this.selectionStart||0;"
                 onkeyup="renderTable();"
             >` : ''}
+            <div class="resize-handle" onmousedown="startResize(event, this)"></div>
         </th>`;
+    }
+
+    // --- COLUMN RESIZE LOGIC ---
+    let resizing = { th: null, startX: 0, startWidth: 0 };
+    function startResize(e, handle) {
+        e.preventDefault();
+        resizing.th = handle.parentElement;
+        resizing.startX = e.clientX;
+        resizing.startWidth = resizing.th.offsetWidth;
+        resizing.tableId = resizing.th.closest('table').id;
+        resizing.colIdx = Array.from(resizing.th.parentElement.children).indexOf(resizing.th);
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+    }
+    function doResize(e) {
+        if (!resizing.th) return;
+        let newWidth = resizing.startWidth + (e.clientX - resizing.startX);
+        if (newWidth < 40) newWidth = 40;
+        resizing.th.style.width = newWidth + 'px';
+        // Also set width for all cells in this column
+        const table = resizing.th.closest('table');
+        const idx = resizing.colIdx;
+        table.querySelectorAll('tr').forEach(row => {
+            if (row.children[idx]) row.children[idx].style.width = newWidth + 'px';
+        });
+        // Save widths to localStorage
+        saveTableWidths(table);
+    }
+    function stopResize() {
+        document.removeEventListener('mousemove', doResize);
+        document.removeEventListener('mouseup', stopResize);
+        resizing.th = null;
+    }
+
+    function saveTableWidths(table) {
+        if (!table || !table.id) return;
+        const widths = Array.from(table.rows[0]?.cells || []).map(cell => cell.style.width || '');
+        localStorage.setItem('tableWidths_' + table.id + '_' + currentTab, JSON.stringify(widths));
+    }
+    function restoreTableWidths(table) {
+        if (!table || !table.id) return;
+        const widths = JSON.parse(localStorage.getItem('tableWidths_' + table.id + '_' + currentTab) || '[]');
+        if (!widths.length) return;
+        Array.from(table.rows[0]?.cells || []).forEach((cell, i) => {
+            if (widths[i]) cell.style.width = widths[i];
+        });
+        // Also apply to all rows
+        for (let i = 1; i < table.rows.length; ++i) {
+            Array.from(table.rows[i].cells).forEach((cell, j) => {
+                if (widths[j]) cell.style.width = widths[j];
+            });
+        }
     }
 
     function renderTable() {
@@ -255,75 +482,100 @@
 
         if (currentTab === 'ITEMS') {
             head.innerHTML = `<tr><th style="width:40px"></th>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}${createHdr('DESCRIPTION','desc')}</tr>`;
+            setTimeout(() => restoreTableWidths(document.getElementById('data-table')), 0);
             masterItems.forEach((row, i) => {
                 if (filters.id && !row.id.toLowerCase().includes(filters.id)) return;
                 if (filters.name && !row.name.toLowerCase().includes(filters.name)) return;
+                // Check for duplicate IDs (except for the last empty row)
+                let isDuplicate = row.id && masterItems.filter((r, idx) => r.id === row.id && idx !== i).length > 0;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
-                    <td><input id="ITEMS_${i}_id" value="${row.id}" oninput="handleInput(${i},'id',this.value,this)"></td>
+                    <td><input id="ITEMS_${i}_id" value="${row.id}" oninput="handleInput(${i},'id',this.value,this)" style="${isDuplicate ? 'background:#ffeaea;border:1px solid #d32f2f' : ''}"></td>
                     <td><input id="ITEMS_${i}_name" value="${row.name}" oninput="handleInput(${i},'name',this.value,this)"></td>
                     <td><input id="ITEMS_${i}_desc" value="${row.desc}" oninput="handleInput(${i},'desc',this.value,this)"></td>`;
+                if (isDuplicate) tr.title = 'Duplicate ID!';
                 body.appendChild(tr);
             });
         } 
         else if (currentTab === 'PURCHASE' || currentTab === 'SALES') {
             const isP = currentTab === 'PURCHASE';
-            // Column selector UI
-            if (!window.columnPrefs) window.columnPrefs = {date:true,party:true,id:true,name:true,desc:true,qty:true,price:true,total:true,status:true};
-            // Date range filter
-            if (!window.tabDateRange) window.tabDateRange = {from:'',to:''};
-            extras.innerHTML = `<div style='margin-bottom:8px;'>
-                <label style='font-size:12px;margin-right:8px;'>Show Columns:</label>
-                ${['date','party','id','name','desc','qty','price','total','status'].map(col=>`<label style='margin-right:6px;'><input type='checkbox' onchange='window.columnPrefs["${col}"]=this.checked;renderTable();' ${window.columnPrefs[col]?'checked':''}/> ${col.toUpperCase()}</label>`).join('')}
-                <span style='margin-left:20px;'></span>
-                <label style='font-size:12px;'>From: <input type='date' value='${window.tabDateRange.from}' onchange='window.tabDateRange.from=this.value;renderTable();'></label>
-                <label style='font-size:12px;margin-left:10px;'>To: <input type='date' value='${window.tabDateRange.to}' onchange='window.tabDateRange.to=this.value;renderTable();'></label>
-            </div>`;
+            let extraSalesCols = '';
+            if (!isP) {
+                extraSalesCols = `${createHdr('PRICE',null)}${createHdr('TOTAL PRICE',null)}${createHdr('PURCHASE PRICE',null)}${createHdr('TOTAL PURCHASE PRICE',null)}`;
+            }
+            // Ensure full width for both PURCHASE and SALES
+            const dataTable = document.getElementById('data-table');
+            dataTable.style.minWidth = '100%';
+            dataTable.style.width = '100%';
             head.innerHTML = `<tr><th style="width:40px"></th>
-                ${window.columnPrefs.date?createHdr('DATE','date'):''}
-                ${window.columnPrefs.party?createHdr(isP?'SUPPLIER':'CUSTOMER','party'):''}
-                ${window.columnPrefs.id?createHdr('ID','id'):''}
-                ${window.columnPrefs.name?createHdr('NAME','name'):''}
-                ${window.columnPrefs.desc?createHdr('DESC','desc'):''}
-                ${window.columnPrefs.qty?createHdr('QTY',null):''}
-                ${window.columnPrefs.price?createHdr(isP?'U.PRICE':'S.PRICE',null):''}
-                ${window.columnPrefs.total?createHdr(isP?'TOTAL':'NET',null):''}
-                ${window.columnPrefs.status?createHdr('STATUS','status'):''}
+                ${createHdr('DATE','date')}
+                ${createHdr(isP?'SUPPLIER':'CUSTOMER','party')}
+                ${createHdr('ID','id')}
+                ${createHdr('NAME','name')}
+                ${createHdr('DESC','desc')}
+                ${createHdr('QTY',null)}
+                ${isP ? createHdr('U.PRICE',null) + createHdr('TOTAL',null) : extraSalesCols}
+                ${createHdr('STATUS','status')}
             </tr>`;
-            
+            setTimeout(() => restoreTableWidths(dataTable), 0);
+            let totalQty = 0;
+            let totalValue = 0;
             tabsData[currentTab].forEach((row, i) => {
-                // Date range filter
-                if(window.tabDateRange && window.tabDateRange.from && row.date && row.date.slice(0,10)<window.tabDateRange.from) return;
-                if(window.tabDateRange && window.tabDateRange.to && row.date && row.date.slice(0,10)>window.tabDateRange.to) return;
                 if (Object.keys(filters).some(f => filters[f] && !String(row[f]||'').toLowerCase().includes(filters[f]))) return;
-                // Validation: warn if selling more than in stock
                 let stock = 0;
                 if(currentTab==='SALES' && row.id) {
                     const inQ = tabsData.PURCHASE.filter(p => p.id === row.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
                     const outQ = tabsData.SALES.filter((s, idx2) => s.id === row.id && idx2 < i).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
                     stock = inQ - outQ;
                 }
-                let displayVal = isP ? (row.qty * row.uPrice) : ((row.qty * row.sPrice) - calculateFIFOCost(row.id, row.qty, i));
+                const qtyVal = parseFloat(row.qty) || 0;
+                const priceVal = parseFloat(isP ? row.uPrice : row.sPrice) || 0;
+                const rowTotal = isP ? (qtyVal * priceVal) : (qtyVal * priceVal) - calculateFIFOCost(row.id, qtyVal, i);
+                totalQty += qtyVal;
+                totalValue += rowTotal;
                 let warn = '';
-                if(currentTab==='SALES' && row.qty > stock) warn = '<span style="color:red;font-size:11px;">Not enough stock!</span>';
-                if((currentTab==='PURCHASE'||currentTab==='SALES') && (!row.id||!row.qty||!(isP?row.uPrice:row.sPrice))) warn = '<span style="color:red;font-size:11px;">Fill all required fields!</span>';
+                if(currentTab==='SALES' && qtyVal > stock) warn = 'Not enough stock!';
+                let hasRequiredError = (!row.id || !row.qty || !priceVal);
                 const tr = document.createElement('tr');
                 let tds = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>`;
-                if(window.columnPrefs.date) tds += `<td><input id="${currentTab}_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>`;
-                if(window.columnPrefs.party) tds += `<td><input id="${currentTab}_${i}_party" list="party-suggestions" value="${row.party||''}" oninput="handleInput(${i},'party',this.value,this)"></td>`;
-                if(window.columnPrefs.id) tds += `<td><input id="${currentTab}_${i}_id" list="item-suggestions" value="${row.id||''}" oninput="tabsData['${currentTab}'][${i}].id=this.value" onchange="validateAndLink(${i},this.value)"></td>`;
-                if(window.columnPrefs.name) tds += `<td><input value="${row.name||''}" readonly tabindex="-1"></td>`;
-                if(window.columnPrefs.desc) tds += `<td><input value="${row.desc||''}" readonly tabindex="-1"></td>`;
-                if(window.columnPrefs.qty) tds += `<td><input id="${currentTab}_${i}_qty" type="number" class="num-align" value="${row.qty||''}" oninput="handleInput(${i},'qty',this.value,this)"></td>`;
-                if(window.columnPrefs.price) tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${isP?row.uPrice:row.sPrice}" oninput="handleInput(${i},'${isP?'uPrice':'sPrice'}',this.value,this)"></td>`;
-                if(window.columnPrefs.total) tds += `<td id="${currentTab}_${i}_total" class="num-align">${formatMoney(displayVal)}</td>`;
-                if(window.columnPrefs.status) tds += `<td><select id="${currentTab}_${i}_status" onchange="handleInput(${i},'status',this.value,this)">
+                tds += `<td><input id="${currentTab}_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>`;
+                tds += `<td><input id="${currentTab}_${i}_party" list="party-suggestions" value="${row.party||''}" oninput="handleInput(${i},'party',this.value,this)"></td>`;
+                tds += `<td><input id="${currentTab}_${i}_id" list="item-suggestions" value="${row.id||''}" oninput="tabsData['${currentTab}'][${i}].id=this.value" onchange="validateAndLink(${i},this.value)"></td>`;
+                tds += `<td><input value="${row.name||''}" readonly tabindex="-1"></td>`;
+                tds += `<td><input value="${row.desc||''}" readonly tabindex="-1"></td>`;
+                tds += `<td><input id="${currentTab}_${i}_qty" type="number" class="num-align" value="${row.qty||''}" oninput="handleInput(${i},'qty',this.value,this)"></td>`;
+                if (isP) {
+                    tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${row.uPrice}" oninput="handleInput(${i},'uPrice',this.value,this)"></td>`;
+                    tds += `<td id="${currentTab}_${i}_total" class="num-align">${formatMoney(rowTotal)}</td>`;
+                } else {
+                    // SALES: PRICE, TOTAL PRICE, PURCHASE PRICE, TOTAL PURCHASE PRICE
+                    const totalPrice = qtyVal * priceVal;
+                    // Find purchase price (FIFO)
+                    let purchasePrice = 0;
+                    let needed = qtyVal;
+                    let buys = tabsData.PURCHASE.filter(p => p.id === row.id).sort((a,b) => new Date(a.date) - new Date(b.date)).map(p => ({...p, rem: parseFloat(p.qty)}));
+                    let soldBefore = tabsData.SALES.filter((s, idx2) => s.id === row.id && idx2 < i).reduce((a, b) => a + (parseFloat(b.qty)||0), 0);
+                    for(let b of buys) { let take = Math.min(b.rem, soldBefore); b.rem -= take; soldBefore -= take; }
+                    for(let b of buys) { if(needed <= 0) break; let take = Math.min(b.rem, needed); purchasePrice = b.uPrice; needed -= take; }
+                    const totalPurchasePrice = qtyVal * (purchasePrice || 0);
+                    tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${row.sPrice}" oninput="handleInput(${i},'sPrice',this.value,this)"></td>`;
+                    tds += `<td class="num-align">${formatMoney(totalPrice)}</td>`;
+                    tds += `<td class="num-align">${formatMoney(purchasePrice)}</td>`;
+                    tds += `<td class="num-align">${formatMoney(totalPurchasePrice)}</td>`;
+                }
+                tds += `<td${hasRequiredError ? ' class="status-error"' : ''}><select id="${currentTab}_${i}_status" onchange="handleInput(${i},'status',this.value,this)">
                         <option value="CASH" ${row.status=='CASH'?'selected':''}>CASH</option>
                         <option value="CREDIT" ${row.status=='CREDIT'?'selected':''}>CREDIT</option>
-                    </select></td>`;
-                tr.innerHTML = tds + (warn?`<td colspan="2">${warn}</td>`:'');
+                    </select>${warn ? `<div class="stock-warning">${warn}</div>` : ''}</td>`;
+                tr.innerHTML = tds;
                 body.appendChild(tr);
             });
+            // Adjust summary row for SALES tab
+            let summaryCols = isP ? 6 : 10;
+            const summaryTr = document.createElement('tr');
+            summaryTr.className = 'summary-row';
+            summaryTr.innerHTML = `<td colspan="${summaryCols}" style="padding:10px">TOTALS</td><td class="num-align">${totalQty.toLocaleString()}</td><td></td><td class="num-align">${formatMoney(totalValue)}</td><td></td>`;
+            body.appendChild(summaryTr);
         }
         else if (currentTab === 'BALANCE') {
             head.innerHTML = `<tr>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}<th class="num-align">STOCK IN</th><th class="num-align">STOCK OUT</th><th class="num-align">ON HAND</th><th class="num-align">VALUATION</th></tr>`;
@@ -399,6 +651,26 @@
                 ${r.ed ? `<input style="text-align:right; font-weight:bold" type="number" value="${r.v}" onchange="beginningBalance=parseFloat(this.value)||0; renderTable(); saveData();">` : formatMoney(r.v)}</td>`;
                 body.appendChild(tr);
             });
+
+            // --- CREDIT DETAILS ---
+            // Purchases on credit: from whom
+            const creditPurchases = purchaseRows.filter(p => p.status === 'CREDIT' && p.party);
+            if (creditPurchases.length) {
+                const parties = {};
+                creditPurchases.forEach(p => { if (!parties[p.party]) parties[p.party] = 0; parties[p.party] += (p.qty||0)*(p.uPrice||0); });
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="2" style="padding:10px 8px 0 8px"><b>Purchases on Credit (Supplier):</b><br>${Object.entries(parties).map(([party, amt]) => `${party}: <b>${formatMoney(amt)}</b>`).join('<br>')}</td>`;
+                body.appendChild(tr);
+            }
+            // Sales on credit: to whom
+            const creditSales = salesRows.filter(s => s.status === 'CREDIT' && s.party);
+            if (creditSales.length) {
+                const customers = {};
+                creditSales.forEach(s => { if (!customers[s.party]) customers[s.party] = 0; customers[s.party] += (s.qty||0)*(s.sPrice||0); });
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="2" style="padding:10px 8px 0 8px"><b>Sales on Credit (Customer):</b><br>${Object.entries(customers).map(([party, amt]) => `${party}: <b>${formatMoney(amt)}</b>`).join('<br>')}</td>`;
+                body.appendChild(tr);
+            }
         }
 
         if (focusedId && focusedId.startsWith('filter-')) {
@@ -446,7 +718,23 @@
         }
     });
 
-    switchTab('ITEMS');
+    function initializeApp() {
+        if (!users.length) {
+            users = [{ username: 'admin', password: 'admin' }];
+            saveUsers();
+        }
+        if (currentUser && users.some(u => u.username === currentUser.username)) {
+            updateHeaderTitle();
+            hideLogin();
+            updateSuggestions();
+            switchTab(currentTab);
+            return;
+        }
+        currentUser = null;
+        saveSession();
+        showLogin();
+    }
+    initializeApp();
 </script>
 </body>
 </html>

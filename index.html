@@ -88,11 +88,11 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--nav-bg); padding: 8px;
             display: flex; justify-content: center; gap: 6px; z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 -2px 10px rgba(255, 57, 57, 0.2);
         }
         .nav-btn {
             padding: 12px 8px; border: none; border-radius: 4px;
-            background: #444; color: #bbb; cursor: pointer; font-size: 10px;
+            background: #001883; color: #bbb; cursor: pointer; font-size: 10px;
             font-weight: 600; text-transform: uppercase; font-family: var(--aptos);
             flex: 1; max-width: 120px; text-align: center;
         }
@@ -103,9 +103,10 @@
         .report-total-row { background-color: #f1f8f4; border-top: 2px solid var(--primary-green); border-bottom: 2px solid var(--primary-green); }
         .app-header {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            background: linear-gradient(90deg, #0f0094, #1a1aff);
-            color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 1001;
+            background: #0f0094;
+            color: #ffffff; padding: 16px 20px; position: sticky; top: 0; z-index: 1001;
             box-shadow: 0 2px 10px rgba(0,0,0,0.12); margin-bottom: 15px;
+            padding: 12px 8px; border: none; border-radius: 4px;
         }
         .app-title { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.04em; }
         .app-user { opacity: 0.85; font-size: 0.8rem; margin-top: 4px; }
@@ -154,9 +155,9 @@
     <div class="settings-wrap">
         <button id="settings-button" class="settings-button" type="button" onclick="toggleSettingsMenu()" aria-label="Settings">⚙</button>
         <div id="settings-menu" class="settings-menu">
+            <button type="button" onclick="switchTab('ITEMS')">Add Items</button>
             <button type="button" onclick="addUser()">Add user</button>
             <button type="button" onclick="logout()">Log out</button>
-            <button type="button" onclick="logout()">mmmmmmm</button>
         </div>
     </div>
 </div>
@@ -194,7 +195,6 @@
 </div>
 
 <div class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('ITEMS')">ITEMS</button>
     <button class="nav-btn" onclick="switchTab('PURCHASE')">PURCHASE</button>
     <button class="nav-btn" onclick="switchTab('SALES')">SALES</button>
     <button class="nav-btn" onclick="switchTab('BALANCE')">BALANCE</button>
@@ -308,7 +308,7 @@
         return cost;
     }
 
-    let currentTab = 'ITEMS';
+    let currentTab = localStorage.getItem('currentTab') || 'ITEMS';
     let focusedId = null;
     let cursorPosition = 0;
     let filters = {};
@@ -323,7 +323,7 @@
     }
     function updateHeaderTitle() {
         document.getElementById('current-user-label').textContent = currentUser ? `User: ${currentUser.username}` : '';
-        document.getElementById('sheet-title').innerText = currentTab;
+        document.getElementById('sheet-title').innerText = currentTab === 'ITEMS' ? 'Add Items' : currentTab;
     }
     function toggleSettingsMenu() {
         const menu = document.getElementById('settings-menu');
@@ -393,11 +393,13 @@
 
     function switchTab(tab) {
         currentTab = tab; filters = {}; focusedId = null;
-        document.getElementById('sheet-title').innerText = tab;
+        localStorage.setItem('currentTab', tab);
+        document.getElementById('sheet-title').innerText = tab === 'ITEMS' ? 'Add Items' : tab;
         document.querySelectorAll('.nav-btn').forEach(b => {
-            const label = b.innerText === 'ITEMS' ? 'ITEMS' : b.innerText;
+            const label = b.innerText;
             b.classList.toggle('active', label === tab);
         });
+        if(tab === 'ITEMS') closeSettingsMenu();
         updateSuggestions();
         renderTable();
     }

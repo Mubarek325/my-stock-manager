@@ -1,742 +1,1225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POWER-IMS</title>
-    <style>
-        :root {
-            --primary-green: #0f0094;
-            --border-color: #d1d1d1;
-            --header-bg: #f3f3f3;
-            --nav-bg: #00014d;
-            --error-red: #d32f2f;
-            --aptos: 'Aptos', 'Segoe UI', 'Ubuntu', sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POWER-IMS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ========== THEMES ========== */
+:root {
+  --p:        #1a1aff;
+  --p2:       #0a0a8f;
+  --accent:   #00c2ff;
+  --border:   #e2e8f0;
+  --hdr-bg:   #f8fafc;
+  --bg:       #f0f4f8;
+  --surface:  #ffffff;
+  --surface2: #f8fafc;
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --error:    #ef4444;
+  --warn-bg:  #fff1f1;
+  --ok-bg:    #f0fdf4;
+  --ok-bdr:   #22c55e;
+  --nav-bg:   #0f172a;
+  --nav-btn:  #1e293b;
+  --focus-bg: #eff6ff;
+  --shadow:   0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:   10px;
+  --font:     'DM Sans',sans-serif;
+  --mono:     'DM Mono',monospace;
+  --row-err:  rgba(239,68,68,.09);
+}
+[data-theme="dark"] {
+  --p:        #818cf8;
+  --p2:       #4f46e5;
+  --accent:   #38bdf8;
+  --border:   #334155;
+  --hdr-bg:   #1e293b;
+  --bg:       #0f172a;
+  --surface:  #1e293b;
+  --surface2: #162032;
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --error:    #f87171;
+  --warn-bg:  #3b0f0f;
+  --ok-bg:    #0f2a1a;
+  --ok-bdr:   #22c55e;
+  --nav-bg:   #020617;
+  --nav-btn:  #1e293b;
+  --focus-bg: #1e2a40;
+  --shadow:   0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.4);
+  --row-err:  rgba(239,68,68,.13);
+}
 
-        body {
-            font-family: var(--aptos);
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 10px 10px 75px 10px;
-            font-size: 14px;
-        }
+/* ========== RESET ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;padding:0 0 72px;transition:background .2s,color .2s;}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{display:none;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--surface2);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-        .worksheet-container {
-            width: 100%;
-            background: white;
-            padding: 12px;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(207, 11, 11, 0.08);
-            box-sizing: border-box;
-            overflow-x: auto;
-        }
+/* ========== HEADER ========== */
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,var(--p2) 0%,var(--p) 100%);
+  color:#fff;padding:14px 20px;
+  box-shadow:0 2px 20px rgba(26,26,255,.3);
+  position:sticky;top:0;z-index:200;
+}
+.app-brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;}
+.app-title{font-size:1.1rem;font-weight:700;letter-spacing:.06em;}
+.app-user{font-size:.65rem;opacity:.75;margin-top:2px;letter-spacing:.02em;}
 
-        .sheet-header {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary-green);
-        }
+/* ========== SETTINGS MENU ========== */
+.settings-wrap{position:relative;}
+.settings-btn{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.15);color:#fff;cursor:pointer;
+  font-size:17px;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .18s,transform .18s;
+}
+.settings-btn:hover{background:rgba(255,255,255,.28);transform:rotate(22deg);}
+.settings-menu{
+  display:none;position:absolute;right:0;top:48px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow-lg);
+  min-width:220px;overflow:hidden;z-index:300;
+}
+.settings-menu.open{display:block;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.menu-item{
+  width:100%;border:none;background:transparent;
+  padding:11px 16px;text-align:left;cursor:pointer;
+  font-family:var(--font);font-size:13px;color:var(--text);
+  display:flex;align-items:center;gap:10px;transition:background .12s;
+}
+.menu-item:hover{background:var(--hdr-bg);}
+.menu-section{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+.menu-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
+.menu-select{
+  width:calc(100% - 32px);margin:2px 16px 10px;
+  padding:7px 10px;border:1px solid var(--border);border-radius:6px;
+  background:var(--surface2);color:var(--text);font-family:var(--font);font-size:12px;
+}
 
-        h3 { color: var(--primary-green); margin: 0; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; }
-        
-        table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; margin-bottom: 20px; table-layout: fixed; }
-        th, td { position: relative; }
-        .resize-handle {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 6px;
-            height: 100%;
-            cursor: col-resize;
-            z-index: 10;
-            user-select: none;
-        }
-        
-        @media (min-width: 768px) {
-            table { min-width: 100%; font-size: 14px; }
-            body { padding: 20px 40px 80px 40px; }
-        }
+/* ========== CONTENT AREA ========== */
+.content{padding:14px 16px 0;}
+@media(min-width:768px){.content{padding:18px 28px 0;}}
 
-        th { background: var(--header-bg); border: 1px solid var(--border-color); padding: 0; position: relative; }
-        .header-label { display: block; font-size: 11px; font-weight: 700; color: #444; padding: 10px 5px; text-align: left; }
-        
-        .hdr-filter {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: none; background: transparent; color: transparent; padding: 10px 5px;
-            font-size: 12px; outline: none; z-index: 1; font-family: var(--aptos);
-        }
-        .hdr-filter:focus, .hdr-filter:not(:placeholder-shown) { background: #fffde7; color: #d32f2f; font-weight: bold; z-index: 2; }
+/* ========== SHEET CARD ========== */
+.sheet-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.sheet-card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:2px solid var(--p);
+  background:linear-gradient(90deg,var(--surface) 60%,var(--focus-bg));
+}
+.sheet-title{font-size:.95rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.05em;}
+.tab-badge{
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;
+  background:var(--p);color:#fff;letter-spacing:.04em;
+}
+.sheet-body{overflow-x:auto;}
 
-        td { border: 1px solid var(--border-color); padding: 0; }
-        input, select {
-            width: 100%; border: none; padding: 10px 5px; font-size: 13px;
-            outline: none; background: transparent; font-family: var(--aptos); box-sizing: border-box;
-        }
-        input:focus { background-color: #fffde7; box-shadow: inset 0 0 0 1px var(--primary-green); }
-        input[readonly] { background-color: #f9f9f9; color: #777; cursor: not-allowed; }
-        
-        .num-align { text-align: right; font-weight: 500; padding-right: 10px; }
-        .del-btn { color: #bbb; cursor: pointer; text-align: center; width: 30px; font-weight: bold; border: none; background: none; font-size: 18px; }
-        .del-btn:hover { color: var(--error-red); }
-        .status-error { background: rgba(210, 47, 47, 0.12); }
-        .status-error select { background: transparent; }
-        .stock-warning { color: var(--error-red); font-size: 11px; }
-        .summary-row td { background: #f1f8f4; font-weight: 700; }
+/* ========== TABLE ========== */
+table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
+th,td{position:relative;border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:0;}
+th:last-child,td:last-child{border-right:none;}
+thead th{background:var(--hdr-bg);position:sticky;top:0;z-index:2;}
+.hdr-inner{display:flex;flex-direction:column;}
+.hdr-label{font-size:10px;font-weight:700;color:var(--muted);padding:8px 8px 2px;letter-spacing:.05em;text-transform:uppercase;}
+.hdr-filter{
+  border:none;border-top:1px solid var(--border);background:transparent;
+  color:var(--text);padding:5px 8px;font-size:11px;outline:none;
+  font-family:var(--font);width:100%;
+}
+.hdr-filter::placeholder{color:var(--border);}
+.hdr-filter:focus,.hdr-filter:not(:placeholder-shown){background:var(--focus-bg);color:var(--p);font-weight:600;}
+.resize-handle{position:absolute;right:0;top:0;width:4px;height:100%;cursor:col-resize;z-index:5;}
 
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--nav-bg); padding: 8px;
-            display: flex; justify-content: center; gap: 6px; z-index: 1000;
-            box-shadow: 0 -2px 10px rgba(255, 57, 57, 0.2);
-        }
-        .nav-btn {
-            padding: 12px 8px; border: none; border-radius: 4px;
-            background: #001883; color: #bbb; cursor: pointer; font-size: 10px;
-            font-weight: 600; text-transform: uppercase; font-family: var(--aptos);
-            flex: 1; max-width: 120px; text-align: center;
-        }
-        .nav-btn.active { background: white; color: black; box-shadow: inset 0 -3px 0 var(--primary-green); }
-        
-        .report-label { color: #444; font-weight: 500; padding: 12px; width: 60%; }
-        .report-value { text-align: right; font-weight: 700; padding: 12px; }
-        .report-total-row { background-color: #f1f8f4; border-top: 2px solid var(--primary-green); border-bottom: 2px solid var(--primary-green); }
-        .app-header {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            background: #0f0094;
-            color: #ffffff; padding: 16px 20px; position: sticky; top: 0; z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12); margin-bottom: 15px;
-            padding: 12px 8px; border: none; border-radius: 4px;
-        }
-        .app-title { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.04em; }
-        .app-user { opacity: 0.85; font-size: 0.8rem; margin-top: 4px; }
-        .settings-wrap { position: relative; }
-        .settings-button {
-            width: 42px; height: 42px; border-radius: 50%; border: none;
-            background: rgba(255,255,255,0.14); color: white; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 18px; transition: background .2s ease;
-        }
-        .settings-button:hover { background: rgba(255,255,255,0.24); }
-        .settings-menu {
-            display: none; position: absolute; right: 0; top: 52px;
-            background: white; border: 1px solid #dadada; border-radius: 10px;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.16); min-width: 160px; overflow: hidden;
-        }
-        .settings-menu.open { display: block; }
-        .settings-menu button {
-            width: 100%; border: none; background: transparent; padding: 12px 14px;
-            text-align: left; cursor: pointer; font-family: var(--aptos); font-size: 14px;
-            color: #222; transition: background .15s ease;
-        }
-        .settings-menu button:hover { background: #f4f4f4; }
-        .login-screen {
-            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.45); z-index: 2000;
-        }
-        .login-box {
-            background: white; padding: 28px; border-radius: 14px; width: min(420px, 92%);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.18);
-        }
-        .login-box h2 { margin: 0 0 18px; color: #0f0094; }
-        .login-box label { display: block; margin-bottom: 12px; font-weight: 700; color: #333; }
-        .login-box input { width: 100%; padding: 12px 14px; border: 1px solid #ccc; border-radius: 10px; margin-top: 6px; }
-        .login-box button { margin-top: 18px; width: 100%; padding: 12px; border: none; border-radius: 10px; background: #0f0094; color: white; font-weight: 700; cursor: pointer; }
-        .login-error { margin-top: 12px; color: var(--error-red); font-size: 13px; min-height: 18px; }
-    </style>
+/* ========== CELL INPUTS ========== */
+td input,td select{
+  width:100%;border:none;padding:9px 8px;
+  background:transparent;color:var(--text);
+  font-family:var(--font);font-size:12.5px;outline:none;
+}
+td input.mono{font-family:var(--mono);}
+td input:focus{background:var(--focus-bg);box-shadow:inset 0 0 0 2px var(--p);}
+td input[readonly]{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
+td select{background:var(--surface);color:var(--text);}
+td select:focus{outline:none;background:var(--focus-bg);}
+.num{text-align:right;font-family:var(--mono);font-weight:500;}
+.num-pad{padding-right:10px;}
+.del-btn{
+  color:var(--muted);background:none;border:none;cursor:pointer;
+  font-size:16px;width:100%;text-align:center;padding:8px;
+  transition:color .15s;
+}
+.del-btn:hover{color:var(--error);}
+
+/* ========== ROW STATES ========== */
+tr.row-incomplete td{background:var(--row-err);}
+tr.row-incomplete td input{background:transparent;}
+tr.row-incomplete td input:focus{background:var(--focus-bg);}
+.stock-warn{color:var(--error);font-size:10px;padding:0 6px 4px;}
+.summary-row td{background:linear-gradient(90deg,var(--ok-bg),var(--surface2));font-weight:700;font-family:var(--mono);}
+.summary-label{padding:9px 10px;font-size:11px;letter-spacing:.04em;color:var(--muted);}
+
+/* ========== BALANCE TAB ========== */
+.bal-positive{color:#16a34a;font-weight:700;}
+.bal-zero{color:var(--muted);}
+.bal-negative{color:var(--error);font-weight:700;}
+
+/* ========== REPORT ========== */
+.report-label{padding:12px 16px;color:var(--muted);font-weight:500;}
+.report-value{padding:12px 16px;text-align:right;font-weight:700;font-family:var(--mono);}
+.report-total{background:linear-gradient(90deg,var(--ok-bg),var(--surface2));border-top:2px solid var(--ok-bdr);border-bottom:2px solid var(--ok-bdr);}
+.report-total .report-label{color:var(--text);font-weight:700;}
+.report-total .report-value{color:var(--ok-bdr);}
+.credit-block{padding:12px 16px;font-size:12px;line-height:1.8;}
+.credit-block b{color:var(--text);}
+.date-range-bar{display:flex;gap:14px;flex-wrap:wrap;padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.date-range-bar label{font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.date-range-bar input{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:12px;}
+
+/* ========== BOTTOM NAV ========== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--nav-bg);padding:8px 10px;
+  display:flex;gap:5px;z-index:400;
+  box-shadow:0 -2px 16px rgba(0,0,0,.3);
+}
+.nav-btn{
+  flex:1;max-width:130px;padding:10px 4px;border:none;border-radius:6px;
+  background:var(--nav-btn);color:#475569;cursor:pointer;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font);
+  transition:background .15s,color .15s;
+}
+.nav-btn:hover{background:#2d3f5a;color:#94a3b8;}
+.nav-btn.active{background:var(--p);color:#fff;box-shadow:0 2px 8px rgba(26,26,255,.4);}
+
+/* ========== MODALS ========== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:600;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--surface);border-radius:16px;
+  width:min(440px,94vw);box-shadow:var(--shadow-lg);
+  animation:slideUp .2s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.modal-head{
+  background:linear-gradient(135deg,var(--p2),var(--p));
+  color:#fff;padding:20px 24px;border-radius:16px 16px 0 0;
+}
+.modal-head h2{font-size:1.1rem;font-weight:700;margin:0;}
+.modal-body{padding:24px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-weight:600;margin-bottom:5px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+.field input,.field select{
+  width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--text);font-family:var(--font);font-size:14px;
+  transition:border-color .15s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--p);}
+.modal-btn{
+  width:100%;padding:12px;border:none;border-radius:8px;
+  background:var(--p);color:#fff;font-weight:700;cursor:pointer;font-size:14px;
+  transition:opacity .15s;margin-top:6px;font-family:var(--font);
+}
+.modal-btn:hover{opacity:.88;}
+.modal-btn.secondary{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.modal-link{margin-top:14px;text-align:center;font-size:12.5px;color:var(--muted);}
+.modal-link a{color:var(--p);cursor:pointer;font-weight:600;}
+.modal-error{margin-top:10px;color:var(--error);font-size:12px;min-height:16px;}
+
+/* ========== PERMISSIONS MODAL ========== */
+.user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.perm-tag{font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.perm-tag.active{background:var(--p);color:#fff;border-color:var(--p);}
+.perm-select{font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);font-family:var(--font);}
+
+/* ========== PRINT ========== */
+@media print{
+  .app-header,.bottom-nav,.settings-menu,.date-range-bar,.no-print,
+  .del-btn,.hdr-filter{display:none!important;}
+  body{padding:0;background:white;}
+  .content{padding:0;}
+  .sheet-card{box-shadow:none;border:1px solid #ccc;}
+  #report-print-area{display:block!important;}
+  .print-only{display:block!important;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+#report-print-area{display:none;}
+</style>
 </head>
-<body oncontextmenu="return false;">
+<body oncontextmenu="showCtxMenu(event)">
 
-<div class="app-header" id="app-header">
+<!-- ====== HEADER ====== -->
+<div class="app-header" id="app-header" style="display:none">
+  <div class="app-brand">
+    <div class="brand-icon">📦</div>
     <div>
-        <div class="app-title">Inventory Manager</div>
-        <div class="app-user" id="current-user-label"></div>
+      <div class="app-title">POWER-IMS</div>
+      <div class="app-user" id="user-label"></div>
     </div>
-    <div class="settings-wrap">
-        <button id="settings-button" class="settings-button" type="button" onclick="toggleSettingsMenu()" aria-label="Settings">⚙</button>
-        <div id="settings-menu" class="settings-menu">
-            <button type="button" onclick="switchTab('ITEMS')">Add Items</button>
-            <button type="button" onclick="addUser()">Add user</button>
-            <button type="button" onclick="logout()">Log out</button>
-        </div>
+  </div>
+  <div class="settings-wrap">
+    <button class="settings-btn" onclick="toggleMenu()" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="menu-section">Navigate</div>
+      <button class="menu-item" onclick="switchTab('ITEMS');closeMenu()">📋 Add Items</button>
+      <hr class="menu-divider">
+      <div class="menu-section">Export</div>
+      <button class="menu-item" onclick="exportPDF('PURCHASE');closeMenu()">📄 Purchase as PDF</button>
+      <button class="menu-item" onclick="exportPDF('SALES');closeMenu()">📄 Sales as PDF</button>
+      <button class="menu-item" onclick="exportPDF('BALANCE');closeMenu()">📄 Balance as PDF</button>
+      <button class="menu-item" onclick="exportPDF('EXPENSE');closeMenu()">📄 Expense as PDF</button>
+      <hr class="menu-divider">
+      <div class="menu-section">Account</div>
+      <button class="menu-item" onclick="openChangePass();closeMenu()">🔑 Change Password</button>
+      <button class="menu-item" id="admin-perms-btn" onclick="openPermissions();closeMenu()" style="display:none">👥 User Permissions</button>
+      <hr class="menu-divider">
+      <div class="menu-section">Theme</div>
+      <select class="menu-select" id="theme-select" onchange="setTheme(this.value)">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌙 Dark</option>
+      </select>
+      <div class="menu-section">Language</div>
+      <select class="menu-select" id="lang-select" onchange="setLang(this.value)">
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="ar">🇸🇦 العربية</option>
+        <option value="zh">🇨🇳 中文</option>
+        <option value="am">🇪🇹 አማርኛ</option>
+      </select>
+      <hr class="menu-divider">
+      <button class="menu-item" onclick="logout()" style="color:var(--error)">🚪 Log Out</button>
     </div>
-</div>
-<div id="login-screen" class="login-screen">
-    <div class="login-box">
-        <h2>Inventory Manager Login</h2>
-        <form onsubmit="handleLogin(event)">
-            <label>Username
-                <input id="login-user" autocomplete="username">
-            </label>
-            <label>Password
-                <input id="login-pass" type="password" autocomplete="current-password">
-            </label>
-            <button type="submit">Log In</button>
-            <div id="login-error" class="login-error"></div>
-        </form>
-    </div>
-</div>
-
-<datalist id="party-suggestions"></datalist>
-<datalist id="item-suggestions"></datalist>
-
-<div class="worksheet-container">
-    <div class="sheet-header">
-        <h3 id="sheet-title">ITEMS</h3>
-    </div>
-    
-    <div id="content-area">
-        <table id="data-table">
-            <thead id="table-head"></thead>
-            <tbody id="table-body"></tbody>
-        </table>
-        <div id="report-extras"></div>
-    </div>
+  </div>
 </div>
 
-<div class="bottom-nav">
-    <button class="nav-btn" onclick="switchTab('PURCHASE')">PURCHASE</button>
-    <button class="nav-btn" onclick="switchTab('SALES')">SALES</button>
-    <button class="nav-btn" onclick="switchTab('BALANCE')">BALANCE</button>
-    <button class="nav-btn" onclick="switchTab('EXPENSE')">EXPENSE</button>
-    <button class="nav-btn" onclick="switchTab('REPORT')">REPORT</button>
+<!-- ====== CONTEXT MENU ====== -->
+<div id="ctx-menu" style="display:none;position:fixed;z-index:700;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);min-width:160px;overflow:hidden;">
+  <div style="padding:6px 0;">
+    <div class="menu-section">Export as PDF</div>
+    <button class="menu-item" onclick="exportPDF('PURCHASE');hideCtx()">📄 Purchase</button>
+    <button class="menu-item" onclick="exportPDF('SALES');hideCtx()">📄 Sales</button>
+    <button class="menu-item" onclick="exportPDF('BALANCE');hideCtx()">📄 Balance</button>
+    <button class="menu-item" onclick="exportPDF('EXPENSE');hideCtx()">📄 Expense</button>
+  </div>
+</div>
+
+<!-- ====== AUTH MODAL ====== -->
+<div class="modal-overlay open" id="auth-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="auth-title">POWER-IMS Login</h2></div>
+    <div class="modal-body">
+      <div class="field"><label>Username</label><input id="auth-user" autocomplete="username" onkeydown="if(e.key==='Enter')document.getElementById('auth-pass').focus()"></div>
+      <div class="field"><label>Password</label><input id="auth-pass" type="password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+      <div id="auth-confirm-wrap" class="field" style="display:none">
+        <label>Confirm Password</label>
+        <input id="auth-confirm" type="password" onkeydown="if(event.key==='Enter')submitAuth()">
+      </div>
+      <button class="modal-btn" onclick="submitAuth()" id="auth-submit-btn">Log In</button>
+      <div class="modal-link">
+        <span id="auth-toggle-hint">Don't have an account?</span>
+        <a onclick="toggleAuthMode()" id="auth-toggle-link"> Sign Up</a>
+      </div>
+      <div class="modal-error" id="auth-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== CHANGE PASSWORD MODAL ====== -->
+<div class="modal-overlay" id="pass-modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Change Password</h2></div>
+    <div class="modal-body">
+      <div class="field"><label>Current Password</label><input id="cp-current" type="password"></div>
+      <div class="field"><label>New Password</label><input id="cp-new" type="password"></div>
+      <div class="field"><label>Confirm New Password</label><input id="cp-confirm" type="password"></div>
+      <button class="modal-btn" onclick="submitChangePass()">Save</button>
+      <button class="modal-btn secondary" onclick="closeModal('pass-modal')">Cancel</button>
+      <div class="modal-error" id="cp-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PERMISSIONS MODAL (admin only) ====== -->
+<div class="modal-overlay" id="perm-modal">
+  <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-head"><h2>👥 User Permissions</h2></div>
+    <div class="modal-body" id="perm-body"></div>
+  </div>
+</div>
+
+<!-- ====== EXPORT/PRINT AREA ====== -->
+<div id="report-print-area"></div>
+
+<!-- ====== DATALISTS ====== -->
+<datalist id="party-list"></datalist>
+<datalist id="item-list"></datalist>
+
+<!-- ====== MAIN CONTENT ====== -->
+<div class="content" id="content" style="display:none">
+  <div class="sheet-card">
+    <div class="sheet-card-head">
+      <span class="sheet-title" id="sheet-title">Items</span>
+      <span class="tab-badge" id="tab-badge">ITEMS</span>
+    </div>
+    <div class="sheet-body">
+      <table id="data-table"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <div id="extras"></div>
+  </div>
+</div>
+
+<!-- ====== BOTTOM NAV ====== -->
+<div class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn" data-tab="PURCHASE" onclick="switchTab('PURCHASE')">Purchase</button>
+  <button class="nav-btn" data-tab="SALES"    onclick="switchTab('SALES')">Sales</button>
+  <button class="nav-btn" data-tab="BALANCE"  onclick="switchTab('BALANCE')">Balance</button>
+  <button class="nav-btn" data-tab="EXPENSE"  onclick="switchTab('EXPENSE')">Expense</button>
+  <button class="nav-btn" data-tab="REPORT"   onclick="switchTab('REPORT')">Report</button>
 </div>
 
 <script>
-    function getNow() { return new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+/* ======================================================
+   CONSTANTS & HELPERS
+====================================================== */
+const ADMIN = 'admin';
+const TABS  = ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
+// Permission levels per tab: 'full' | 'add_only' | 'read' | 'none'
+const DEFAULT_PERMS = { ITEMS:'full', PURCHASE:'full', SALES:'full', BALANCE:'full', EXPENSE:'full', REPORT:'full' };
 
-    let beginningBalance = parseFloat(localStorage.getItem('beginningBalance')) || 0;
-    let masterItems = JSON.parse(localStorage.getItem('masterItems')) || [{ id: "", name: "", desc: "" }];
-    let tabsData = JSON.parse(localStorage.getItem('tabsData')) || { 
-        PURCHASE: [{id:"", name:"", desc:"", date:getNow(), party:"Supplier1", qty:0, uPrice:0, status:"CASH"}], 
-        SALES: [{id:"", name:"", desc:"", date:getNow(), party:"Customer", qty:0, sPrice:0, status:"CASH"}], 
-        EXPENSE: [{date:getNow(), reason:"", amt:0}] 
-    };
+const fmt  = n => (parseFloat(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtQ = n => (parseFloat(n)||0).toLocaleString();
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const now  = () => new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+const sum  = (arr, fn) => arr.reduce((a,b)=>a+(fn(b)||0), 0);
 
-    function saveData() {
-        localStorage.setItem('masterItems', JSON.stringify(masterItems));
-        localStorage.setItem('tabsData', JSON.stringify(tabsData));
-        localStorage.setItem('beginningBalance', beginningBalance);
+/* ======================================================
+   STORAGE REGISTRY
+====================================================== */
+const getRegistry = () => JSON.parse(localStorage.getItem('ims_reg') || '{}');
+const saveRegistry = r => localStorage.setItem('ims_reg', JSON.stringify(r));
+const uKey = (u,k) => `ims_${u}_${k}`;
+
+/* ======================================================
+   BLANK ROW FACTORIES
+====================================================== */
+const blankPurchase = () => ({id:'',name:'',desc:'',date:now(),party:'Supplier',qty:'',uPrice:'',status:'CASH'});
+const blankSales    = () => ({id:'',name:'',desc:'',date:now(),party:'Customer',qty:'',sPrice:'',status:'CASH'});
+const blankExpense  = () => ({date:now(),reason:'',amt:''});
+const blankItem     = () => ({id:'',name:'',desc:''});
+
+/* ======================================================
+   APP STATE
+====================================================== */
+const S = {
+  user:null, tab:'ITEMS', theme:'light', lang:'en', filters:{},
+  items:[], purchase:[], sales:[], expense:[], beginBal:0,
+  reportRange:{from:'',to:''},
+  perms: {} // {username: {ITEMS:'full', PURCHASE:'full', ...}}
+};
+
+/* ======================================================
+   USER DATA LOAD / SAVE
+====================================================== */
+function loadUserData(u) {
+  S.items    = JSON.parse(localStorage.getItem(uKey(u,'items'))    || JSON.stringify([blankItem()]));
+  S.purchase = JSON.parse(localStorage.getItem(uKey(u,'purchase')) || JSON.stringify([blankPurchase()]));
+  S.sales    = JSON.parse(localStorage.getItem(uKey(u,'sales'))    || JSON.stringify([blankSales()]));
+  S.expense  = JSON.parse(localStorage.getItem(uKey(u,'expense'))  || JSON.stringify([blankExpense()]));
+  S.beginBal = parseFloat(localStorage.getItem(uKey(u,'beginBal')) || '0');
+  S.perms    = JSON.parse(localStorage.getItem('ims_perms')        || '{}');
+}
+function saveUserData() {
+  if (!S.user) return;
+  const u = S.user;
+  localStorage.setItem(uKey(u,'items'),    JSON.stringify(S.items));
+  localStorage.setItem(uKey(u,'purchase'), JSON.stringify(S.purchase));
+  localStorage.setItem(uKey(u,'sales'),    JSON.stringify(S.sales));
+  localStorage.setItem(uKey(u,'expense'),  JSON.stringify(S.expense));
+  localStorage.setItem(uKey(u,'beginBal'), S.beginBal);
+  localStorage.setItem('ims_perms',        JSON.stringify(S.perms));
+}
+
+/* ======================================================
+   PERMISSIONS HELPERS
+====================================================== */
+const isAdmin  = () => S.user === ADMIN;
+const getPerm  = tab => isAdmin() ? 'full' : (S.perms[S.user]?.[tab] ?? 'full');
+const canWrite = tab => ['full','add_only'].includes(getPerm(tab));
+const canRead  = tab => getPerm(tab) !== 'none';
+
+/* ======================================================
+   ROWS HELPER
+====================================================== */
+function rows() {
+  if (S.tab==='ITEMS')    return S.items;
+  if (S.tab==='PURCHASE') return S.purchase;
+  if (S.tab==='SALES')    return S.sales;
+  if (S.tab==='EXPENSE')  return S.expense;
+  return [];
+}
+function pushBlankRow() {
+  if (S.tab==='ITEMS')    S.items.push(blankItem());
+  if (S.tab==='PURCHASE') S.purchase.push(blankPurchase());
+  if (S.tab==='SALES')    S.sales.push(blankSales());
+  if (S.tab==='EXPENSE')  S.expense.push(blankExpense());
+}
+function ensureTrailing() {
+  if (!rows().length) pushBlankRow();
+}
+
+/* ======================================================
+   FIFO HELPERS
+====================================================== */
+function fifoCost(itemId, qty, beforeIdx) {
+  if (!itemId || qty<=0) return 0;
+  let buys = S.purchase.filter(p=>p.id===itemId)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .map(p=>({...p,rem:parseFloat(p.qty)||0}));
+  let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  for(const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+  let cost=0,need=qty;
+  for(const b of buys){if(!need)break;const t=Math.min(b.rem,need);cost+=t*(parseFloat(b.uPrice)||0);need-=t;}
+  return cost;
+}
+function fifoBuyPrice(itemId, qty, beforeIdx) {
+  if (!itemId || qty<=0) return 0;
+  let buys = S.purchase.filter(p=>p.id===itemId)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .map(p=>({...p,rem:parseFloat(p.qty)||0}));
+  let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  for(const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+  let need=qty,price=0;
+  for(const b of buys){if(!need)break;const t=Math.min(b.rem,need);price=parseFloat(b.uPrice)||0;need-=t;}
+  return price;
+}
+
+/* ======================================================
+   THEME & LANGUAGE
+====================================================== */
+function setTheme(t) {
+  S.theme=t;
+  document.documentElement.setAttribute('data-theme',t);
+  const sel=document.getElementById('theme-select');
+  if(sel)sel.value=t;
+  if(S.user) localStorage.setItem(uKey(S.user,'theme'),t);
+}
+function setLang(l) {
+  S.lang=l;
+  const sel=document.getElementById('lang-select');
+  if(sel)sel.value=l;
+  if(S.user) localStorage.setItem(uKey(S.user,'lang'),l);
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+}
+function loadUserPrefs(u) {
+  setTheme(localStorage.getItem(uKey(u,'theme'))||'light');
+  setLang(localStorage.getItem(uKey(u,'lang'))||'en');
+}
+
+/* ======================================================
+   AUTH
+====================================================== */
+let authMode='login';
+function toggleAuthMode() {
+  authMode = authMode==='login'?'signup':'login';
+  const isS = authMode==='signup';
+  document.getElementById('auth-title').textContent    = isS ? 'Create Account' : 'POWER-IMS Login';
+  document.getElementById('auth-submit-btn').textContent = isS ? 'Sign Up' : 'Log In';
+  document.getElementById('auth-confirm-wrap').style.display = isS?'':'none';
+  document.getElementById('auth-toggle-hint').textContent  = isS ? 'Have an account?' : "Don't have an account?";
+  document.getElementById('auth-toggle-link').textContent  = isS ? ' Log In' : ' Sign Up';
+  document.getElementById('auth-error').textContent='';
+}
+function submitAuth() {
+  const u=document.getElementById('auth-user').value.trim();
+  const p=document.getElementById('auth-pass').value;
+  const err=document.getElementById('auth-error');
+  if(!u||!p){err.textContent='Please enter username and password.';return;}
+  const reg=getRegistry();
+  if(authMode==='login') {
+    if(!reg[u]||reg[u]!==p){err.textContent='Invalid username or password.';return;}
+    doLogin(u);
+  } else {
+    const c=document.getElementById('auth-confirm').value;
+    if(reg[u]){err.textContent='Username already taken.';return;}
+    if(p!==c){err.textContent='Passwords do not match.';return;}
+    if(p.length<4){err.textContent='Password must be at least 4 characters.';return;}
+    reg[u]=p;
+    saveRegistry(reg);
+    doLogin(u);
+  }
+}
+function doLogin(u) {
+  S.user=u;
+  localStorage.setItem('ims_currentUser',u);
+  loadUserData(u);
+  loadUserPrefs(u);
+  document.getElementById('user-label').textContent=`User: ${u}`;
+  // Show admin-only items
+  document.getElementById('admin-perms-btn').style.display=isAdmin()?'flex':'none';
+  closeModal('auth-modal');
+  showUI();
+  // Determine first accessible tab
+  let startTab='ITEMS';
+  if(!isAdmin()) {
+    for(const t of ['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT']) {
+      if(getPerm(t)!=='none'){startTab=t;break;}
+    }
+  }
+  switchTab(startTab);
+}
+function logout() {
+  saveUserData();
+  S.user=null;
+  localStorage.removeItem('ims_currentUser');
+  closeMenu();
+  hideUI();
+  authMode='login';
+  ['auth-user','auth-pass','auth-confirm'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('auth-confirm-wrap').style.display='none';
+  document.getElementById('auth-submit-btn').textContent='Log In';
+  document.getElementById('auth-title').textContent='POWER-IMS Login';
+  document.getElementById('auth-toggle-hint').textContent="Don't have an account?";
+  document.getElementById('auth-toggle-link').textContent=' Sign Up';
+  document.getElementById('auth-error').textContent='';
+  openModal('auth-modal');
+}
+
+/* ======================================================
+   CHANGE PASSWORD
+====================================================== */
+function openChangePass(){
+  document.getElementById('cp-current').value='';
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  document.getElementById('cp-error').textContent='';
+  openModal('pass-modal');
+}
+function submitChangePass(){
+  const cur=document.getElementById('cp-current').value;
+  const nw=document.getElementById('cp-new').value;
+  const con=document.getElementById('cp-confirm').value;
+  const err=document.getElementById('cp-error');
+  const reg=getRegistry();
+  if(reg[S.user]!==cur){err.textContent='Current password is incorrect.';return;}
+  if(nw.length<4){err.textContent='New password must be at least 4 chars.';return;}
+  if(nw!==con){err.textContent='Passwords do not match.';return;}
+  reg[S.user]=nw;saveRegistry(reg);
+  closeModal('pass-modal');
+  alert('Password changed!');
+}
+
+/* ======================================================
+   PERMISSIONS (admin)
+====================================================== */
+const PERM_OPTS=[
+  {v:'full',    l:'Full Access'},
+  {v:'add_only',l:'Add Only'},
+  {v:'read',    l:'Read Only'},
+  {v:'none',    l:'No Access'}
+];
+const PERM_TABS=['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
+
+function openPermissions(){
+  const reg=getRegistry();
+  const users=Object.keys(reg).filter(u=>u!==ADMIN);
+  const body=document.getElementById('perm-body');
+  if(!users.length){body.innerHTML='<p style="color:var(--muted)">No other users registered yet.</p>';}
+  else {
+    body.innerHTML=users.map(u=>{
+      const up=S.perms[u]||{};
+      return `<div style="margin-bottom:20px">
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px">👤 ${esc(u)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${PERM_TABS.map(t=>`
+            <label style="font-size:11px;color:var(--muted);">${t}
+              <select class="perm-select" style="display:block;width:100%;margin-top:2px"
+                onchange="setUserPerm('${u}','${t}',this.value)">
+                ${PERM_OPTS.map(o=>`<option value="${o.v}" ${(up[t]||'full')===o.v?'selected':''}>${o.l}</option>`).join('')}
+              </select>
+            </label>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  body.innerHTML += `<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:10px">Close</button>`;
+  openModal('perm-modal');
+}
+function setUserPerm(user,tab,val){
+  if(!S.perms[user]) S.perms[user]={};
+  S.perms[user][tab]=val;
+  saveUserData();
+}
+
+/* ======================================================
+   UI VISIBILITY
+====================================================== */
+function showUI(){
+  document.getElementById('app-header').style.display='flex';
+  document.getElementById('content').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+}
+function hideUI(){
+  document.getElementById('app-header').style.display='none';
+  document.getElementById('content').style.display='none';
+  document.getElementById('bottom-nav').style.display='none';
+}
+function openModal(id) {document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function toggleMenu(){document.getElementById('settings-menu').classList.toggle('open');}
+function closeMenu() {document.getElementById('settings-menu').classList.remove('open');}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.settings-wrap'))closeMenu();
+  if(!e.target.closest('#ctx-menu'))hideCtx();
+});
+
+/* ======================================================
+   CONTEXT MENU (right-click anywhere)
+====================================================== */
+function showCtxMenu(e){
+  e.preventDefault();
+  const m=document.getElementById('ctx-menu');
+  m.style.display='block';
+  m.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
+  m.style.top =Math.min(e.clientY,window.innerHeight-200)+'px';
+}
+function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
+
+/* ======================================================
+   TAB SWITCHING
+====================================================== */
+function switchTab(tab){
+  if(!canRead(tab) && tab!=='ITEMS'){alert('You do not have permission to view this tab.');return;}
+  S.tab=tab;S.filters={};
+  const titles={ITEMS:'Add Items',PURCHASE:'Purchase',SALES:'Sales',BALANCE:'Balance',EXPENSE:'Expense',REPORT:'Report'};
+  document.getElementById('sheet-title').textContent=titles[tab]||tab;
+  document.getElementById('tab-badge').textContent=tab;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  // Hide nav buttons user can't access
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.style.display=canRead(b.dataset.tab)||isAdmin()?'':'none';
+  });
+  updateSuggestions();
+  renderTable();
+}
+
+/* ======================================================
+   DATALISTS
+====================================================== */
+function updateSuggestions(){
+  const parties=S.tab==='PURCHASE'
+    ?[...new Set(S.purchase.map(r=>r.party))]
+    :[...new Set(S.sales.map(r=>r.party))];
+  document.getElementById('party-list').innerHTML=
+    parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
+  document.getElementById('item-list').innerHTML=
+    S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+}
+
+/* ======================================================
+   TABLE HEADER HELPER
+====================================================== */
+function makeHdr(label,field,cls=''){
+  const filter=field
+    ?`<input class="hdr-filter" placeholder="Filter…" value="${esc(S.filters[field]||'')}"
+        oninput="S.filters['${field}']=this.value.toLowerCase();renderTable()">`
+    :'';
+  return `<th class="${cls}"><div class="hdr-inner">
+    <span class="hdr-label">${label}</span>${filter}
+  </div><div class="resize-handle" onmousedown="startResize(event,this)"></div></th>`;
+}
+
+/* ======================================================
+   COLUMN RESIZE
+====================================================== */
+let _rz={};
+function startResize(e,h){
+  e.preventDefault();
+  _rz.th=h.parentElement;_rz.startX=e.clientX;_rz.startW=_rz.th.offsetWidth;
+  _rz.idx=Array.from(_rz.th.parentElement.children).indexOf(_rz.th);
+  _rz.table=_rz.th.closest('table');
+  document.addEventListener('mousemove',doResize);
+  document.addEventListener('mouseup',stopResize);
+}
+function doResize(e){
+  if(!_rz.th)return;
+  const w=Math.max(50,_rz.startW+e.clientX-_rz.startX);
+  Array.from(_rz.table.rows).forEach(r=>{if(r.children[_rz.idx])r.children[_rz.idx].style.width=w+'px';});
+}
+function stopResize(){
+  document.removeEventListener('mousemove',doResize);
+  document.removeEventListener('mouseup',stopResize);
+  _rz={};
+}
+
+/* ======================================================
+   ROW HANDLERS
+====================================================== */
+function handleInput(idx,field,val){
+  const list=rows();
+  if(['qty','uPrice','sPrice','amt'].includes(field)){
+    list[idx][field]=val===''?'':parseFloat(val)||0;
+  } else {
+    list[idx][field]=val;
+  }
+  if(field==='id'){saveUserData();return;}
+  if(idx===list.length-1){pushBlankRow();saveUserData();renderTable();}
+  else{saveUserData();refreshTotal(idx);}
+}
+function validateAndLink(idx,val){
+  if(!val)return;
+  const item=S.items.find(m=>m.id===val);
+  if(!item){
+    alert(`Part Number "${val}" not found in Items.`);
+    rows()[idx].id='';rows()[idx].name='';rows()[idx].desc='';
+  } else {
+    rows()[idx].name=item.name;rows()[idx].desc=item.desc;
+    if(idx===rows().length-1)pushBlankRow();
+  }
+  saveUserData();renderTable();
+}
+function deleteRow(idx){
+  if(!confirm('Delete this row?'))return;
+  rows().splice(idx,1);
+  ensureTrailing();
+  saveUserData();renderTable();
+}
+function refreshTotal(idx){
+  const row=rows()[idx],qty=parseFloat(row.qty)||0;
+  let v=0;
+  if(S.tab==='PURCHASE')v=qty*(parseFloat(row.uPrice)||0);
+  else v=qty*(parseFloat(row.sPrice)||0)-fifoCost(row.id,qty,idx);
+  const c=document.getElementById(`tt_${idx}`);
+  if(c)c.textContent=fmt(v);
+}
+
+/* ======================================================
+   RENDER
+====================================================== */
+function renderTable(){
+  const thead=document.getElementById('thead');
+  const tbody=document.getElementById('tbody');
+  const extras=document.getElementById('extras');
+  thead.innerHTML='';tbody.innerHTML='';extras.innerHTML='';
+
+  if(S.tab==='ITEMS')         renderItems(thead,tbody);
+  else if(S.tab==='PURCHASE'||S.tab==='SALES') renderTx(thead,tbody);
+  else if(S.tab==='BALANCE')  renderBalance(thead,tbody,extras);
+  else if(S.tab==='EXPENSE')  renderExpense(thead,tbody);
+  else if(S.tab==='REPORT')   renderReport(thead,tbody,extras);
+}
+
+/* --- ITEMS --- */
+function renderItems(thead,tbody){
+  const rw=canWrite('ITEMS');
+  thead.innerHTML=`<tr>
+    ${rw?'<th style="width:38px"></th>':''}
+    ${makeHdr('PART NUMBER','id')}
+    ${makeHdr('ITEM NAME','name')}
+    ${makeHdr('DESCRIPTION','desc')}
+  </tr>`;
+  S.items.forEach((row,i)=>{
+    if(S.filters.id   && !row.id.toLowerCase().includes(S.filters.id))   return;
+    if(S.filters.name && !row.name.toLowerCase().includes(S.filters.name)) return;
+    const dup=row.id&&S.items.filter((r,j)=>r.id===row.id&&j!==i).length>0;
+    const tr=document.createElement('tr');
+    if(!rw) tr.style.pointerEvents='none';
+    tr.innerHTML=`
+      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
+      <td><input value="${esc(row.id)}" style="${dup?'background:var(--warn-bg);color:var(--error)':''}"
+            oninput="S.items[${i}].id=this.value;saveUserData()"
+            onblur="if(S.items[${i}].id&&${i}===S.items.length-1){pushBlankRow();renderTable()}"
+            ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.name)}" oninput="handleInput(${i},'name',this.value)" ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.desc)}" oninput="handleInput(${i},'desc',this.value)" ${!rw?'readonly':''}></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* --- PURCHASE / SALES --- */
+function renderTx(thead,tbody){
+  const isP=S.tab==='PURCHASE';
+  const perm=getPerm(S.tab);
+  const rw=canWrite(S.tab);
+  const addOnly=perm==='add_only';
+
+  // For add_only: only show the last (blank) row
+  const list=(isP?S.purchase:S.sales);
+  const visibleRows=addOnly ? [list[list.length-1]].filter(Boolean) : list;
+  const idxOffset=addOnly ? list.length-1 : 0;
+
+  const salesHdrs=isP?'':`
+    ${makeHdr('PRICE','',         'num')}
+    ${makeHdr('TOTAL PRICE','',   'num')}
+    ${makeHdr('PURCH. PRICE','',  'num')}
+    ${makeHdr('TOTAL PURCH.','',  'num')}`;
+
+  thead.innerHTML=`<tr>
+    ${rw?'<th style="width:38px"></th>':''}
+    ${makeHdr('DATE','date')}
+    ${makeHdr(isP?'SUPPLIER':'CUSTOMER','party')}
+    ${makeHdr('PART NO.','id')}
+    ${makeHdr('NAME','name')}
+    ${makeHdr('DESC','desc')}
+    ${makeHdr('QTY','', 'num')}
+    ${isP?makeHdr('U.PRICE','','num')+makeHdr('TOTAL','','num'):salesHdrs}
+    ${makeHdr('STATUS','status')}
+  </tr>`;
+
+  let totQty=0,totVal=0;
+
+  visibleRows.forEach((row,vi)=>{
+    const i=idxOffset+vi;
+    if(Object.keys(S.filters).some(f=>S.filters[f]&&!String(row[f]||'').toLowerCase().includes(S.filters[f])))return;
+
+    const qty  =parseFloat(row.qty)  ||0;
+    const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
+    const rowTotal=isP ? qty*price : qty*price-fifoCost(row.id,qty,i);
+    totQty+=qty; totVal+=rowTotal;
+
+    // Incomplete row check — must have id, qty, price
+    const incomplete=row.id&&(!row.qty||!price);
+
+    let stockWarn='';
+    if(!isP&&row.id){
+      const inQ=S.purchase.filter(p=>p.id===row.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      const outQ=S.sales.filter((s,j)=>s.id===row.id&&j<i).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      if(qty>inQ-outQ)stockWarn=`<div class="stock-warn">⚠ Not enough stock</div>`;
     }
 
-    function formatMoney(n) { return n ? parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "0.00"; }
-
-    function handleInput(idx, field, val, element) {
-        focusedId = element.id;
-        cursorPosition = (element.selectionStart !== undefined) ? element.selectionStart : 0; 
-        
-        if(currentTab === 'ITEMS') {
-            if(field === 'id' && val) {
-                // Check for duplicate ID (excluding current row)
-                if(masterItems.some((item, i) => item.id === val && i !== idx)) {
-                    alert('Error: Duplicate ID is not allowed.');
-                    element.value = '';
-                    masterItems[idx][field] = '';
-                    renderTable();
-                    return;
-                }
-            }
-            masterItems[idx][field] = val;
-        } else {
-            tabsData[currentTab][idx][field] = (['qty','uPrice','sPrice','amt'].includes(field)) ? parseFloat(val)||0 : val;
-        }
-        if (field !== 'id') {
-            const rowAdded = checkAndAddRow(idx);
-            saveData();
-            if (rowAdded) renderTable();
-            else if (currentTab === 'PURCHASE' || currentTab === 'SALES') updateRowTotal(idx);
-        } else {
-            saveData(); 
-        }
+    let extraCells='';
+    if(isP){
+      extraCells=`
+        <td class="num"><input id="cell_p_${i}" type="number" class="num mono" value="${row.uPrice===''?'':row.uPrice}"
+              oninput="handleInput(${i},'uPrice',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num num-pad" id="tt_${i}">${fmt(rowTotal)}</td>`;
+    } else {
+      const pp=fifoBuyPrice(row.id,qty,i);
+      extraCells=`
+        <td class="num"><input id="cell_p_${i}" type="number" class="num mono" value="${row.sPrice===''?'':row.sPrice}"
+              oninput="handleInput(${i},'sPrice',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num num-pad">${fmt(qty*price)}</td>
+        <td class="num num-pad">${fmt(pp)}</td>
+        <td class="num num-pad">${fmt(qty*(pp||0))}</td>`;
     }
 
-    // --- MIRROR LOGIC ---
-    function validateAndLink(idx, val) {
-        if (!val) return;
-        const item = masterItems.find(m => m.id === val);
-        if(!item) {
-            alert(`ID "${val}" not found in Items tab.`);
-            tabsData[currentTab][idx].id = "";
-            tabsData[currentTab][idx].name = "";
-            tabsData[currentTab][idx].desc = "";
-        } else {
-            // This pulls BOTH name and description from the master list
-            tabsData[currentTab][idx].name = item.name;
-            tabsData[currentTab][idx].desc = item.desc;
-            checkAndAddRow(idx);
-        }
-        saveData();
-        renderTable();
-    }
+    const tr=document.createElement('tr');
+    if(incomplete) tr.className='row-incomplete';
+    tr.innerHTML=`
+      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
+      <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
+      <td><input list="party-list" value="${esc(row.party||'')}" oninput="handleInput(${i},'party',this.value)" ${!rw?'readonly':''}></td>
+      <td><input list="item-list" value="${esc(row.id||'')}"
+            oninput="${isP?'S.purchase':'S.sales'}[${i}].id=this.value"
+            onchange="validateAndLink(${i},this.value)" ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.name||'')}" readonly tabindex="-1"></td>
+      <td><input value="${esc(row.desc||'')}" readonly tabindex="-1"></td>
+      <td class="num"><input type="number" class="num mono" value="${row.qty===''?'':row.qty}"
+            oninput="handleInput(${i},'qty',this.value)" ${!rw?'readonly':''}></td>
+      ${extraCells}
+      <td>
+        <select onchange="handleInput(${i},'status',this.value)" ${!rw?'disabled':''}>
+          <option value="CASH"   ${row.status==='CASH'  ?'selected':''}>CASH</option>
+          <option value="CREDIT" ${row.status==='CREDIT'?'selected':''}>CREDIT</option>
+        </select>${stockWarn}
+      </td>`;
+    tbody.appendChild(tr);
+  });
 
-    function checkAndAddRow(idx) {
-        let rows = (currentTab === 'ITEMS') ? masterItems : tabsData[currentTab];
-        if (idx === rows.length - 1) {
-            if (currentTab === 'ITEMS') masterItems.push({id:"", name:"", desc:""});
-            else if (currentTab === 'EXPENSE') tabsData.EXPENSE.push({date:getNow(), reason:"", amt:0});
-            else if (currentTab === 'PURCHASE') tabsData.PURCHASE.push({id:"", name:"", desc:"", date:getNow(), party:"Supplier1", qty:0, uPrice:0, status:"CASH"});
-            else if (currentTab === 'SALES') tabsData.SALES.push({id:"", name:"", desc:"", date:getNow(), party:"Customer", qty:0, sPrice:0, status:"CASH"});
-            return true;
-        }
-        return false;
-    }
+  if(!addOnly){
+    const span=isP?6:10;
+    const sr=document.createElement('tr');
+    sr.className='summary-row';
+    sr.innerHTML=`
+      ${rw?'<td></td>':''}
+      <td class="summary-label" colspan="${span}">TOTALS</td>
+      <td class="num num-pad">${fmtQ(totQty)}</td>
+      <td></td>
+      <td class="num num-pad">${fmt(totVal)}</td>
+      ${!isP?'<td></td>':''}`;
+    tbody.appendChild(sr);
+  }
+}
 
-    function updateRowTotal(idx) {
-        if (currentTab !== 'PURCHASE' && currentTab !== 'SALES') return;
-        const row = tabsData[currentTab][idx];
-        const displayVal = currentTab === 'PURCHASE'
-            ? ((row.qty || 0) * (row.uPrice || 0))
-            : (((row.qty || 0) * (row.sPrice || 0)) - calculateFIFOCost(row.id, row.qty || 0, idx));
-        const totalCell = document.getElementById(`${currentTab}_${idx}_total`);
-        if (totalCell) totalCell.textContent = formatMoney(displayVal);
-    }
+/* --- BALANCE --- */
+function renderBalance(thead,tbody,extras){
+  thead.innerHTML=`<tr>
+    ${makeHdr('PART NO.','id')}
+    ${makeHdr('NAME','name')}
+    ${makeHdr('DESCRIPTION','desc')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">PURCHASE</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">SALES</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">BALANCE</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">PRICE</span></div></th>
+  </tr>`;
+  let totalV=0;
+  S.items.filter(m=>m.id).forEach(item=>{
+    if(S.filters.id   && !item.id.toLowerCase().includes(S.filters.id))   return;
+    if(S.filters.name && !item.name.toLowerCase().includes(S.filters.name)) return;
+    const inQ  =S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const outQ =S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const stock=inQ-outQ;
+    const cost =S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+    const avg  =inQ>0?cost/inQ:0;
+    totalV+=stock*avg;
+    const balClass=stock>0?'bal-positive':stock===0?'bal-zero':'bal-negative';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="padding:9px 8px;font-family:var(--mono);font-size:12px">${esc(item.id)}</td>
+      <td style="padding:9px 8px;font-weight:600">${esc(item.name)}</td>
+      <td style="padding:9px 8px;color:var(--muted);font-size:12px">${esc(item.desc)}</td>
+      <td class="num num-pad">${fmtQ(inQ)}</td>
+      <td class="num num-pad">${fmtQ(outQ)}</td>
+      <td class="num num-pad ${balClass}">${fmtQ(stock)}</td>
+      <td class="num num-pad">${fmt(stock*avg)}</td>`;
+    tbody.appendChild(tr);
+  });
+  extras.innerHTML=`<div style="background:var(--ok-bg);padding:14px 18px;
+    border-top:2px solid var(--ok-bdr);display:flex;justify-content:space-between;
+    font-weight:700;font-family:var(--mono)">
+    <span style="font-family:var(--font);color:var(--muted)">TOTAL INVENTORY VALUE</span>
+    <span style="color:var(--ok-bdr)">${fmt(totalV)}</span>
+  </div>`;
+}
 
-    function deleteRow(idx) {
-        if(!confirm("Delete this entry?")) return;
-        if(currentTab === 'ITEMS') masterItems.splice(idx, 1);
-        else tabsData[currentTab].splice(idx, 1);
-        saveData(); renderTable();
-    }
+/* --- EXPENSE --- */
+function renderExpense(thead,tbody){
+  const rw=canWrite('EXPENSE');
+  thead.innerHTML=`<tr>
+    ${rw?'<th style="width:38px"></th>':''}
+    ${makeHdr('DATE','date')}
+    ${makeHdr('REASON','reason')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">AMOUNT</span></div></th>
+  </tr>`;
+  let total=0;
+  S.expense.forEach((row,i)=>{
+    total+=parseFloat(row.amt)||0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
+      <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.reason||'')}" oninput="handleInput(${i},'reason',this.value)" ${!rw?'readonly':''}></td>
+      <td class="num"><input type="number" class="num mono" value="${row.amt===''?'':row.amt}"
+            oninput="handleInput(${i},'amt',this.value)" ${!rw?'readonly':''}></td>`;
+    tbody.appendChild(tr);
+  });
+  const sr=document.createElement('tr');
+  sr.className='summary-row';
+  sr.innerHTML=`${rw?'<td></td>':''}
+    <td class="summary-label" colspan="2">TOTAL EXPENSES</td>
+    <td class="num num-pad">${fmt(total)}</td>`;
+  tbody.appendChild(sr);
+}
 
-    function calculateFIFOCost(itemId, qtyToSell, salesIdx) {
-        if (!itemId || qtyToSell <= 0) return 0;
-        let buys = tabsData.PURCHASE.filter(p => p.id === itemId).sort((a,b) => new Date(a.date) - new Date(b.date)).map(p => ({...p, rem: parseFloat(p.qty)}));
-        let soldBefore = tabsData.SALES.filter((s, i) => s.id === itemId && i < salesIdx).reduce((a, b) => a + (parseFloat(b.qty)||0), 0);
-        for(let b of buys) { let take = Math.min(b.rem, soldBefore); b.rem -= take; soldBefore -= take; }
-        let cost = 0, needed = qtyToSell;
-        for(let b of buys) { if(needed <= 0) break; let take = Math.min(b.rem, needed); cost += take * (parseFloat(b.uPrice)||0); needed -= take; }
-        return cost;
-    }
+/* --- REPORT --- */
+function renderReport(thead,tbody,extras){
+  thead.innerHTML=`<tr style="background:linear-gradient(90deg,var(--p2),var(--p))">
+    <th colspan="2" style="padding:16px 18px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:.06em">
+      FINANCIAL SUMMARY
+      <button onclick="printReport()" class="no-print" style="float:right;padding:5px 14px;font-size:11px;
+        border-radius:6px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:700">
+        🖨 Print
+      </button>
+    </th>
+  </tr>`;
 
-    let currentTab = localStorage.getItem('currentTab') || 'ITEMS';
-    let focusedId = null;
-    let cursorPosition = 0;
-    let filters = {};
-    let users = JSON.parse(localStorage.getItem('imsUsers')) || [{ username: 'admin', password: 'admin' }];
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+  extras.innerHTML=`<div class="date-range-bar no-print">
+    <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTable()"></label>
+    <label>To:   <input type="date" value="${S.reportRange.to}"   onchange="S.reportRange.to=this.value;renderTable()"></label>
+  </div>`;
 
-    function saveUsers() {
-        localStorage.setItem('imsUsers', JSON.stringify(users));
-    }
-    function saveSession() {
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    }
-    function updateHeaderTitle() {
-        document.getElementById('current-user-label').textContent = currentUser ? `User: ${currentUser.username}` : '';
-        document.getElementById('sheet-title').innerText = currentTab === 'ITEMS' ? 'Add Items' : currentTab;
-    }
-    function toggleSettingsMenu() {
-        const menu = document.getElementById('settings-menu');
-        menu.classList.toggle('open');
-    }
-    function closeSettingsMenu() {
-        const menu = document.getElementById('settings-menu');
-        menu.classList.remove('open');
-    }
-    function showLogin() {
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('app-header').style.display = 'none';
-        document.querySelector('.worksheet-container').style.display = 'none';
-        document.querySelector('.bottom-nav').style.display = 'none';
-        document.getElementById('settings-menu').classList.remove('open');
-        document.getElementById('login-error').textContent = '';
-        setTimeout(() => document.getElementById('login-user').focus(), 100);
-    }
-    function hideLogin() {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-header').style.display = 'flex';
-        document.querySelector('.worksheet-container').style.display = 'block';
-        document.querySelector('.bottom-nav').style.display = 'flex';
-    }
-    function authenticateUser(username, password) {
-        return users.find(u => u.username === username && u.password === password);
-    }
-    function handleLogin(event) {
-        event.preventDefault();
-        const username = document.getElementById('login-user').value.trim();
-        const password = document.getElementById('login-pass').value;
-        const user = authenticateUser(username, password);
-        if (!user) {
-            document.getElementById('login-error').textContent = 'Invalid username or password.';
-            return;
-        }
-        currentUser = { username: user.username };
-        saveSession();
-        updateHeaderTitle();
-        hideLogin();
-        updateSuggestions();
-        switchTab(currentTab);
-    }
-    function logout() {
-        currentUser = null;
-        localStorage.removeItem('currentUser');
-        closeSettingsMenu();
-        showLogin();
-    }
-    function addUser() {
-        closeSettingsMenu();
-        const username = prompt('Enter new username:');
-        if (!username) return;
-        const password = prompt('Enter password for ' + username + ':');
-        if (!password) return;
-        if (users.some(u => u.username === username)) {
-            alert('User already exists.');
-            return;
-        }
-        users.push({ username, password });
-        saveUsers();
-        alert('User added successfully.');
-    }
-    document.addEventListener('click', event => {
-        if (!event.target.closest('.settings-wrap')) closeSettingsMenu();
-    });
+  const inRange=arr=>arr.filter(r=>{
+    if(!r.date)return true;
+    const d=r.date.slice(0,10);
+    if(S.reportRange.from&&d<S.reportRange.from)return false;
+    if(S.reportRange.to&&d>S.reportRange.to)return false;
+    return true;
+  });
 
-    function switchTab(tab) {
-        currentTab = tab; filters = {}; focusedId = null;
-        localStorage.setItem('currentTab', tab);
-        document.getElementById('sheet-title').innerText = tab === 'ITEMS' ? 'Add Items' : tab;
-        document.querySelectorAll('.nav-btn').forEach(b => {
-            const label = b.innerText;
-            b.classList.toggle('active', label === tab);
-        });
-        if(tab === 'ITEMS') closeSettingsMenu();
-        updateSuggestions();
-        renderTable();
-    }
+  const PR=inRange(S.purchase),SR=inRange(S.sales),ER=inRange(S.expense);
+  const tPC=sum(PR.filter(p=>p.status==='CASH'),  p=>(p.qty||0)*(p.uPrice||0));
+  const tPCr=sum(PR.filter(p=>p.status==='CREDIT'),p=>(p.qty||0)*(p.uPrice||0));
+  const tSC=sum(SR.filter(s=>s.status==='CASH'),  s=>(s.qty||0)*(s.sPrice||0));
+  const tSCr=sum(SR.filter(s=>s.status==='CREDIT'),s=>(s.qty||0)*(s.sPrice||0));
+  const tE=sum(ER,r=>parseFloat(r.amt));
+  const net=tSC+tSCr-tPC-tPCr-tE;
+  const coh=S.beginBal+tSC-tPC-tE;
 
-    function updateSuggestions() {
-        const pList = document.getElementById('party-suggestions');
-        const ds = currentTab === 'PURCHASE' ? tabsData.PURCHASE : tabsData.SALES;
-        pList.innerHTML = [...new Set(ds.map(r => r.party))].filter(n => n).map(n => `<option value="${n}">`).join('');
+  const rows2=[
+    {l:'Initial Cash Balance', v:S.beginBal, edit:true},
+    {l:'Total Purchases — Credit', v:tPCr},
+    {l:'Total Purchases — Cash',   v:tPC},
+    {l:'Total Sales — Cash',       v:tSC},
+    {l:'Total Sales — Credit',     v:tSCr},
+    {l:'Total Expenses',           v:tE},
+    {l:'Net Profit / Loss',        v:net,  total:true},
+    {l:'Cash on Hand',             v:coh,  total:true},
+  ];
+  rows2.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.className=r.total?'report-total':'';
+    tr.innerHTML=`
+      <td class="report-label">${r.l}</td>
+      <td class="report-value">${r.edit
+        ?`<input type="number" class="mono" style="text-align:right;font-weight:700;width:140px;
+             padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)"
+             value="${r.v}" onchange="S.beginBal=parseFloat(this.value)||0;saveUserData();renderTable()">`
+        :fmt(r.v)}</td>`;
+    tbody.appendChild(tr);
+  });
 
-        const iList = document.getElementById('item-suggestions');
-        iList.innerHTML = masterItems.filter(m => m.id).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
-    }
+  // Credit breakdowns
+  const groupBy=(arr,kf,vf)=>arr.reduce((a,r)=>{const k=kf(r);a[k]=(a[k]||0)+vf(r);return a;},{});
+  const cp=PR.filter(p=>p.status==='CREDIT'&&p.party);
+  const cs=SR.filter(s=>s.status==='CREDIT'&&s.party);
+  if(cp.length){
+    const g=groupBy(cp,p=>p.party,p=>(p.qty||0)*(p.uPrice||0));
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="2" class="credit-block">
+      <b style="color:var(--p)">Purchases on Credit — by Supplier:</b><br>
+      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b>${fmt(v)}</b>`).join('<br>')}
+    </td>`;
+    tbody.appendChild(tr);
+  }
+  if(cs.length){
+    const g=groupBy(cs,s=>s.party,s=>(s.qty||0)*(s.sPrice||0));
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="2" class="credit-block">
+      <b style="color:var(--p)">Sales on Credit — by Customer:</b><br>
+      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b>${fmt(v)}</b>`).join('<br>')}
+    </td>`;
+    tbody.appendChild(tr);
+  }
+}
 
-    function createHdr(label, field) {
-        // Add a resize handle to each header
-        return `<th style="width:auto;"><span class="header-label">${label}</span>
-            ${field ? `<input id="filter-${field}" class="hdr-filter" placeholder=" " value="${filters[field]||''}"
-                oninput="filters['${field}']=this.value.toLowerCase(); focusedId=this.id; cursorPosition=this.selectionStart||0;"
-                onkeyup="renderTable();"
-            >` : ''}
-            <div class="resize-handle" onmousedown="startResize(event, this)"></div>
-        </th>`;
-    }
+/* ======================================================
+   PRINT REPORT ONLY
+====================================================== */
+function printReport(){
+  // Build a clean print-only version
+  const pa=document.getElementById('report-print-area');
+  const thead=document.getElementById('thead');
+  const tbody=document.getElementById('tbody');
+  pa.innerHTML=`<style>
+    @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'DM Sans',sans-serif;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{border:1px solid #ccc;padding:10px 14px;}
+    thead tr th{background:#1a1aff;color:white;font-size:14px;}
+    .report-label{color:#64748b;}
+    .report-value{text-align:right;font-weight:700;font-family:monospace;}
+    .report-total{background:#f0fdf4;font-weight:700;border-top:2px solid #22c55e;border-bottom:2px solid #22c55e;}
+    .credit-block{padding:10px 14px;font-size:12px;}
+  </style>
+  <table>${thead.innerHTML}<tbody>${tbody.innerHTML}</tbody></table>`;
+  window.print();
+  setTimeout(()=>{pa.innerHTML='';},1000);
+}
 
-    // --- COLUMN RESIZE LOGIC ---
-    let resizing = { th: null, startX: 0, startWidth: 0 };
-    function startResize(e, handle) {
-        e.preventDefault();
-        resizing.th = handle.parentElement;
-        resizing.startX = e.clientX;
-        resizing.startWidth = resizing.th.offsetWidth;
-        resizing.tableId = resizing.th.closest('table').id;
-        resizing.colIdx = Array.from(resizing.th.parentElement.children).indexOf(resizing.th);
-        document.addEventListener('mousemove', doResize);
-        document.addEventListener('mouseup', stopResize);
-    }
-    function doResize(e) {
-        if (!resizing.th) return;
-        let newWidth = resizing.startWidth + (e.clientX - resizing.startX);
-        if (newWidth < 40) newWidth = 40;
-        resizing.th.style.width = newWidth + 'px';
-        // Also set width for all cells in this column
-        const table = resizing.th.closest('table');
-        const idx = resizing.colIdx;
-        table.querySelectorAll('tr').forEach(row => {
-            if (row.children[idx]) row.children[idx].style.width = newWidth + 'px';
-        });
-        // Save widths to localStorage
-        saveTableWidths(table);
-    }
-    function stopResize() {
-        document.removeEventListener('mousemove', doResize);
-        document.removeEventListener('mouseup', stopResize);
-        resizing.th = null;
-    }
+/* ======================================================
+   PDF EXPORT (print-based)
+====================================================== */
+function exportPDF(tab){
+  const prevTab=S.tab;
+  S.tab=tab;
+  const titles={PURCHASE:'Purchase',SALES:'Sales',BALANCE:'Balance',EXPENSE:'Expense'};
+  // Temporarily render chosen tab into a hidden area and print
+  const pa=document.getElementById('report-print-area');
+  // Re-render in a temporary container
+  const tmpThead=document.createElement('thead');
+  const tmpTbody=document.createElement('tbody');
+  const tmpExtras=document.createElement('div');
 
-    function saveTableWidths(table) {
-        if (!table || !table.id) return;
-        const widths = Array.from(table.rows[0]?.cells || []).map(cell => cell.style.width || '');
-        localStorage.setItem('tableWidths_' + table.id + '_' + currentTab, JSON.stringify(widths));
-    }
-    function restoreTableWidths(table) {
-        if (!table || !table.id) return;
-        const widths = JSON.parse(localStorage.getItem('tableWidths_' + table.id + '_' + currentTab) || '[]');
-        if (!widths.length) return;
-        Array.from(table.rows[0]?.cells || []).forEach((cell, i) => {
-            if (widths[i]) cell.style.width = widths[i];
-        });
-        // Also apply to all rows
-        for (let i = 1; i < table.rows.length; ++i) {
-            Array.from(table.rows[i].cells).forEach((cell, j) => {
-                if (widths[j]) cell.style.width = widths[j];
-            });
-        }
-    }
+  // Temporarily swap DOM refs — easiest approach: render to real table, capture, print
+  const thead=document.getElementById('thead');
+  const tbody=document.getElementById('tbody');
+  const extras=document.getElementById('extras');
+  const savedHead=thead.innerHTML,savedBody=tbody.innerHTML,savedExtras=extras.innerHTML;
+  const savedSheetTitle=document.getElementById('sheet-title').textContent;
 
-    function renderTable() {
-        const body = document.getElementById('table-body');
-        const head = document.getElementById('table-head');
-        const extras = document.getElementById('report-extras');
-        body.innerHTML = ''; head.innerHTML = ''; extras.innerHTML = '';
+  S.tab=tab;S.filters={};
+  renderTable();
+  const capturedHead=thead.innerHTML;
+  const capturedBody=tbody.innerHTML;
 
-        if (currentTab === 'ITEMS') {
-            head.innerHTML = `<tr><th style="width:40px"></th>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}${createHdr('DESCRIPTION','desc')}</tr>`;
-            setTimeout(() => restoreTableWidths(document.getElementById('data-table')), 0);
-            masterItems.forEach((row, i) => {
-                if (filters.id && !row.id.toLowerCase().includes(filters.id)) return;
-                if (filters.name && !row.name.toLowerCase().includes(filters.name)) return;
-                // Check for duplicate IDs (except for the last empty row)
-                let isDuplicate = row.id && masterItems.filter((r, idx) => r.id === row.id && idx !== i).length > 0;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
-                    <td><input id="ITEMS_${i}_id" value="${row.id}" oninput="handleInput(${i},'id',this.value,this)" style="${isDuplicate ? 'background:#ffeaea;border:1px solid #d32f2f' : ''}"></td>
-                    <td><input id="ITEMS_${i}_name" value="${row.name}" oninput="handleInput(${i},'name',this.value,this)"></td>
-                    <td><input id="ITEMS_${i}_desc" value="${row.desc}" oninput="handleInput(${i},'desc',this.value,this)"></td>`;
-                if (isDuplicate) tr.title = 'Duplicate ID!';
-                body.appendChild(tr);
-            });
-        } 
-        else if (currentTab === 'PURCHASE' || currentTab === 'SALES') {
-            const isP = currentTab === 'PURCHASE';
-            let extraSalesCols = '';
-            if (!isP) {
-                extraSalesCols = `${createHdr('PRICE',null)}${createHdr('TOTAL PRICE',null)}${createHdr('PURCHASE PRICE',null)}${createHdr('TOTAL PURCHASE PRICE',null)}`;
-            }
-            // Ensure full width for both PURCHASE and SALES
-            const dataTable = document.getElementById('data-table');
-            dataTable.style.minWidth = '100%';
-            dataTable.style.width = '100%';
-            head.innerHTML = `<tr><th style="width:40px"></th>
-                ${createHdr('DATE','date')}
-                ${createHdr(isP?'SUPPLIER':'CUSTOMER','party')}
-                ${createHdr('ID','id')}
-                ${createHdr('NAME','name')}
-                ${createHdr('DESC','desc')}
-                ${createHdr('QTY',null)}
-                ${isP ? createHdr('U.PRICE',null) + createHdr('TOTAL',null) : extraSalesCols}
-                ${createHdr('STATUS','status')}
-            </tr>`;
-            setTimeout(() => restoreTableWidths(dataTable), 0);
-            let totalQty = 0;
-            let totalValue = 0;
-            tabsData[currentTab].forEach((row, i) => {
-                if (Object.keys(filters).some(f => filters[f] && !String(row[f]||'').toLowerCase().includes(filters[f]))) return;
-                let stock = 0;
-                if(currentTab==='SALES' && row.id) {
-                    const inQ = tabsData.PURCHASE.filter(p => p.id === row.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
-                    const outQ = tabsData.SALES.filter((s, idx2) => s.id === row.id && idx2 < i).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
-                    stock = inQ - outQ;
-                }
-                const qtyVal = parseFloat(row.qty) || 0;
-                const priceVal = parseFloat(isP ? row.uPrice : row.sPrice) || 0;
-                const rowTotal = isP ? (qtyVal * priceVal) : (qtyVal * priceVal) - calculateFIFOCost(row.id, qtyVal, i);
-                totalQty += qtyVal;
-                totalValue += rowTotal;
-                let warn = '';
-                if(currentTab==='SALES' && qtyVal > stock) warn = 'Not enough stock!';
-                let hasRequiredError = (!row.id || !row.qty || !priceVal);
-                const tr = document.createElement('tr');
-                let tds = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>`;
-                tds += `<td><input id="${currentTab}_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>`;
-                tds += `<td><input id="${currentTab}_${i}_party" list="party-suggestions" value="${row.party||''}" oninput="handleInput(${i},'party',this.value,this)"></td>`;
-                tds += `<td><input id="${currentTab}_${i}_id" list="item-suggestions" value="${row.id||''}" oninput="tabsData['${currentTab}'][${i}].id=this.value" onchange="validateAndLink(${i},this.value)"></td>`;
-                tds += `<td><input value="${row.name||''}" readonly tabindex="-1"></td>`;
-                tds += `<td><input value="${row.desc||''}" readonly tabindex="-1"></td>`;
-                tds += `<td><input id="${currentTab}_${i}_qty" type="number" class="num-align" value="${row.qty||''}" oninput="handleInput(${i},'qty',this.value,this)"></td>`;
-                if (isP) {
-                    tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${row.uPrice}" oninput="handleInput(${i},'uPrice',this.value,this)"></td>`;
-                    tds += `<td id="${currentTab}_${i}_total" class="num-align">${formatMoney(rowTotal)}</td>`;
-                } else {
-                    // SALES: PRICE, TOTAL PRICE, PURCHASE PRICE, TOTAL PURCHASE PRICE
-                    const totalPrice = qtyVal * priceVal;
-                    // Find purchase price (FIFO)
-                    let purchasePrice = 0;
-                    let needed = qtyVal;
-                    let buys = tabsData.PURCHASE.filter(p => p.id === row.id).sort((a,b) => new Date(a.date) - new Date(b.date)).map(p => ({...p, rem: parseFloat(p.qty)}));
-                    let soldBefore = tabsData.SALES.filter((s, idx2) => s.id === row.id && idx2 < i).reduce((a, b) => a + (parseFloat(b.qty)||0), 0);
-                    for(let b of buys) { let take = Math.min(b.rem, soldBefore); b.rem -= take; soldBefore -= take; }
-                    for(let b of buys) { if(needed <= 0) break; let take = Math.min(b.rem, needed); purchasePrice = b.uPrice; needed -= take; }
-                    const totalPurchasePrice = qtyVal * (purchasePrice || 0);
-                    tds += `<td><input id="${currentTab}_${i}_price" type="number" class="num-align" value="${row.sPrice}" oninput="handleInput(${i},'sPrice',this.value,this)"></td>`;
-                    tds += `<td class="num-align">${formatMoney(totalPrice)}</td>`;
-                    tds += `<td class="num-align">${formatMoney(purchasePrice)}</td>`;
-                    tds += `<td class="num-align">${formatMoney(totalPurchasePrice)}</td>`;
-                }
-                tds += `<td${hasRequiredError ? ' class="status-error"' : ''}><select id="${currentTab}_${i}_status" onchange="handleInput(${i},'status',this.value,this)">
-                        <option value="CASH" ${row.status=='CASH'?'selected':''}>CASH</option>
-                        <option value="CREDIT" ${row.status=='CREDIT'?'selected':''}>CREDIT</option>
-                    </select>${warn ? `<div class="stock-warning">${warn}</div>` : ''}</td>`;
-                tr.innerHTML = tds;
-                body.appendChild(tr);
-            });
-            // Adjust summary row for SALES tab
-            let summaryCols = isP ? 6 : 10;
-            const summaryTr = document.createElement('tr');
-            summaryTr.className = 'summary-row';
-            summaryTr.innerHTML = `<td colspan="${summaryCols}" style="padding:10px">TOTALS</td><td class="num-align">${totalQty.toLocaleString()}</td><td></td><td class="num-align">${formatMoney(totalValue)}</td><td></td>`;
-            body.appendChild(summaryTr);
-        }
-        else if (currentTab === 'BALANCE') {
-            head.innerHTML = `<tr>${createHdr('ID','id')}${createHdr('ITEM NAME','name')}<th class="num-align">STOCK IN</th><th class="num-align">STOCK OUT</th><th class="num-align">ON HAND</th><th class="num-align">VALUATION</th></tr>`;
-            let totalV = 0;
-            masterItems.filter(m => m.id).forEach(item => {
-                const inQ = tabsData.PURCHASE.filter(p => p.id === item.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
-                const outQ = tabsData.SALES.filter(s => s.id === item.id).reduce((a, b) => a + (parseFloat(b.qty) || 0), 0);
-                const stock = inQ - outQ;
-                const cost = tabsData.PURCHASE.filter(p => p.id === item.id).reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
-                const avg = inQ > 0 ? (cost / inQ) : 0;
-                totalV += (stock * avg);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td style="padding:10px">${item.id}</td><td style="padding:10px">${item.name}</td><td class="num-align">${inQ}</td><td class="num-align">${outQ}</td><td class="num-align" style="${stock<=0?'color:red;font-weight:bold':''}">${stock}</td><td class="num-align">${formatMoney(stock*avg)}</td>`;
-                body.appendChild(tr);
-            });
-            extras.innerHTML = `<div style="background:#f1f8f4; padding:15px; border:2px solid var(--primary-green); display:flex; justify-content:space-between; font-weight:bold"><span>TOTAL INVENTORY VALUE</span><span>${formatMoney(totalV)}</span></div>`;
-        }
-        else if (currentTab === 'EXPENSE') {
-            head.innerHTML = `<tr><th style="width:40px"></th>${createHdr('DATE','date')}${createHdr('REASON','reason')}${createHdr('AMOUNT',null)}</tr>`;
-            tabsData.EXPENSE.forEach((row, i) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><button class="del-btn" onclick="deleteRow(${i})">×</button></td>
-                    <td><input id="EXPENSE_${i}_date" type="datetime-local" value="${row.date}" oninput="handleInput(${i},'date',this.value,this)"></td>
-                    <td><input id="EXPENSE_${i}_reason" value="${row.reason||''}" oninput="handleInput(${i},'reason',this.value,this)"></td>
-                    <td><input id="EXPENSE_${i}_amt" type="number" class="num-align" value="${row.amt||''}" oninput="handleInput(${i},'amt',this.value,this)"></td>`;
-                body.appendChild(tr);
-            });
-        }
-        else if (currentTab === 'REPORT') {
-            head.innerHTML = `<tr><th colspan="2" style="padding:15px; text-align:center">FINANCIAL SUMMARY <button onclick="window.print()" style="float:right;padding:4px 12px;font-size:12px;border-radius:4px;border:none;background:var(--primary-green);color:white;cursor:pointer;">Print</button></th></tr>`;
-            // Date range filter for reports
-            if(!window.reportDateRange) window.reportDateRange = {from:'',to:''};
-            extras.innerHTML = `<div style='margin-bottom:10px;'>
-                <label style='font-size:12px;'>From: <input type='date' value='${window.reportDateRange.from}' onchange='window.reportDateRange.from=this.value;renderTable();'></label>
-                <label style='font-size:12px;margin-left:10px;'>To: <input type='date' value='${window.reportDateRange.to}' onchange='window.reportDateRange.to=this.value;renderTable();'></label>
-            </div>`;
-            // Date range filter for report calculations
-            let purchaseRows = tabsData.PURCHASE;
-            let salesRows = tabsData.SALES;
-            let expenseRows = tabsData.EXPENSE;
-            if(window.reportDateRange && window.reportDateRange.from) {
-                purchaseRows = purchaseRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
-                salesRows = salesRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
-                expenseRows = expenseRows.filter(r=>r.date && r.date.slice(0,10)>=window.reportDateRange.from);
-            }
-            if(window.reportDateRange && window.reportDateRange.to) {
-                purchaseRows = purchaseRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
-                salesRows = salesRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
-                expenseRows = expenseRows.filter(r=>r.date && r.date.slice(0,10)<=window.reportDateRange.to);
-            }
-            const totalPurchaseCash = purchaseRows.filter(p => p.status === 'CASH').reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
-            const totalPurchaseCredit = purchaseRows.filter(p => p.status === 'CREDIT').reduce((a, b) => a + ((b.qty || 0) * (b.uPrice || 0)), 0);
-            const totalSalesCash = salesRows.filter(s => s.status === 'CASH').reduce((a, b) => a + ((b.qty || 0) * (b.sPrice || 0)), 0);
-            const totalSalesCredit = salesRows.filter(s => s.status === 'CREDIT').reduce((a, b) => a + ((b.qty || 0) * (b.sPrice || 0)), 0);
-            const totalExpense = expenseRows.reduce((a, b) => a + (parseFloat(b.amt) || 0), 0);
-            const net = (totalSalesCash + totalSalesCredit) - (totalPurchaseCash + totalPurchaseCredit) - totalExpense;
-            const cashOnHand = (beginningBalance + totalSalesCash) - (totalPurchaseCash + totalExpense);
+  pa.innerHTML=`<style>
+    @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'DM Sans',sans-serif;}
+    h2{color:#1a1aff;margin-bottom:12px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{background:#1a1aff;color:#fff;padding:8px 10px;text-align:left;font-size:11px;}
+    td{border-bottom:1px solid #e2e8f0;padding:8px 10px;}
+    .num,.num-pad{text-align:right;font-family:monospace;}
+    .summary-row td{background:#f0fdf4;font-weight:700;}
+    .row-incomplete td{background:#fff1f1;}
+    .hdr-filter,.del-btn,.resize-handle{display:none!important;}
+    input,select{border:none;background:transparent;width:100%;font-family:inherit;}
+  </style>
+  <h2>POWER-IMS — ${titles[tab]||tab}</h2>
+  <p style="font-size:11px;color:#64748b;margin-bottom:10px">Printed: ${new Date().toLocaleString()} | User: ${S.user}</p>
+  <table><thead>${capturedHead}</thead><tbody>${capturedBody}</tbody></table>`;
 
-            const rows = [
-                { l: "Initial Cash Balance", v: beginningBalance, ed: true },
-                { l: "Total Purchases on Credit", v: totalPurchaseCredit, neg: true },
-                { l: "Total Purchases on Cash", v: totalPurchaseCash, neg: true },
-                { l: "Total Sales on Cash", v: totalSalesCash, pos: true },
-                { l: "Total Sales on Credit", v: totalSalesCredit, pos: true },
-                { l: "Total Expense", v: totalExpense, neg: true },
-                { l: "Net", v: net, total: true },
-                { l: "Cash on Hand", v: cashOnHand, total: true }
-            ];
-            rows.forEach(r => {
-                const tr = document.createElement('tr');
-                tr.className = r.total ? 'report-total-row' : '';
-                tr.innerHTML = `<td class="report-label">${r.l}</td><td class="report-value ${r.total ? '' : (r.neg ? 'report-negative' : (r.pos ? '' : ''))}">
-                ${r.ed ? `<input style="text-align:right; font-weight:bold" type="number" value="${r.v}" onchange="beginningBalance=parseFloat(this.value)||0; renderTable(); saveData();">` : formatMoney(r.v)}</td>`;
-                body.appendChild(tr);
-            });
+  window.print();
 
-            // --- CREDIT DETAILS ---
-            // Purchases on credit: from whom
-            const creditPurchases = purchaseRows.filter(p => p.status === 'CREDIT' && p.party);
-            if (creditPurchases.length) {
-                const parties = {};
-                creditPurchases.forEach(p => { if (!parties[p.party]) parties[p.party] = 0; parties[p.party] += (p.qty||0)*(p.uPrice||0); });
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="2" style="padding:10px 8px 0 8px"><b>Purchases on Credit (Supplier):</b><br>${Object.entries(parties).map(([party, amt]) => `${party}: <b>${formatMoney(amt)}</b>`).join('<br>')}</td>`;
-                body.appendChild(tr);
-            }
-            // Sales on credit: to whom
-            const creditSales = salesRows.filter(s => s.status === 'CREDIT' && s.party);
-            if (creditSales.length) {
-                const customers = {};
-                creditSales.forEach(s => { if (!customers[s.party]) customers[s.party] = 0; customers[s.party] += (s.qty||0)*(s.sPrice||0); });
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="2" style="padding:10px 8px 0 8px"><b>Sales on Credit (Customer):</b><br>${Object.entries(customers).map(([party, amt]) => `${party}: <b>${formatMoney(amt)}</b>`).join('<br>')}</td>`;
-                body.appendChild(tr);
-            }
-        }
+  setTimeout(()=>{
+    pa.innerHTML='';
+    thead.innerHTML=savedHead;
+    tbody.innerHTML=savedBody;
+    extras.innerHTML=savedExtras;
+    S.tab=prevTab;
+    document.getElementById('sheet-title').textContent=savedSheetTitle;
+  },1000);
+}
 
-        if (focusedId && focusedId.startsWith('filter-')) {
-            const el = document.getElementById(focusedId);
-            if (el) {
-                el.focus();
-                if (el.setSelectionRange && typeof cursorPosition === 'number') el.setSelectionRange(cursorPosition, cursorPosition);
-            }
-        }
-    }
+/* ======================================================
+   KEYBOARD NAV
+====================================================== */
+document.addEventListener('keydown',e=>{
+  const el=document.activeElement;
+  if(!el||(el.tagName!=='INPUT'&&el.tagName!=='SELECT'))return;
+  const inputs=[...document.querySelectorAll('tbody input:not([readonly]),tbody select:not([disabled])')];
+  const ci=inputs.indexOf(el);if(ci<0)return;
+  const row=el.closest('tr');
+  const nc=row?[...row.querySelectorAll('input:not([readonly]),select:not([disabled])')].length:1;
+  const mv={ArrowDown:nc,ArrowUp:-nc,Enter:nc};
+  if(e.key in mv){const ni=ci+mv[e.key];if(ni>=0&&ni<inputs.length){e.preventDefault();inputs[ni].focus();}}
+  if(e.key==='ArrowRight'&&(el.tagName==='SELECT'||el.selectionEnd===el.value.length))
+    {if(ci+1<inputs.length)inputs[ci+1].focus();}
+  if(e.key==='ArrowLeft'&&(el.tagName==='SELECT'||el.selectionStart===0))
+    {if(ci-1>=0)inputs[ci-1].focus();}
+});
 
-    // --- KEYBOARD NAV ---
-    window.addEventListener('keydown', e => {
-        const active = document.activeElement;
-        if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'SELECT')) return;
-        const inputs = Array.from(document.querySelectorAll('tbody input:not([readonly]), tbody select'));
-        const currIdx = inputs.indexOf(active);
-        const row = active.closest('tr');
-        if(!row) return;
-        const rowInputs = Array.from(row.querySelectorAll('input:not([readonly]), select'));
-        const numCols = rowInputs.length;
-        switch (e.key) {
-            case 'Enter':
-                e.preventDefault();
-                if (currIdx + numCols < inputs.length) inputs[currIdx + numCols].focus();
-                break;
-            case 'ArrowDown':
-                e.preventDefault();
-                if (currIdx + numCols < inputs.length) inputs[currIdx + numCols].focus();
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                if (currIdx - numCols >= 0) inputs[currIdx - numCols].focus();
-                break;
-            case 'ArrowRight':
-                if (active.tagName === 'SELECT' || active.selectionEnd === active.value.length) {
-                    if (currIdx + 1 < inputs.length) inputs[currIdx + 1].focus();
-                }
-                break;
-            case 'ArrowLeft':
-                if (active.tagName === 'SELECT' || active.selectionStart === 0) {
-                    if (currIdx - 1 >= 0) inputs[currIdx - 1].focus();
-                }
-                break;
-        }
-    });
+/* ======================================================
+   BOOT
+====================================================== */
+function init(){
+  // Ensure admin exists
+  const reg=getRegistry();
+  if(!reg[ADMIN]){reg[ADMIN]='admin';saveRegistry(reg);}
 
-    function initializeApp() {
-        if (!users.length) {
-            users = [{ username: 'admin', password: 'admin' }];
-            saveUsers();
-        }
-        if (currentUser && users.some(u => u.username === currentUser.username)) {
-            updateHeaderTitle();
-            hideLogin();
-            updateSuggestions();
-            switchTab(currentTab);
-            return;
-        }
-        currentUser = null;
-        saveSession();
-        showLogin();
-    }
-    initializeApp();
+  const saved=localStorage.getItem('ims_currentUser');
+  if(saved&&getRegistry()[saved]){doLogin(saved);return;}
+  openModal('auth-modal');
+}
+init();
 </script>
 </body>
 </html>

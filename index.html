@@ -395,6 +395,9 @@ tr.row-incomplete td input:focus{background:var(--focus-bg);}
 /* ======================================================
    CONSTANTS & HELPERS
 ====================================================== */
+// Shared uploads key
+const SHARED_UPLOADS_KEY = 'ims_shared_uploads';
+
 const ADMIN = 'admin';
 const TABS  = ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
 // Permission levels per tab: 'full' | 'add_only' | 'read' | 'none'
@@ -428,7 +431,8 @@ const S = {
   user:null, tab:'ITEMS', theme:'light', lang:'en', filters:{},
   items:[], purchase:[], sales:[], expense:[], beginBal:0,
   reportRange:{from:'',to:''},
-  perms: {} // {username: {ITEMS:'full', PURCHASE:'full', ...}}
+  perms: {}, // {username: {ITEMS:'full', PURCHASE:'full', ...}}
+  sharedUploads: [] // For admin view
 };
 
 /* ======================================================
@@ -441,6 +445,10 @@ function loadUserData(u) {
   S.expense  = JSON.parse(localStorage.getItem(uKey(u,'expense'))  || JSON.stringify([blankExpense()]));
   S.beginBal = parseFloat(localStorage.getItem(uKey(u,'beginBal')) || '0');
   S.perms    = JSON.parse(localStorage.getItem('ims_perms')        || '{}');
+  // Load shared uploads for admin
+  if (u === ADMIN) {
+    S.sharedUploads = JSON.parse(localStorage.getItem(SHARED_UPLOADS_KEY) || '[]');
+  }
 }
 function saveUserData() {
   if (!S.user) return;
@@ -451,6 +459,14 @@ function saveUserData() {
   localStorage.setItem(uKey(u,'expense'),  JSON.stringify(S.expense));
   localStorage.setItem(uKey(u,'beginBal'), S.beginBal);
   localStorage.setItem('ims_perms',        JSON.stringify(S.perms));
+}
+
+// Save uploaded data to shared storage (call this after upload)
+function saveSharedUpload(data, meta = {}) {
+  // meta can include: uploader, date, etc.
+  const uploads = JSON.parse(localStorage.getItem(SHARED_UPLOADS_KEY) || '[]');
+  uploads.push({ ...meta, data, uploader: S.user, date: new Date().toISOString() });
+  localStorage.setItem(SHARED_UPLOADS_KEY, JSON.stringify(uploads));
 }
 
 /* ======================================================
@@ -816,11 +832,32 @@ function renderTable(){
   const extras=document.getElementById('extras');
   thead.innerHTML='';tbody.innerHTML='';extras.innerHTML='';
 
+  // Admin: show shared uploads tab if selected
+  if (S.user === ADMIN && S.tab === 'UPLOADS') {
+    renderSharedUploads(thead, tbody, extras);
+    return;
+  }
+
   if(S.tab==='ITEMS')         renderItems(thead,tbody);
   else if(S.tab==='PURCHASE'||S.tab==='SALES') renderTx(thead,tbody);
   else if(S.tab==='BALANCE')  renderBalance(thead,tbody,extras);
   else if(S.tab==='EXPENSE')  renderExpense(thead,tbody);
   else if(S.tab==='REPORT')   renderReport(thead,tbody,extras);
+}
+
+// Admin: render all shared uploads
+function renderSharedUploads(thead, tbody, extras) {
+  thead.innerHTML = `<tr><th>Uploader</th><th>Date</th><th>Data</th></tr>`;
+  (S.sharedUploads || []).forEach(up => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${esc(up.uploader)}</td><td>${esc(up.date)}</td><td><pre style="white-space:pre-wrap;max-width:400px;">${esc(JSON.stringify(up.data))}</pre></td>`;
+    tbody.appendChild(tr);
+  });
+  if (!(S.sharedUploads && S.sharedUploads.length)) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="3" style="text-align:center;color:var(--muted)">No uploads yet.</td>`;
+    tbody.appendChild(tr);
+  }
 }
 
 /* --- ITEMS --- */

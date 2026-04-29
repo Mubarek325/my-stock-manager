@@ -2,333 +2,825 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>POWER-IMS</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* ========== THEMES ========== */
+/* ============================================================
+   CSS VARIABLES & THEMES
+============================================================ */
 :root {
-  --p:        #1a1aff;
-  --p2:       #0a0a8f;
-  --accent:   #00c2ff;
-  --border:   #e2e8f0;
-  --hdr-bg:   #f8fafc;
-  --bg:       #f0f4f8;
-  --surface:  #ffffff;
-  --surface2: #f8fafc;
-  --text:     #0f172a;
-  --muted:    #64748b;
-  --error:    #ef4444;
-  --warn-bg:  #fff1f1;
-  --ok-bg:    #f0fdf4;
-  --ok-bdr:   #22c55e;
-  --nav-bg:   #0f172a;
-  --nav-btn:  #1e293b;
-  --focus-bg: #eff6ff;
-  --shadow:   0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
-  --radius:   10px;
-  --font:     'DM Sans',sans-serif;
-  --mono:     'DM Mono',monospace;
-  --row-err:  rgba(239,68,68,.09);
+  --p:         #2563eb;
+  --p-light:   #3b82f6;
+  --p-dark:    #1d4ed8;
+  --p-glass:   rgba(37,99,235,0.12);
+  --accent:    #06b6d4;
+  --accent2:   #8b5cf6;
+  --success:   #10b981;
+  --warn:      #f59e0b;
+  --error:     #ef4444;
+  --border:    rgba(0,0,0,0.08);
+  --bg:        #f0f4ff;
+  --bg2:       #e8eeff;
+  --surface:   #ffffff;
+  --surface2:  #f8faff;
+  --surface3:  #f0f4ff;
+  --text:      #0f1729;
+  --text2:     #374151;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --nav-bg:    #0f1729;
+  --hdr-from:  #1e3a8a;
+  --hdr-to:    #2563eb;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  --shadow:    0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.05);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,.14), 0 6px 20px rgba(0,0,0,.08);
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --font:      'Sora', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+  --row-err:   rgba(239,68,68,.07);
+  --row-ok:    rgba(16,185,129,.05);
 }
 [data-theme="dark"] {
-  --p:        #818cf8;
-  --p2:       #4f46e5;
-  --accent:   #38bdf8;
-  --border:   #334155;
-  --hdr-bg:   #1e293b;
-  --bg:       #0f172a;
-  --surface:  #1e293b;
-  --surface2: #162032;
-  --text:     #f1f5f9;
-  --muted:    #94a3b8;
-  --error:    #f87171;
-  --warn-bg:  #3b0f0f;
-  --ok-bg:    #0f2a1a;
-  --ok-bdr:   #22c55e;
-  --nav-bg:   #020617;
-  --nav-btn:  #1e293b;
-  --focus-bg: #1e2a40;
-  --shadow:   0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.4);
-  --row-err:  rgba(239,68,68,.13);
+  --p:         #60a5fa;
+  --p-light:   #93c5fd;
+  --p-dark:    #3b82f6;
+  --p-glass:   rgba(96,165,250,0.15);
+  --accent:    #22d3ee;
+  --accent2:   #a78bfa;
+  --success:   #34d399;
+  --warn:      #fbbf24;
+  --error:     #f87171;
+  --border:    rgba(255,255,255,0.08);
+  --bg:        #070d1a;
+  --bg2:       #0d1628;
+  --surface:   #111827;
+  --surface2:  #1a2438;
+  --surface3:  #0d1628;
+  --text:      #f0f6ff;
+  --text2:     #d1d9f0;
+  --muted:     #8899bb;
+  --muted2:    #4b6080;
+  --nav-bg:    #070d1a;
+  --hdr-from:  #0d1f4a;
+  --hdr-to:    #1e3a8a;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.3);
+  --shadow:    0 4px 20px rgba(0,0,0,.4);
+  --shadow-lg: 0 24px 70px rgba(0,0,0,.6);
+  --row-err:   rgba(248,113,113,.1);
 }
 
-/* ========== RESET ========== */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;padding:0 0 72px;transition:background .2s,color .2s;}
+/* ============================================================
+   RESET
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  padding-bottom: 76px;
+  transition: background .3s, color .3s;
+  -webkit-font-smoothing: antialiased;
+}
 input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator{display:none;}
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:var(--surface2);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::selection { background: var(--p-glass); color: var(--p); }
 
-/* ========== HEADER ========== */
-.app-header{
-  display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(135deg,var(--p2) 0%,var(--p) 100%);
-  color:#fff;padding:14px 20px;
-  box-shadow:0 2px 20px rgba(26,26,255,.3);
-  position:sticky;top:0;z-index:200;
+/* ============================================================
+   HEADER
+============================================================ */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--hdr-from) 0%, var(--hdr-to) 100%);
+  color: #fff;
+  padding: 10px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 4px 30px rgba(37,99,235,.35);
+  gap: 12px;
 }
-.app-brand{display:flex;align-items:center;gap:10px;}
-.brand-icon{width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:18px;}
-.app-title{font-size:1.1rem;font-weight:700;letter-spacing:.06em;}
-.app-user{font-size:.65rem;opacity:.75;margin-top:2px;letter-spacing:.02em;}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.brand-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,.18);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
+}
+.app-title { font-size: 1rem; font-weight: 800; letter-spacing: .08em; }
+.app-subtitle { font-size: .6rem; opacity: .65; margin-top: 1px; letter-spacing: .06em; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.hdr-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  object-fit: cover; cursor: pointer;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.hdr-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-pill {
+  display: flex; flex-direction: column;
+  line-height: 1.2;
+}
+.user-name { font-size: .72rem; font-weight: 700; }
+.user-role { font-size: .58rem; opacity: .65; letter-spacing: .04em; text-transform: uppercase; }
 
-/* ========== SETTINGS MENU ========== */
-.settings-wrap{position:relative;}
-.settings-btn{
-  width:38px;height:38px;border-radius:50%;border:none;
-  background:rgba(255,255,255,.15);color:#fff;cursor:pointer;
-  font-size:17px;display:inline-flex;align-items:center;justify-content:center;
-  transition:background .18s,transform .18s;
+/* ============================================================
+   SETTINGS PANEL (slide-in drawer)
+============================================================ */
+.settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: none;
+  opacity: 0;
+  transition: opacity .25s;
 }
-.settings-btn:hover{background:rgba(255,255,255,.28);transform:rotate(22deg);}
-.settings-menu{
-  display:none;position:absolute;right:0;top:48px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);box-shadow:var(--shadow-lg);
-  min-width:220px;overflow:hidden;z-index:300;
+.settings-overlay.open { display: block; opacity: 1; }
+.settings-drawer {
+  position: fixed;
+  top: 0; right: -340px;
+  width: min(340px, 90vw);
+  height: 100dvh;
+  background: var(--surface);
+  z-index: 501;
+  box-shadow: var(--shadow-lg);
+  transition: right .3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
 }
-.settings-menu.open{display:block;animation:fadeIn .15s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.menu-item{
-  width:100%;border:none;background:transparent;
-  padding:11px 16px;text-align:left;cursor:pointer;
-  font-family:var(--font);font-size:13px;color:var(--text);
-  display:flex;align-items:center;gap:10px;transition:background .12s;
+.settings-drawer.open { right: 0; }
+.drawer-header {
+  padding: 20px 20px 16px;
+  background: linear-gradient(135deg, var(--hdr-from), var(--hdr-to));
+  color: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
 }
-.menu-item:hover{background:var(--hdr-bg);}
-.menu-section{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
-.menu-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
-.menu-select{
-  width:calc(100% - 32px);margin:2px 16px 10px;
-  padding:7px 10px;border:1px solid var(--border);border-radius:6px;
-  background:var(--surface2);color:var(--text);font-family:var(--font);font-size:12px;
+.drawer-header h3 { font-size: .95rem; font-weight: 700; }
+.drawer-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.2); border: none;
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.drawer-close:hover { background: rgba(255,255,255,.35); }
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0 20px;
+}
+.drawer-section {
+  padding: 6px 16px 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.drawer-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; border: none; background: transparent;
+  padding: 11px 16px; text-align: left; cursor: pointer;
+  font-family: var(--font); font-size: 13px; color: var(--text);
+  transition: background .12s;
+  text-decoration: none;
+}
+.drawer-item:hover { background: var(--surface2); }
+.drawer-item .di-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.drawer-item .di-label { font-size: 13px; font-weight: 500; }
+.drawer-item .di-sub { font-size: 10px; color: var(--muted); }
+.drawer-divider { height: 1px; background: var(--border); margin: 6px 16px; }
+.drawer-select-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px;
+}
+.drawer-select-row label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.drawer-select {
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  min-width: 120px;
+}
+.settings-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,.18); color: #fff; cursor: pointer;
+  font-size: 17px; display: flex; align-items: center; justify-content: center;
+  transition: background .18s, transform .3s;
+  backdrop-filter: blur(4px);
+}
+.settings-btn:hover { background: rgba(255,255,255,.3); transform: rotate(60deg); }
+
+/* ============================================================
+   CONTENT
+============================================================ */
+.content { padding: 14px 14px 0; }
+@media (min-width: 768px) { .content { padding: 20px 28px 0; } }
+
+/* ============================================================
+   SHEET CARD
+============================================================ */
+.sheet-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.sheet-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sheet-title-block { display: flex; align-items: center; gap: 10px; }
+.sheet-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--p-glass); color: var(--p);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.sheet-title { font-size: .85rem; font-weight: 700; color: var(--text); letter-spacing: .02em; }
+.tab-badge {
+  font-size: 9.5px; font-weight: 800; padding: 3px 10px; border-radius: 99px;
+  background: var(--p); color: #fff; letter-spacing: .06em; text-transform: uppercase;
+}
+.head-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.action-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 12px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text2); transition: all .15s; font-family: var(--font);
+  white-space: nowrap;
+}
+.action-btn:hover { background: var(--p); color: #fff; border-color: var(--p); }
+.action-btn.primary { background: var(--p); color: #fff; border-color: var(--p); }
+.action-btn.success { background: var(--success); color: #fff; border-color: var(--success); }
+.sheet-body { overflow-x: auto; }
+
+/* ============================================================
+   TABLE
+============================================================ */
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0; }
+th:last-child, td:last-child { border-right: none; }
+thead th { background: var(--surface2); position: sticky; top: 0; z-index: 2; }
+.hdr-inner { display: flex; flex-direction: column; }
+.hdr-label {
+  font-size: 9.5px; font-weight: 700; color: var(--muted);
+  padding: 7px 8px 2px; letter-spacing: .06em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.hdr-filter {
+  border: none; border-top: 1px solid var(--border); background: transparent;
+  color: var(--text); padding: 5px 8px; font-size: 11px; outline: none;
+  font-family: var(--font); width: 100%;
+}
+.hdr-filter::placeholder { color: var(--muted2); }
+.hdr-filter:focus, .hdr-filter:not(:placeholder-shown) {
+  background: var(--p-glass); color: var(--p); font-weight: 600;
+}
+.resize-handle { position: absolute; right: 0; top: 0; width: 4px; height: 100%; cursor: col-resize; z-index: 5; }
+thead th { position: relative; }
+
+td input, td select {
+  width: 100%; border: none; padding: 9px 8px;
+  background: transparent; color: var(--text);
+  font-family: var(--font); font-size: 12.5px; outline: none;
+}
+td input.mono { font-family: var(--mono); font-size: 12px; }
+td input:focus { background: var(--p-glass); box-shadow: inset 0 0 0 2px var(--p); }
+td input[readonly] { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+td select { background: var(--surface); color: var(--text); }
+td select:focus { outline: none; background: var(--p-glass); }
+.num { text-align: right; font-family: var(--mono); font-weight: 500; }
+.num-pad { padding-right: 10px; }
+
+/* Negative number in red */
+.neg-val { color: var(--error) !important; font-weight: 700; }
+.pos-val { color: var(--success); font-weight: 700; }
+
+/* ============================================================
+   ROW STATES
+============================================================ */
+tr.row-incomplete td { background: var(--row-err); }
+tr.row-incomplete td input:not(:focus) { background: transparent; }
+tr.row-incomplete td input:focus { background: var(--p-glass); }
+.stock-warn { color: var(--error); font-size: 9.5px; padding: 0 6px 4px; }
+.summary-row td { background: linear-gradient(90deg, var(--row-ok), var(--surface2)); font-weight: 700; }
+.summary-label { padding: 9px 10px; font-size: 11px; letter-spacing: .03em; color: var(--muted); font-family: var(--font); }
+
+/* Last-edited tag */
+.edited-by {
+  font-size: 9px; color: var(--muted2); padding: 0 6px 3px;
+  font-family: var(--mono); white-space: nowrap; opacity: .8;
 }
 
-/* ========== CONTENT AREA ========== */
-.content{padding:14px 16px 0;}
-@media(min-width:768px){.content{padding:18px 28px 0;}}
+/* ============================================================
+   BALANCE
+============================================================ */
+.bal-positive { color: var(--success); font-weight: 700; }
+.bal-zero { color: var(--muted); }
+.bal-negative { color: var(--error); font-weight: 700; }
 
-/* ========== SHEET CARD ========== */
-.sheet-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
-.sheet-card-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;border-bottom:2px solid var(--p);
-  background:linear-gradient(90deg,var(--surface) 60%,var(--focus-bg));
+/* ============================================================
+   REPORT
+============================================================ */
+.report-label { padding: 11px 16px; color: var(--muted); font-weight: 500; }
+.report-value { padding: 11px 16px; text-align: right; font-weight: 700; font-family: var(--mono); }
+.report-total { background: linear-gradient(90deg, var(--row-ok), var(--surface2)); border-top: 2px solid var(--success); }
+.report-total .report-label { color: var(--text); font-weight: 700; }
+.report-total .report-value { color: var(--success); }
+.credit-block { padding: 12px 16px; font-size: 12px; line-height: 1.9; }
+.date-range-bar {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  padding: 12px 18px; background: var(--surface2); border-bottom: 1px solid var(--border);
 }
-.sheet-title{font-size:.95rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.05em;}
-.tab-badge{
-  font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;
-  background:var(--p);color:#fff;letter-spacing:.04em;
+.date-range-bar label { font-size: 11px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.date-range-bar input {
+  padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text); font-family: var(--font); font-size: 12px;
 }
-.sheet-body{overflow-x:auto;}
 
-/* ========== TABLE ========== */
-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed;}
-th,td{position:relative;border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:0;}
-th:last-child,td:last-child{border-right:none;}
-thead th{background:var(--hdr-bg);position:sticky;top:0;z-index:2;}
-.hdr-inner{display:flex;flex-direction:column;}
-.hdr-label{font-size:10px;font-weight:700;color:var(--muted);padding:8px 8px 2px;letter-spacing:.05em;text-transform:uppercase;}
-.hdr-filter{
-  border:none;border-top:1px solid var(--border);background:transparent;
-  color:var(--text);padding:5px 8px;font-size:11px;outline:none;
-  font-family:var(--font);width:100%;
+/* ============================================================
+   BOTTOM NAV
+============================================================ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--nav-bg);
+  padding: 8px 10px;
+  display: flex; gap: 4px;
+  z-index: 400;
+  box-shadow: 0 -4px 30px rgba(0,0,0,.4);
+  border-top: 1px solid rgba(255,255,255,.06);
 }
-.hdr-filter::placeholder{color:var(--border);}
-.hdr-filter:focus,.hdr-filter:not(:placeholder-shown){background:var(--focus-bg);color:var(--p);font-weight:600;}
-.resize-handle{position:absolute;right:0;top:0;width:4px;height:100%;cursor:col-resize;z-index:5;}
+.nav-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border: none; border-radius: 8px;
+  background: transparent; color: #475569;
+  cursor: pointer; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; font-family: var(--font);
+  transition: all .2s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.nav-btn .nb-icon { font-size: 16px; transition: transform .2s; }
+.nav-btn:hover { color: #94a3b8; background: rgba(255,255,255,.05); }
+.nav-btn:hover .nb-icon { transform: translateY(-2px); }
+.nav-btn.active {
+  background: var(--p); color: #fff;
+  box-shadow: 0 2px 12px rgba(37,99,235,.4);
+}
+.nav-btn.active .nb-icon { transform: translateY(-2px); }
 
-/* ========== CELL INPUTS ========== */
-td input,td select{
-  width:100%;border:none;padding:9px 8px;
-  background:transparent;color:var(--text);
-  font-family:var(--font);font-size:12.5px;outline:none;
+/* ============================================================
+   MODALS
+============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 600; padding: 16px;
 }
-td input.mono{font-family:var(--mono);}
-td input:focus{background:var(--focus-bg);box-shadow:inset 0 0 0 2px var(--p);}
-td input[readonly]{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
-td select{background:var(--surface);color:var(--text);}
-td select:focus{outline:none;background:var(--focus-bg);}
-.num{text-align:right;font-family:var(--mono);font-weight:500;}
-.num-pad{padding-right:10px;}
-.del-btn{
-  color:var(--muted);background:none;border:none;cursor:pointer;
-  font-size:16px;width:100%;text-align:center;padding:8px;
-  transition:color .15s;
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--surface); border-radius: var(--radius-lg);
+  width: min(460px, 100%); box-shadow: var(--shadow-lg);
+  animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
+  max-height: 92dvh; overflow-y: auto;
 }
-.del-btn:hover{color:var(--error);}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.88) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-head {
+  padding: 22px 24px 18px;
+  background: linear-gradient(135deg, var(--hdr-from), var(--hdr-to));
+  color: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex; align-items: center; gap: 12px;
+}
+.modal-head-icon { font-size: 24px; }
+.modal-head h2 { font-size: 1rem; font-weight: 700; }
+.modal-head p { font-size: .7rem; opacity: .7; margin-top: 2px; }
+.modal-body { padding: 22px 24px 24px; }
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-weight: 600; margin-bottom: 6px;
+  color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface2); color: var(--text);
+  font-family: var(--font); font-size: 13.5px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--p);
+  box-shadow: 0 0 0 3px var(--p-glass);
+}
+.modal-btn {
+  width: 100%; padding: 12px; border: none; border-radius: var(--radius-sm);
+  background: var(--p); color: #fff; font-weight: 700; cursor: pointer;
+  font-size: 14px; transition: opacity .15s, transform .1s; margin-top: 6px;
+  font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.modal-btn:hover { opacity: .9; transform: translateY(-1px); }
+.modal-btn:active { transform: translateY(0); }
+.modal-btn.secondary {
+  background: var(--surface2); color: var(--text2);
+  border: 1.5px solid var(--border);
+}
+.modal-btn.danger { background: var(--error); }
+.modal-link { margin-top: 14px; text-align: center; font-size: 12.5px; color: var(--muted); }
+.modal-link a { color: var(--p); cursor: pointer; font-weight: 700; }
+.modal-error { margin-top: 10px; color: var(--error); font-size: 12px; min-height: 16px; font-weight: 500; }
+.modal-success { margin-top: 10px; color: var(--success); font-size: 12px; font-weight: 500; }
 
-/* ========== ROW STATES ========== */
-tr.row-incomplete td{background:var(--row-err);}
-tr.row-incomplete td input{background:transparent;}
-tr.row-incomplete td input:focus{background:var(--focus-bg);}
-.stock-warn{color:var(--error);font-size:10px;padding:0 6px 4px;}
-.summary-row td{background:linear-gradient(90deg,var(--ok-bg),var(--surface2));font-weight:700;font-family:var(--mono);}
-.summary-label{padding:9px 10px;font-size:11px;letter-spacing:.04em;color:var(--muted);}
+/* ============================================================
+   NOTIFICATION BADGE
+============================================================ */
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--error); color: #fff; font-size: 9px; font-weight: 800;
+  width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
 
-/* ========== BALANCE TAB ========== */
-.bal-positive{color:#16a34a;font-weight:700;}
-.bal-zero{color:var(--muted);}
-.bal-negative{color:var(--error);font-weight:700;}
+/* ============================================================
+   APPROVAL PANEL (notifications)
+============================================================ */
+.approval-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(5px);
+  display: none; align-items: flex-start; justify-content: flex-end;
+  z-index: 650; padding: 70px 16px 16px;
+}
+.approval-overlay.open { display: flex; }
+.approval-panel {
+  background: var(--surface); border-radius: var(--radius-lg);
+  width: min(400px, 100%); max-height: 80dvh; overflow-y: auto;
+  box-shadow: var(--shadow-lg); animation: slideLeft .25s ease;
+}
+@keyframes slideLeft { from { opacity:0;transform:translateX(20px); } to { opacity:1;transform:none; } }
+.approval-header {
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.approval-title { font-size: .85rem; font-weight: 700; }
+.approval-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
+.approval-item {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.approval-item:last-child { border-bottom: none; }
+.approval-type { font-size: 10px; font-weight: 700; color: var(--p); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.approval-msg { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+.approval-time { font-size: 10px; color: var(--muted); margin-bottom: 10px; }
+.approval-actions { display: flex; gap: 8px; }
+.appr-btn {
+  flex: 1; padding: 7px; border-radius: 6px; border: none;
+  font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font);
+  transition: opacity .15s;
+}
+.appr-btn.approve { background: var(--success); color: #fff; }
+.appr-btn.deny { background: var(--error); color: #fff; }
+.appr-btn:hover { opacity: .85; }
 
-/* ========== REPORT ========== */
-.report-label{padding:12px 16px;color:var(--muted);font-weight:500;}
-.report-value{padding:12px 16px;text-align:right;font-weight:700;font-family:var(--mono);}
-.report-total{background:linear-gradient(90deg,var(--ok-bg),var(--surface2));border-top:2px solid var(--ok-bdr);border-bottom:2px solid var(--ok-bdr);}
-.report-total .report-label{color:var(--text);font-weight:700;}
-.report-total .report-value{color:var(--ok-bdr);}
-.credit-block{padding:12px 16px;font-size:12px;line-height:1.8;}
-.credit-block b{color:var(--text);}
-.date-range-bar{display:flex;gap:14px;flex-wrap:wrap;padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);}
-.date-range-bar label{font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;}
-.date-range-bar input{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:12px;}
+/* ============================================================
+   CUSTOM CONFIRM MODAL
+============================================================ */
+.confirm-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 900; padding: 16px;
+}
+.confirm-modal-overlay.open { display: flex; }
+.confirm-box {
+  background: var(--surface); border-radius: var(--radius-lg);
+  width: min(360px, 100%); box-shadow: var(--shadow-lg);
+  animation: modalIn .2s ease; overflow: hidden;
+}
+.confirm-box-icon {
+  text-align: center; padding: 28px 24px 12px; font-size: 40px;
+}
+.confirm-box-title {
+  text-align: center; font-size: .95rem; font-weight: 700; padding: 0 24px 6px;
+}
+.confirm-box-msg {
+  text-align: center; font-size: .8rem; color: var(--muted); padding: 0 24px 20px;
+}
+.confirm-box-actions {
+  display: flex; border-top: 1px solid var(--border);
+}
+.confirm-box-actions button {
+  flex: 1; padding: 14px; border: none; background: transparent;
+  font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: background .12s; color: var(--text);
+}
+.confirm-box-actions button:first-child { border-right: 1px solid var(--border); color: var(--muted); }
+.confirm-box-actions button:last-child { color: var(--error); }
+.confirm-box-actions button:hover { background: var(--surface2); }
 
-/* ========== BOTTOM NAV ========== */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--nav-bg);padding:8px 10px;
-  display:flex;gap:5px;z-index:400;
-  box-shadow:0 -2px 16px rgba(0,0,0,.3);
+/* ============================================================
+   AVATAR UPLOAD
+============================================================ */
+.avatar-upload-wrap { text-align: center; margin-bottom: 16px; }
+.avatar-preview {
+  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px;
+  background: var(--surface2); border: 3px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; overflow: hidden; cursor: pointer;
+  transition: border-color .2s;
 }
-.nav-btn{
-  flex:1;max-width:130px;padding:10px 4px;border:none;border-radius:6px;
-  background:var(--nav-btn);color:#475569;cursor:pointer;
-  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font);
-  transition:background .15s,color .15s;
-}
-.nav-btn:hover{background:#2d3f5a;color:#94a3b8;}
-.nav-btn.active{background:var(--p);color:#fff;box-shadow:0 2px 8px rgba(26,26,255,.4);}
+.avatar-preview:hover { border-color: var(--p); }
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-upload-hint { font-size: 11px; color: var(--muted); }
+.avatar-upload-input { display: none; }
 
-/* ========== MODALS ========== */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:600;
+/* ============================================================
+   RECEIPT MODAL
+============================================================ */
+.receipt-modal .modal-box { max-width: 380px; }
+.receipt-body {
+  padding: 0 24px 24px;
+  font-family: var(--mono);
 }
-.modal-overlay.open{display:flex;}
-.modal-box{
-  background:var(--surface);border-radius:16px;
-  width:min(440px,94vw);box-shadow:var(--shadow-lg);
-  animation:slideUp .2s ease;
+.receipt-header-print {
+  text-align: center; padding: 20px 0 14px; border-bottom: 2px dashed var(--border);
+  margin-bottom: 14px;
 }
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-.modal-head{
-  background:linear-gradient(135deg,var(--p2),var(--p));
-  color:#fff;padding:20px 24px;border-radius:16px 16px 0 0;
+.receipt-biz { font-size: 1.1rem; font-weight: 700; letter-spacing: .06em; }
+.receipt-sub { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+.receipt-line { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+.receipt-line.bold { font-weight: 700; font-size: 13px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+.receipt-line.sub { color: var(--muted); font-size: 11px; }
+.receipt-total-block {
+  background: var(--p-glass); border-radius: 8px; padding: 10px 12px;
+  margin: 10px 0; text-align: center;
 }
-.modal-head h2{font-size:1.1rem;font-weight:700;margin:0;}
-.modal-body{padding:24px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-weight:600;margin-bottom:5px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
-.field input,.field select{
-  width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;
-  background:var(--surface2);color:var(--text);font-family:var(--font);font-size:14px;
-  transition:border-color .15s;
-}
-.field input:focus,.field select:focus{outline:none;border-color:var(--p);}
-.modal-btn{
-  width:100%;padding:12px;border:none;border-radius:8px;
-  background:var(--p);color:#fff;font-weight:700;cursor:pointer;font-size:14px;
-  transition:opacity .15s;margin-top:6px;font-family:var(--font);
-}
-.modal-btn:hover{opacity:.88;}
-.modal-btn.secondary{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
-.modal-link{margin-top:14px;text-align:center;font-size:12.5px;color:var(--muted);}
-.modal-link a{color:var(--p);cursor:pointer;font-weight:600;}
-.modal-error{margin-top:10px;color:var(--error);font-size:12px;min-height:16px;}
+.receipt-total-val { font-size: 1.3rem; font-weight: 800; color: var(--p); }
+.receipt-footer { text-align: center; color: var(--muted); font-size: 10px; margin-top: 14px; border-top: 2px dashed var(--border); padding-top: 12px; }
 
-/* ========== PERMISSIONS MODAL ========== */
-.user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
-.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
-.perm-tag{font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
-.perm-tag.active{background:var(--p);color:#fff;border-color:var(--p);}
-.perm-select{font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);font-family:var(--font);}
-
-/* ========== PRINT ========== */
-@media print{
-  .app-header,.bottom-nav,.settings-menu,.date-range-bar,.no-print,
-  .del-btn,.hdr-filter{display:none!important;}
-  body{padding:0;background:white;}
-  .content{padding:0;}
-  .sheet-card{box-shadow:none;border:1px solid #ccc;}
-  #report-print-area{display:block!important;}
-  .print-only{display:block!important;}
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+/* ============================================================
+   PENDING SIGNUP BADGE (header button)
+============================================================ */
+.hdr-notif-btn {
+  position: relative;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.15); color: #fff;
+  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: background .15s; backdrop-filter: blur(4px);
 }
-#report-print-area{display:none;}
+.hdr-notif-btn:hover { background: rgba(255,255,255,.28); }
+
+/* ============================================================
+   TOAST
+============================================================ */
+.toast-container {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  z-index: 800; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none; align-items: center;
+}
+.toast {
+  background: var(--nav-bg); color: #fff; padding: 10px 18px;
+  border-radius: 99px; font-size: 12.5px; font-weight: 600;
+  box-shadow: var(--shadow-lg); animation: toastIn .3s ease;
+  border: 1px solid rgba(255,255,255,.1);
+  display: flex; align-items: center; gap: 8px;
+  pointer-events: auto;
+}
+@keyframes toastIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:none;} }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
+
+/* ============================================================
+   PERMISSIONS MODAL
+============================================================ */
+.perm-select {
+  font-size: 11px; padding: 4px 6px; border: 1.5px solid var(--border);
+  border-radius: 5px; background: var(--surface); color: var(--text);
+  font-family: var(--font);
+}
+
+/* ============================================================
+   PRINT STYLES
+============================================================ */
+@media print {
+  .app-header, .bottom-nav, .settings-overlay, .settings-drawer,
+  .approval-overlay, .toast-container, .confirm-modal-overlay,
+  .modal-overlay:not(#receipt-print-target),
+  .del-btn, .hdr-filter, .no-print, .head-actions, .action-btn { display: none !important; }
+  body { padding: 0; background: white; color: black; }
+  .content { padding: 0; }
+  .sheet-card { box-shadow: none; border: 1px solid #ccc; border-radius: 0; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+#report-print-area { display: none; }
+
+/* ============================================================
+   SCROLLABLE SETTINGS
+============================================================ */
+.drawer-body::-webkit-scrollbar { width: 4px; }
+.drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ============================================================
+   MOBILE OPTIMIZATIONS
+============================================================ */
+@media (max-width: 500px) {
+  .app-title { font-size: .85rem; }
+  .sheet-card-head { flex-direction: column; align-items: flex-start; }
+  table { min-width: 700px; }
+  .user-pill { display: none; }
+}
+
+/* ============================================================
+   VAT CELL HIGHLIGHT
+============================================================ */
+.vat-cell { background: rgba(139,92,246,.06); }
+.withhold-cell { background: rgba(6,182,212,.06); }
+
+/* ============================================================
+   PENDING USER ROW
+============================================================ */
+.pending-badge {
+  display: inline-block; font-size: 9px; font-weight: 800;
+  background: var(--warn); color: #fff; padding: 2px 7px;
+  border-radius: 99px; letter-spacing: .04em; vertical-align: middle; margin-left: 6px;
+}
 </style>
 </head>
-<body oncontextmenu="showCtxMenu(event)">
+<body>
+
+<!-- ====== TOAST CONTAINER ====== -->
+<div class="toast-container" id="toast-container"></div>
 
 <!-- ====== HEADER ====== -->
 <div class="app-header" id="app-header" style="display:none">
-  <div class="app-brand">
+  <div class="header-left">
     <div class="brand-icon">📦</div>
     <div>
       <div class="app-title">POWER-IMS</div>
-      <div class="app-user" id="user-label"></div>
+      <div class="app-subtitle">Inventory Management</div>
     </div>
   </div>
-  <div class="settings-wrap">
-    <button class="settings-btn" onclick="toggleMenu()" title="Settings">⚙</button>
-    <div class="settings-menu" id="settings-menu">
-      <div class="menu-section">Navigate</div>
-      <button class="menu-item" onclick="switchTab('ITEMS');closeMenu()">📋 Add Items</button>
-      <hr class="menu-divider">
-      <div class="menu-section">Export</div>
-      <button class="menu-item" onclick="exportPDF('PURCHASE');closeMenu()">📄 Purchase as PDF</button>
-      <button class="menu-item" onclick="exportPDF('SALES');closeMenu()">📄 Sales as PDF</button>
-      <button class="menu-item" onclick="exportPDF('BALANCE');closeMenu()">📄 Balance as PDF</button>
-      <button class="menu-item" onclick="exportPDF('EXPENSE');closeMenu()">📄 Expense as PDF</button>
-      <hr class="menu-divider">
-      <div class="menu-section">Account</div>
-      <button class="menu-item" onclick="openChangePass();closeMenu()">🔑 Change Password</button>
-      <button class="menu-item" id="admin-perms-btn" onclick="openPermissions();closeMenu()" style="display:none">👥 User Permissions</button>
-      <hr class="menu-divider">
-      <div class="menu-section">Theme</div>
-      <select class="menu-select" id="theme-select" onchange="setTheme(this.value)">
-        <option value="light">☀️ Light</option>
-        <option value="dark">🌙 Dark</option>
-      </select>
-      <div class="menu-section">Language</div>
-      <select class="menu-select" id="lang-select" onchange="setLang(this.value)">
-        <option value="en">🇬🇧 English</option>
-        <option value="am">🇪🇹 አማርኛ</option>
-      </select>
-      <hr class="menu-divider">
-      <button class="menu-item" onclick="logout()" style="color:var(--error)">🚪 Log Out</button>
+  <div class="header-right">
+    <!-- Notifications (admin only) -->
+    <button class="hdr-notif-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none" title="Approvals">
+      🔔<span class="notif-badge" id="notif-count" style="display:none">0</span>
+    </button>
+    <div class="user-pill no-print">
+      <span class="user-name" id="user-label">—</span>
+      <span class="user-role" id="user-role-label">User</span>
     </div>
+    <div class="hdr-avatar no-print" id="hdr-avatar" onclick="openSettings()">👤</div>
+    <button class="settings-btn no-print" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </div>
 
-<!-- ====== CONTEXT MENU ====== -->
-<div id="ctx-menu" style="display:none;position:fixed;z-index:700;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);min-width:160px;overflow:hidden;">
-  <div style="padding:6px 0;">
-    <div class="menu-section">Export as PDF</div>
-    <button class="menu-item" onclick="exportPDF('PURCHASE');hideCtx()">📄 Purchase</button>
-    <button class="menu-item" onclick="exportPDF('SALES');hideCtx()">📄 Sales</button>
-    <button class="menu-item" onclick="exportPDF('BALANCE');hideCtx()">📄 Balance</button>
-    <button class="menu-item" onclick="exportPDF('EXPENSE');hideCtx()">📄 Expense</button>
+<!-- ====== SETTINGS DRAWER ====== -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<div class="settings-drawer" id="settings-drawer">
+  <div class="drawer-header">
+    <h3>⚙ Settings</h3>
+    <button class="drawer-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section">Navigate</div>
+    <button class="drawer-item" onclick="switchTab('ITEMS');closeSettings()">
+      <span class="di-icon" style="background:rgba(37,99,235,.12);color:var(--p)">📋</span>
+      <div><div class="di-label">Add Items</div><div class="di-sub">Manage inventory items</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section">Export</div>
+    <button class="drawer-item" onclick="exportPDF('PURCHASE');closeSettings()">
+      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+      <div><div class="di-label">Purchase as PDF</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportPDF('SALES');closeSettings()">
+      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+      <div><div class="di-label">Sales as PDF</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportPDF('BALANCE');closeSettings()">
+      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+      <div><div class="di-label">Balance as PDF</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportPDF('EXPENSE');closeSettings()">
+      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+      <div><div class="di-label">Expense as PDF</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section">Excel Export</div>
+    <button class="drawer-item" onclick="exportXL('PURCHASE');closeSettings()">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+      <div><div class="di-label">Purchase as Excel</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportXL('SALES');closeSettings()">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+      <div><div class="di-label">Sales as Excel</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportXL('BALANCE');closeSettings()">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+      <div><div class="di-label">Balance as Excel</div></div>
+    </button>
+    <button class="drawer-item" onclick="exportXL('EXPENSE');closeSettings()">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+      <div><div class="di-label">Expense as Excel</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section">Account</div>
+    <button class="drawer-item" onclick="openChangePass();closeSettings()">
+      <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">🔑</span>
+      <div><div class="di-label">Change Password</div></div>
+    </button>
+    <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
+      <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼</span>
+      <div><div class="di-label">Change Profile Photo</div></div>
+    </button>
+    <button class="drawer-item" id="admin-perms-btn" onclick="openPermissions();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
+      <div><div class="di-label">User Permissions</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section">Preferences</div>
+    <div class="drawer-select-row">
+      <label>🌓 Theme</label>
+      <select class="drawer-select" id="theme-select" onchange="setTheme(this.value)">
+        <option value="light">☀️ Light</option>
+        <option value="dark">🌙 Dark</option>
+      </select>
+    </div>
+    <div class="drawer-select-row">
+      <label>🌐 Language</label>
+      <select class="drawer-select" id="lang-select" onchange="setLang(this.value)">
+        <option value="en">🇬🇧 English</option>
+        <option value="am">🇪🇹 አማርኛ</option>
+      </select>
+    </div>
+    <div class="drawer-divider"></div>
+    <button class="drawer-item" onclick="logout()" style="color:var(--error)">
+      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">🚪</span>
+      <div><div class="di-label" style="color:var(--error)">Log Out</div></div>
+    </button>
   </div>
 </div>
 
 <!-- ====== AUTH MODAL ====== -->
 <div class="modal-overlay open" id="auth-modal">
   <div class="modal-box">
-    <div class="modal-head"><h2 id="auth-title">POWER-IMS Login</h2></div>
+    <div class="modal-head">
+      <span class="modal-head-icon">📦</span>
+      <div><h2 id="auth-title">Welcome Back</h2><p>POWER-IMS — Inventory Management</p></div>
+    </div>
     <div class="modal-body">
-      <div class="field"><label>Username</label><input id="auth-user" autocomplete="username" onkeydown="if(e.key==='Enter')document.getElementById('auth-pass').focus()"></div>
-      <div class="field"><label>Password</label><input id="auth-pass" type="password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+      <!-- Avatar Upload (signup only) -->
+      <div id="auth-avatar-wrap" class="avatar-upload-wrap" style="display:none">
+        <div class="avatar-preview" id="auth-avatar-preview" onclick="document.getElementById('auth-avatar-file').click()">👤</div>
+        <input type="file" id="auth-avatar-file" class="avatar-upload-input" accept="image/*" onchange="previewAuthAvatar(this)">
+        <div class="avatar-upload-hint">Click to add profile photo (optional)</div>
+      </div>
+      <div class="field"><label>Username</label><input id="auth-user" autocomplete="username" placeholder="Enter username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
+      <div class="field"><label>Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
       <div id="auth-confirm-wrap" class="field" style="display:none">
         <label>Confirm Password</label>
-        <input id="auth-confirm" type="password" onkeydown="if(event.key==='Enter')submitAuth()">
+        <input id="auth-confirm" type="password" placeholder="Confirm password" onkeydown="if(event.key==='Enter')submitAuth()">
       </div>
-      <button class="modal-btn" onclick="submitAuth()" id="auth-submit-btn">Log In</button>
+      <button class="modal-btn" onclick="submitAuth()" id="auth-submit-btn">🔐 Log In</button>
       <div class="modal-link">
         <span id="auth-toggle-hint">Don't have an account?</span>
         <a onclick="toggleAuthMode()" id="auth-toggle-link"> Sign Up</a>
@@ -338,26 +830,78 @@ tr.row-incomplete td input:focus{background:var(--focus-bg);}
   </div>
 </div>
 
-<!-- ====== CHANGE PASSWORD MODAL ====== -->
+<!-- ====== CHANGE PASSWORD ====== -->
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box">
-    <div class="modal-head"><h2>Change Password</h2></div>
+    <div class="modal-head"><span class="modal-head-icon">🔑</span><div><h2>Change Password</h2></div></div>
     <div class="modal-body">
       <div class="field"><label>Current Password</label><input id="cp-current" type="password"></div>
       <div class="field"><label>New Password</label><input id="cp-new" type="password"></div>
       <div class="field"><label>Confirm New Password</label><input id="cp-confirm" type="password"></div>
-      <button class="modal-btn" onclick="submitChangePass()">Save</button>
-      <button class="modal-btn secondary" onclick="closeModal('pass-modal')">Cancel</button>
+      <button class="modal-btn" onclick="submitChangePass()">💾 Save</button>
+      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:6px">Cancel</button>
       <div class="modal-error" id="cp-error"></div>
     </div>
   </div>
 </div>
 
-<!-- ====== PERMISSIONS MODAL (admin only) ====== -->
+<!-- ====== AVATAR CHANGE (settings) ====== -->
+<div class="modal-overlay" id="avatar-modal">
+  <div class="modal-box">
+    <div class="modal-head"><span class="modal-head-icon">🖼</span><div><h2>Profile Photo</h2></div></div>
+    <div class="modal-body">
+      <div class="avatar-upload-wrap">
+        <div class="avatar-preview" id="avatar-modal-preview" onclick="document.getElementById('avatar-modal-file').click()">👤</div>
+        <input type="file" id="avatar-modal-file" class="avatar-upload-input" accept="image/*" onchange="previewModalAvatar(this)">
+        <div class="avatar-upload-hint">Click to choose a photo</div>
+      </div>
+      <button class="modal-btn" onclick="saveAvatar()">💾 Save Photo</button>
+      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:6px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PERMISSIONS MODAL ====== -->
 <div class="modal-overlay" id="perm-modal">
-  <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
-    <div class="modal-head"><h2>👥 User Permissions</h2></div>
+  <div class="modal-box">
+    <div class="modal-head"><span class="modal-head-icon">👥</span><div><h2>User Permissions</h2></div></div>
     <div class="modal-body" id="perm-body"></div>
+  </div>
+</div>
+
+<!-- ====== CUSTOM CONFIRM MODAL ====== -->
+<div class="confirm-modal-overlay" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-box-icon" id="confirm-icon">🗑️</div>
+    <div class="confirm-box-title" id="confirm-title">Delete Row?</div>
+    <div class="confirm-box-msg" id="confirm-msg">This action cannot be undone.</div>
+    <div class="confirm-box-actions">
+      <button onclick="cancelConfirm()">Cancel</button>
+      <button id="confirm-ok-btn" onclick="doConfirm()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== APPROVALS PANEL ====== -->
+<div class="approval-overlay" id="approval-overlay">
+  <div class="approval-panel">
+    <div class="approval-header">
+      <span class="approval-title">🔔 Pending Approvals</span>
+      <button class="approval-close" onclick="closeApprovals()">✕</button>
+    </div>
+    <div id="approval-list"></div>
+  </div>
+</div>
+
+<!-- ====== RECEIPT MODAL ====== -->
+<div class="modal-overlay receipt-modal" id="receipt-modal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head"><span class="modal-head-icon">🧾</span><div><h2>Receipt</h2></div></div>
+    <div class="receipt-body" id="receipt-content"></div>
+    <div style="padding:0 24px 20px;display:flex;gap:8px;">
+      <button class="modal-btn" onclick="printReceipt()">🖨 Print</button>
+      <button class="modal-btn secondary" onclick="closeModal('receipt-modal')">Close</button>
+    </div>
   </div>
 </div>
 
@@ -372,8 +916,17 @@ tr.row-incomplete td input:focus{background:var(--focus-bg);}
 <div class="content" id="content" style="display:none">
   <div class="sheet-card">
     <div class="sheet-card-head">
-      <span class="sheet-title" id="sheet-title">Items</span>
-      <span class="tab-badge" id="tab-badge">ITEMS</span>
+      <div class="sheet-title-block">
+        <div class="sheet-icon" id="sheet-icon">📋</div>
+        <div>
+          <div class="sheet-title" id="sheet-title">Items</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:1px" id="last-edited-global"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="tab-badge" id="tab-badge">ITEMS</span>
+        <div class="head-actions" id="head-actions"></div>
+      </div>
     </div>
     <div class="sheet-body">
       <table id="data-table"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
@@ -384,71 +937,132 @@ tr.row-incomplete td input:focus{background:var(--focus-bg);}
 
 <!-- ====== BOTTOM NAV ====== -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-btn" data-tab="PURCHASE" onclick="switchTab('PURCHASE')">Purchase</button>
-  <button class="nav-btn" data-tab="SALES"    onclick="switchTab('SALES')">Sales</button>
-  <button class="nav-btn" data-tab="BALANCE"  onclick="switchTab('BALANCE')">Balance</button>
-  <button class="nav-btn" data-tab="EXPENSE"  onclick="switchTab('EXPENSE')">Expense</button>
-  <button class="nav-btn" data-tab="REPORT"   onclick="switchTab('REPORT')">Report</button>
+  <button class="nav-btn" data-tab="PURCHASE" onclick="switchTab('PURCHASE')"><span class="nb-icon">🛒</span>Purchase</button>
+  <button class="nav-btn" data-tab="SALES"    onclick="switchTab('SALES')"><span class="nb-icon">💰</span>Sales</button>
+  <button class="nav-btn" data-tab="BALANCE"  onclick="switchTab('BALANCE')"><span class="nb-icon">⚖️</span>Balance</button>
+  <button class="nav-btn" data-tab="EXPENSE"  onclick="switchTab('EXPENSE')"><span class="nb-icon">💸</span>Expense</button>
+  <button class="nav-btn" data-tab="REPORT"   onclick="switchTab('REPORT')"><span class="nb-icon">📊</span>Report</button>
 </div>
 
 <script>
-/* ======================================================
-   CONSTANTS & HELPERS
-====================================================== */
-// Shared uploads key
-const SHARED_UPLOADS_KEY = 'ims_shared_uploads';
-
+/* ============================================================
+   CONSTANTS
+============================================================ */
 const ADMIN = 'admin';
 const TABS  = ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
-// Permission levels per tab: 'full' | 'add_only' | 'read' | 'none'
-const DEFAULT_PERMS = { ITEMS:'full', PURCHASE:'full', SALES:'full', BALANCE:'full', EXPENSE:'full', REPORT:'full' };
+const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
+const PERM_OPTS = [
+  {v:'full',l:'Full Access'},{v:'add_only',l:'Add Only'},
+  {v:'read',l:'Read Only'},{v:'none',l:'No Access'}
+];
 
+const TAB_ICONS = {
+  ITEMS:'📋', PURCHASE:'🛒', SALES:'💰', BALANCE:'⚖️', EXPENSE:'💸', REPORT:'📊'
+};
+const TAB_TITLES = {
+  ITEMS:'Add Items', PURCHASE:'Purchase', SALES:'Sales',
+  BALANCE:'Balance', EXPENSE:'Expense', REPORT:'Report'
+};
+
+/* ============================================================
+   TRANSLATION MAP
+============================================================ */
+const LANG = {
+  en: {
+    'Add Items':'Add Items','Purchase':'Purchase','Sales':'Sales',
+    'Balance':'Balance','Expense':'Expense','Report':'Report',
+    'Part Number':'Part Number','Item Name':'Item Name','Description':'Description',
+    'Date':'Date','Supplier':'Supplier','Customer':'Customer',
+    'Qty':'Qty','Unit Price':'Unit Price','Total':'Total','Status':'Status',
+    'Cash':'Cash','Credit':'Credit','Totals':'Totals',
+    'Delete this row?':'Delete this row?','Cannot be undone':'This action cannot be undone.',
+    'Delete':'Delete','Cancel':'Cancel',
+    'Log In':'Log In','Sign Up':'Sign Up',
+    'Username':'Username','Password':'Password','Confirm Password':'Confirm Password',
+    'Price':'Price','Total Price':'Total Price',
+    'Purch. Price':'Purch. Price','Total Purch.':'Total Purch.',
+    'VAT (15%)':'VAT (15%)','Withhold 3%':'Withhold 3%','VAT WH 7.5%':'VAT WH 7.5%',
+    'Financial Summary':'Financial Summary','Print':'Print',
+  },
+  am: {
+    'Add Items':'ዕቃዎችን ጨምር','Purchase':'ግዢ','Sales':'ሽያጭ',
+    'Balance':'ሂሳብ','Expense':'ወጪ','Report':'ሪፖርት',
+    'Part Number':'ቁጥር','Item Name':'ስም','Description':'መግለጫ',
+    'Date':'ቀን','Supplier':'አቅርቦት','Customer':'ደንበኛ',
+    'Qty':'ብዛት','Unit Price':'ዋጋ','Total':'ድምር','Status':'ሁኔታ',
+    'Cash':'ጥሬ ገንዘብ','Credit':'ክሬዲት','Totals':'ድምሮች',
+    'Delete this row?':'ይህን ረድፍ ይሰርዙ?','Cannot be undone':'ይህ ድርጊት ሊቀለበስ አይችልም።',
+    'Delete':'ሰርዝ','Cancel':'ሰርዝ',
+    'Log In':'ግባ','Sign Up':'ይመዝገቡ',
+    'Username':'የተጠቃሚ ስም','Password':'የይለፍ ቃል','Confirm Password':'የይለፍ ቃሉን አረጋግጥ',
+    'Price':'ዋጋ','Total Price':'ጠቅላላ ዋጋ',
+    'Purch. Price':'የግዢ ዋጋ','Total Purch.':'ጠቅላላ ግዢ',
+    'VAT (15%)':'ተ.እ.ታ (15%)','Withhold 3%':'ምዝገባ 3%','VAT WH 7.5%':'ተ.እ.ታ ምዝገባ 7.5%',
+    'Financial Summary':'የፋይናንስ ማጠቃለያ','Print':'አትም',
+  }
+};
+function t(k) { return (LANG[S.lang]||LANG.en)[k] || k; }
+
+/* ============================================================
+   HELPERS
+============================================================ */
 const fmt  = n => (parseFloat(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtQ = n => (parseFloat(n)||0).toLocaleString();
 const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const now  = () => new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
 const sum  = (arr, fn) => arr.reduce((a,b)=>a+(fn(b)||0), 0);
+const numClass = n => parseFloat(n) < 0 ? 'neg-val' : '';
+const colorNum = n => `<span class="${numClass(n)}">${fmt(n)}</span>`;
 
-/* ======================================================
-   STORAGE REGISTRY
-====================================================== */
+function showToast(msg, type='', duration=2800) {
+  const c = document.getElementById('toast-container');
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => { d.style.opacity='0'; d.style.transform='translateY(10px)'; d.style.transition='all .3s'; setTimeout(()=>d.remove(),300); }, duration);
+}
+
+/* ============================================================
+   STORAGE
+============================================================ */
 const getRegistry = () => JSON.parse(localStorage.getItem('ims_reg') || '{}');
 const saveRegistry = r => localStorage.setItem('ims_reg', JSON.stringify(r));
 const uKey = (u,k) => `ims_${u}_${k}`;
 
-/* ======================================================
+/* ============================================================
    BLANK ROW FACTORIES
-====================================================== */
-const blankPurchase = () => ({id:'',name:'',desc:'',date:now(),party:'Supplier',qty:'',uPrice:'',status:'CASH'});
-const blankSales    = () => ({id:'',name:'',desc:'',date:now(),party:'Customer',qty:'',sPrice:'',status:'CASH'});
-const blankExpense  = () => ({date:now(),reason:'',amt:''});
-const blankItem     = () => ({id:'',name:'',desc:''});
+============================================================ */
+const blankPurchase = () => ({id:'',name:'',desc:'',date:now(),party:'Supplier',qty:'',uPrice:'',status:'CASH',_editor:''});
+const blankSales    = () => ({id:'',name:'',desc:'',date:now(),party:'Customer',qty:'',sPrice:'',status:'CASH',vat:'',wh3:'',vwh75:'',_editor:''});
+const blankExpense  = () => ({date:now(),reason:'',amt:'',_editor:''});
+const blankItem     = () => ({id:'',name:'',desc:'',_editor:''});
 
-/* ======================================================
+/* ============================================================
    APP STATE
-====================================================== */
+============================================================ */
 const S = {
   user:null, tab:'ITEMS', theme:'light', lang:'en', filters:{},
   items:[], purchase:[], sales:[], expense:[], beginBal:0,
   reportRange:{from:'',to:''},
-  perms: {}, // {username: {ITEMS:'full', PURCHASE:'full', ...}}
-  sharedUploads: [] // For admin view
+  perms:{},
+  pendingSignups:[],
+  avatarDataUrl: null,
+  _pendingAvatarDataUrl: null,
 };
 
-/* ======================================================
+/* ============================================================
    USER DATA LOAD / SAVE
-====================================================== */
+============================================================ */
 function loadUserData(u) {
   S.items    = JSON.parse(localStorage.getItem(uKey(u,'items'))    || JSON.stringify([blankItem()]));
   S.purchase = JSON.parse(localStorage.getItem(uKey(u,'purchase')) || JSON.stringify([blankPurchase()]));
   S.sales    = JSON.parse(localStorage.getItem(uKey(u,'sales'))    || JSON.stringify([blankSales()]));
   S.expense  = JSON.parse(localStorage.getItem(uKey(u,'expense'))  || JSON.stringify([blankExpense()]));
   S.beginBal = parseFloat(localStorage.getItem(uKey(u,'beginBal')) || '0');
-  S.perms    = JSON.parse(localStorage.getItem('ims_perms')        || '{}');
-  // Load shared uploads for admin
-  if (u === ADMIN) {
-    S.sharedUploads = JSON.parse(localStorage.getItem(SHARED_UPLOADS_KEY) || '[]');
-  }
+  S.perms    = JSON.parse(localStorage.getItem('ims_perms') || '{}');
+  S.pendingSignups = JSON.parse(localStorage.getItem('ims_pending_signups') || '[]');
+  S.avatarDataUrl = localStorage.getItem(uKey(u,'avatar')) || null;
 }
 function saveUserData() {
   if (!S.user) return;
@@ -458,28 +1072,21 @@ function saveUserData() {
   localStorage.setItem(uKey(u,'sales'),    JSON.stringify(S.sales));
   localStorage.setItem(uKey(u,'expense'),  JSON.stringify(S.expense));
   localStorage.setItem(uKey(u,'beginBal'), S.beginBal);
-  localStorage.setItem('ims_perms',        JSON.stringify(S.perms));
+  localStorage.setItem('ims_perms', JSON.stringify(S.perms));
+  localStorage.setItem('ims_pending_signups', JSON.stringify(S.pendingSignups));
 }
 
-// Save uploaded data to shared storage (call this after upload)
-function saveSharedUpload(data, meta = {}) {
-  // meta can include: uploader, date, etc.
-  const uploads = JSON.parse(localStorage.getItem(SHARED_UPLOADS_KEY) || '[]');
-  uploads.push({ ...meta, data, uploader: S.user, date: new Date().toISOString() });
-  localStorage.setItem(SHARED_UPLOADS_KEY, JSON.stringify(uploads));
-}
-
-/* ======================================================
-   PERMISSIONS HELPERS
-====================================================== */
+/* ============================================================
+   PERMISSIONS
+============================================================ */
 const isAdmin  = () => S.user === ADMIN;
 const getPerm  = tab => isAdmin() ? 'full' : (S.perms[S.user]?.[tab] ?? 'full');
 const canWrite = tab => ['full','add_only'].includes(getPerm(tab));
 const canRead  = tab => getPerm(tab) !== 'none';
 
-/* ======================================================
-   ROWS HELPER
-====================================================== */
+/* ============================================================
+   ROWS
+============================================================ */
 function rows() {
   if (S.tab==='ITEMS')    return S.items;
   if (S.tab==='PURCHASE') return S.purchase;
@@ -493,179 +1100,313 @@ function pushBlankRow() {
   if (S.tab==='SALES')    S.sales.push(blankSales());
   if (S.tab==='EXPENSE')  S.expense.push(blankExpense());
 }
-function ensureTrailing() {
-  if (!rows().length) pushBlankRow();
-}
+function ensureTrailing() { if (!rows().length) pushBlankRow(); }
 
-/* ======================================================
+/* ============================================================
    FIFO HELPERS
-====================================================== */
+============================================================ */
 function fifoCost(itemId, qty, beforeIdx) {
   if (!itemId || qty<=0) return 0;
-  let buys = S.purchase.filter(p=>p.id===itemId)
+  const buys = S.purchase.filter(p=>p.id===itemId)
     .sort((a,b)=>new Date(a.date)-new Date(b.date))
     .map(p=>({...p,rem:parseFloat(p.qty)||0}));
   let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  for(const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+  for (const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
   let cost=0,need=qty;
-  for(const b of buys){if(!need)break;const t=Math.min(b.rem,need);cost+=t*(parseFloat(b.uPrice)||0);need-=t;}
+  for (const b of buys){if(!need)break;const t=Math.min(b.rem,need);cost+=t*(parseFloat(b.uPrice)||0);need-=t;}
   return cost;
 }
 function fifoBuyPrice(itemId, qty, beforeIdx) {
   if (!itemId || qty<=0) return 0;
-  let buys = S.purchase.filter(p=>p.id===itemId)
+  const buys = S.purchase.filter(p=>p.id===itemId)
     .sort((a,b)=>new Date(a.date)-new Date(b.date))
     .map(p=>({...p,rem:parseFloat(p.qty)||0}));
   let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  for(const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+  for (const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
   let need=qty,price=0;
-  for(const b of buys){if(!need)break;const t=Math.min(b.rem,need);price=parseFloat(b.uPrice)||0;need-=t;}
+  for (const b of buys){if(!need)break;const t=Math.min(b.rem,need);price=parseFloat(b.uPrice)||0;need-=t;}
   return price;
 }
 
-/* ======================================================
+/* ============================================================
    THEME & LANGUAGE
-====================================================== */
+============================================================ */
 function setTheme(t) {
   S.theme=t;
   document.documentElement.setAttribute('data-theme',t);
   const sel=document.getElementById('theme-select');
-  if(sel)sel.value=t;
+  if(sel) sel.value=t;
   if(S.user) localStorage.setItem(uKey(S.user,'theme'),t);
 }
 function setLang(l) {
   S.lang=l;
   const sel=document.getElementById('lang-select');
-  if(sel)sel.value=l;
+  if(sel) sel.value=l;
   if(S.user) localStorage.setItem(uKey(S.user,'lang'),l);
   document.documentElement.lang=l;
-  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  document.documentElement.dir=(l==='ar')?'rtl':'ltr';
+  if(S.user) renderTable();
 }
 function loadUserPrefs(u) {
   setTheme(localStorage.getItem(uKey(u,'theme'))||'light');
   setLang(localStorage.getItem(uKey(u,'lang'))||'en');
 }
 
-/* ======================================================
-   AUTH
-====================================================== */
-let authMode='login';
-function toggleAuthMode() {
-  authMode = authMode==='login'?'signup':'login';
-  const isS = authMode==='signup';
-  document.getElementById('auth-title').textContent    = isS ? 'Create Account' : 'POWER-IMS Login';
-  document.getElementById('auth-submit-btn').textContent = isS ? 'Sign Up' : 'Log In';
-  document.getElementById('auth-confirm-wrap').style.display = isS?'':'none';
-  document.getElementById('auth-toggle-hint').textContent  = isS ? 'Have an account?' : "Don't have an account?";
-  document.getElementById('auth-toggle-link').textContent  = isS ? ' Log In' : ' Sign Up';
-  document.getElementById('auth-error').textContent='';
+/* ============================================================
+   AVATAR
+============================================================ */
+let _authAvatarData = null;
+let _modalAvatarData = null;
+
+function previewAuthAvatar(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _authAvatarData = e.target.result;
+    const prev = document.getElementById('auth-avatar-preview');
+    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  };
+  reader.readAsDataURL(file);
 }
-function submitAuth() {
-  const u=document.getElementById('auth-user').value.trim();
-  const p=document.getElementById('auth-pass').value;
-  const err=document.getElementById('auth-error');
-  if(!u||!p){err.textContent='Please enter username and password.';return;}
-  const reg=getRegistry();
-  if(authMode==='login') {
-    if(!reg[u]||reg[u]!==p){err.textContent='Invalid username or password.';return;}
-    doLogin(u);
+function previewModalAvatar(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    _modalAvatarData = e.target.result;
+    const prev = document.getElementById('avatar-modal-preview');
+    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  };
+  reader.readAsDataURL(file);
+}
+function saveAvatar() {
+  if (!_modalAvatarData) { showToast('Please select a photo first','error'); return; }
+  S.avatarDataUrl = _modalAvatarData;
+  localStorage.setItem(uKey(S.user,'avatar'), _modalAvatarData);
+  updateHeaderAvatar();
+  closeModal('avatar-modal');
+  showToast('Profile photo updated!','success');
+}
+function updateHeaderAvatar() {
+  const el = document.getElementById('hdr-avatar');
+  if (!el) return;
+  if (S.avatarDataUrl) {
+    el.innerHTML = `<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
   } else {
-    const c=document.getElementById('auth-confirm').value;
-    if(reg[u]){err.textContent='Username already taken.';return;}
-    if(p!==c){err.textContent='Passwords do not match.';return;}
-    if(p.length<4){err.textContent='Password must be at least 4 characters.';return;}
-    reg[u]=p;
-    saveRegistry(reg);
-    doLogin(u);
+    el.innerHTML = S.user ? S.user[0].toUpperCase() : '👤';
   }
 }
+function openAvatarChange() {
+  _modalAvatarData = null;
+  const prev = document.getElementById('avatar-modal-preview');
+  prev.innerHTML = S.avatarDataUrl
+    ? `<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    : '👤';
+  openModal('avatar-modal');
+}
+
+/* ============================================================
+   AUTH & SIGNUP APPROVAL
+============================================================ */
+let authMode = 'login';
+
+function toggleAuthMode() {
+  authMode = authMode==='login' ? 'signup' : 'login';
+  const isS = authMode==='signup';
+  document.getElementById('auth-title').textContent    = isS ? 'Create Account' : 'Welcome Back';
+  document.getElementById('auth-submit-btn').innerHTML = isS ? '📝 Request Sign Up' : '🔐 Log In';
+  document.getElementById('auth-confirm-wrap').style.display = isS ? '' : 'none';
+  document.getElementById('auth-avatar-wrap').style.display  = isS ? '' : 'none';
+  document.getElementById('auth-toggle-hint').textContent = isS ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('auth-toggle-link').textContent = isS ? ' Log In' : ' Sign Up';
+  document.getElementById('auth-error').textContent = '';
+}
+
+function submitAuth() {
+  const u   = document.getElementById('auth-user').value.trim();
+  const p   = document.getElementById('auth-pass').value;
+  const err = document.getElementById('auth-error');
+  if (!u || !p) { err.textContent='Please enter username and password.'; return; }
+  const reg = getRegistry();
+  if (authMode==='login') {
+    // Check pending
+    if (S.pendingSignups.find(x=>x.username===u)) {
+      err.textContent='Your account is awaiting admin approval.'; return;
+    }
+    if (!reg[u] || reg[u]!==p) { err.textContent='Invalid username or password.'; return; }
+    doLogin(u);
+  } else {
+    const c = document.getElementById('auth-confirm').value;
+    if (reg[u]) { err.textContent='Username already taken.'; return; }
+    if (S.pendingSignups.find(x=>x.username===u)) { err.textContent='This username already has a pending request.'; return; }
+    if (p!==c) { err.textContent='Passwords do not match.'; return; }
+    if (p.length<4) { err.textContent='Password must be at least 4 characters.'; return; }
+    // Queue signup for admin approval
+    const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+    pending.push({ username:u, password:p, avatar:_authAvatarData||null, requestedAt:new Date().toISOString() });
+    localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
+    err.style.color='var(--success)';
+    err.textContent='✅ Signup request sent! Please wait for admin approval.';
+    showToast('Signup request submitted!','success');
+  }
+}
+
 function doLogin(u) {
-  S.user=u;
-  localStorage.setItem('ims_currentUser',u);
+  S.user = u;
+  localStorage.setItem('ims_currentUser', u);
   loadUserData(u);
   loadUserPrefs(u);
-  document.getElementById('user-label').textContent=`User: ${u}`;
-  // Show admin-only items
-  document.getElementById('admin-perms-btn').style.display=isAdmin()?'flex':'none';
+  // Restore last active tab
+  const lastTab = localStorage.getItem(uKey(u,'lastTab'));
+  S.avatarDataUrl = localStorage.getItem(uKey(u,'avatar')) || null;
+  document.getElementById('user-label').textContent = u;
+  document.getElementById('user-role-label').textContent = isAdmin() ? 'Administrator' : 'User';
+  document.getElementById('admin-perms-btn').style.display = isAdmin() ? 'flex' : 'none';
+  document.getElementById('notif-btn').style.display = isAdmin() ? 'flex' : 'none';
+  updateHeaderAvatar();
   closeModal('auth-modal');
   showUI();
-  // Determine first accessible tab
-  let startTab='ITEMS';
-  if(!isAdmin()) {
-    for(const t of ['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT']) {
-      if(getPerm(t)!=='none'){startTab=t;break;}
-    }
+  if (isAdmin()) updateNotifBadge();
+  // Determine start tab
+  let startTab = 'ITEMS';
+  if (lastTab && (isAdmin() || canRead(lastTab))) startTab = lastTab;
+  else if (!isAdmin()) {
+    for (const t of PERM_TABS) { if(canRead(t)){startTab=t;break;} }
   }
   switchTab(startTab);
 }
+
 function logout() {
   saveUserData();
-  S.user=null;
+  S.user = null;
   localStorage.removeItem('ims_currentUser');
-  closeMenu();
+  closeSettings();
   hideUI();
   authMode='login';
-  ['auth-user','auth-pass','auth-confirm'].forEach(id=>document.getElementById(id).value='');
+  _authAvatarData = null;
+  document.getElementById('auth-user').value='';
+  document.getElementById('auth-pass').value='';
+  document.getElementById('auth-confirm').value='';
   document.getElementById('auth-confirm-wrap').style.display='none';
-  document.getElementById('auth-submit-btn').textContent='Log In';
-  document.getElementById('auth-title').textContent='POWER-IMS Login';
+  document.getElementById('auth-avatar-wrap').style.display='none';
+  document.getElementById('auth-submit-btn').innerHTML='🔐 Log In';
+  document.getElementById('auth-title').textContent='Welcome Back';
   document.getElementById('auth-toggle-hint').textContent="Don't have an account?";
   document.getElementById('auth-toggle-link').textContent=' Sign Up';
   document.getElementById('auth-error').textContent='';
+  document.getElementById('auth-error').style.color='';
+  document.getElementById('auth-avatar-preview').innerHTML='👤';
   openModal('auth-modal');
 }
 
-/* ======================================================
+/* ============================================================
    CHANGE PASSWORD
-====================================================== */
+============================================================ */
 function openChangePass(){
-  document.getElementById('cp-current').value='';
-  document.getElementById('cp-new').value='';
-  document.getElementById('cp-confirm').value='';
+  ['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cp-error').textContent='';
   openModal('pass-modal');
 }
 function submitChangePass(){
   const cur=document.getElementById('cp-current').value;
-  const nw=document.getElementById('cp-new').value;
+  const nw =document.getElementById('cp-new').value;
   const con=document.getElementById('cp-confirm').value;
   const err=document.getElementById('cp-error');
   const reg=getRegistry();
   if(reg[S.user]!==cur){err.textContent='Current password is incorrect.';return;}
   if(nw.length<4){err.textContent='New password must be at least 4 chars.';return;}
   if(nw!==con){err.textContent='Passwords do not match.';return;}
-  reg[S.user]=nw;saveRegistry(reg);
+  reg[S.user]=nw; saveRegistry(reg);
   closeModal('pass-modal');
-  alert('Password changed!');
+  showToast('Password changed!','success');
 }
 
-/* ======================================================
-   PERMISSIONS (admin)
-====================================================== */
-const PERM_OPTS=[
-  {v:'full',    l:'Full Access'},
-  {v:'add_only',l:'Add Only'},
-  {v:'read',    l:'Read Only'},
-  {v:'none',    l:'No Access'}
-];
-const PERM_TABS=['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
+/* ============================================================
+   ADMIN APPROVAL SYSTEM
+============================================================ */
+function updateNotifBadge() {
+  if (!isAdmin()) return;
+  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const nb = document.getElementById('notif-count');
+  const btn = document.getElementById('notif-btn');
+  if (pending.length > 0) {
+    nb.style.display='flex'; nb.textContent=pending.length;
+    btn.style.display='flex';
+  } else {
+    nb.style.display='none';
+  }
+}
+function openApprovals() {
+  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const list = document.getElementById('approval-list');
+  if (!pending.length) {
+    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No pending approvals 🎉</div>';
+  } else {
+    list.innerHTML = pending.map((p,i) => `
+      <div class="approval-item">
+        <div class="approval-type">🧑 New User Signup</div>
+        <div class="approval-msg">
+          ${p.avatar ? `<img src="${esc(p.avatar)}" style="width:36px;height:36px;border-radius:50%;vertical-align:middle;margin-right:8px;object-fit:cover;">` : ''}
+          <strong>${esc(p.username)}</strong> wants to join
+        </div>
+        <div class="approval-time">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
+        <div class="approval-actions">
+          <button class="appr-btn approve" onclick="approveSignup(${i})">✅ Approve</button>
+          <button class="appr-btn deny" onclick="denySignup(${i})">❌ Deny</button>
+        </div>
+      </div>`).join('');
+  }
+  document.getElementById('approval-overlay').classList.add('open');
+}
+function closeApprovals() {
+  document.getElementById('approval-overlay').classList.remove('open');
+}
+function approveSignup(i) {
+  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const p = pending[i];
+  const reg = getRegistry();
+  reg[p.username] = p.password;
+  saveRegistry(reg);
+  if (p.avatar) localStorage.setItem(uKey(p.username,'avatar'), p.avatar);
+  pending.splice(i,1);
+  localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
+  S.pendingSignups = pending;
+  showToast(`✅ ${p.username} approved!`,'success');
+  updateNotifBadge();
+  openApprovals();
+}
+function denySignup(i) {
+  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const p = pending[i];
+  pending.splice(i,1);
+  localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
+  showToast(`❌ ${p.username} denied`,'error');
+  updateNotifBadge();
+  openApprovals();
+}
 
+/* ============================================================
+   PERMISSIONS
+============================================================ */
 function openPermissions(){
   const reg=getRegistry();
   const users=Object.keys(reg).filter(u=>u!==ADMIN);
   const body=document.getElementById('perm-body');
-  if(!users.length){body.innerHTML='<p style="color:var(--muted)">No other users registered yet.</p>';}
-  else {
+  if(!users.length){
+    body.innerHTML='<p style="color:var(--muted)">No other users registered yet.</p>';
+  } else {
     body.innerHTML=users.map(u=>{
       const up=S.perms[u]||{};
       return `<div style="margin-bottom:20px">
-        <div style="font-weight:700;color:var(--text);margin-bottom:6px">👤 ${esc(u)}</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--p-glass);display:flex;align-items:center;justify-content:center;color:var(--p);font-weight:800">${u[0].toUpperCase()}</div>
+          ${esc(u)}
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           ${PERM_TABS.map(t=>`
-            <label style="font-size:11px;color:var(--muted);">${t}
-              <select class="perm-select" style="display:block;width:100%;margin-top:2px"
+            <label style="font-size:10px;color:var(--muted);font-weight:600;">${t}
+              <select class="perm-select" style="display:block;width:100%;margin-top:3px"
                 onchange="setUserPerm('${u}','${t}',this.value)">
-                ${PERM_OPTS.map(o=>`<option value="${o.v}" ${(up[t]||'full')===o.v?'selected':''}>${o.l}</option>`).join('')}
+                ${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}
               </select>
             </label>`).join('')}
         </div>
@@ -679,11 +1420,12 @@ function setUserPerm(user,tab,val){
   if(!S.perms[user]) S.perms[user]={};
   S.perms[user][tab]=val;
   saveUserData();
+  showToast(`Permission updated for ${user}`,'success');
 }
 
-/* ======================================================
+/* ============================================================
    UI VISIBILITY
-====================================================== */
+============================================================ */
 function showUI(){
   document.getElementById('app-header').style.display='flex';
   document.getElementById('content').style.display='block';
@@ -694,78 +1436,92 @@ function hideUI(){
   document.getElementById('content').style.display='none';
   document.getElementById('bottom-nav').style.display='none';
 }
-function openModal(id) {document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function toggleMenu(){document.getElementById('settings-menu').classList.toggle('open');}
-function closeMenu() {document.getElementById('settings-menu').classList.remove('open');}
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.settings-wrap'))closeMenu();
-  if(!e.target.closest('#ctx-menu'))hideCtx();
-});
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
-/* ======================================================
-   CONTEXT MENU (right-click anywhere)
-====================================================== */
-function showCtxMenu(e){
-  e.preventDefault();
-  const m=document.getElementById('ctx-menu');
-  m.style.display='block';
-  m.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
-  m.style.top =Math.min(e.clientY,window.innerHeight-200)+'px';
+function openSettings()  {
+  document.getElementById('settings-drawer').classList.add('open');
+  document.getElementById('settings-overlay').classList.add('open');
 }
-function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
+function closeSettings() {
+  document.getElementById('settings-drawer').classList.remove('open');
+  document.getElementById('settings-overlay').classList.remove('open');
+}
 
-/* ======================================================
+/* ============================================================
+   CUSTOM CONFIRM (replaces browser confirm)
+============================================================ */
+let _confirmCb = null;
+function customConfirm(title, msg, icon, okLabel, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-icon').textContent = icon;
+  document.getElementById('confirm-ok-btn').textContent = okLabel;
+  _confirmCb = cb;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function cancelConfirm() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  _confirmCb = null;
+}
+function doConfirm() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  if (_confirmCb) { _confirmCb(); _confirmCb=null; }
+}
+
+/* ============================================================
    TAB SWITCHING
-====================================================== */
+============================================================ */
 function switchTab(tab){
-  if(!canRead(tab) && tab!=='ITEMS'){alert('You do not have permission to view this tab.');return;}
-  S.tab=tab;S.filters={};
-  const titles={ITEMS:'Add Items',PURCHASE:'Purchase',SALES:'Sales',BALANCE:'Balance',EXPENSE:'Expense',REPORT:'Report'};
-  document.getElementById('sheet-title').textContent=titles[tab]||tab;
-  document.getElementById('tab-badge').textContent=tab;
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  // Hide nav buttons user can't access
-  document.querySelectorAll('.nav-btn').forEach(b=>{
-    b.style.display=canRead(b.dataset.tab)||isAdmin()?'':'none';
+  if (!canRead(tab) && tab!=='ITEMS') {
+    showToast('You do not have permission to view this tab.','error'); return;
+  }
+  S.tab = tab; S.filters = {};
+  document.getElementById('sheet-title').textContent = t(TAB_TITLES[tab]||tab);
+  document.getElementById('tab-badge').textContent = tab;
+  document.getElementById('sheet-icon').textContent = TAB_ICONS[tab]||'📋';
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab===tab);
+    b.style.display = canRead(b.dataset.tab)||isAdmin() ? '' : 'none';
   });
+  if (S.user) localStorage.setItem(uKey(S.user,'lastTab'), tab);
   updateSuggestions();
   renderTable();
 }
 
-/* ======================================================
+/* ============================================================
    DATALISTS
-====================================================== */
+============================================================ */
 function updateSuggestions(){
-  const parties=S.tab==='PURCHASE'
-    ?[...new Set(S.purchase.map(r=>r.party))]
-    :[...new Set(S.sales.map(r=>r.party))];
-  document.getElementById('party-list').innerHTML=
+  const parties = S.tab==='PURCHASE'
+    ? [...new Set(S.purchase.map(r=>r.party))]
+    : [...new Set(S.sales.map(r=>r.party))];
+  document.getElementById('party-list').innerHTML =
     parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
-  document.getElementById('item-list').innerHTML=
+  document.getElementById('item-list').innerHTML =
     S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
 }
 
-/* ======================================================
+/* ============================================================
    TABLE HEADER HELPER
-====================================================== */
-function makeHdr(label,field,cls=''){
-  const filter=field
-    ?`<input class="hdr-filter" placeholder="Filter…" value="${esc(S.filters[field]||'')}"
+============================================================ */
+function makeHdr(label, field, cls=''){
+  const filter = field
+    ? `<input class="hdr-filter" placeholder="Filter…" value="${esc(S.filters[field]||'')}"
         oninput="S.filters['${field}']=this.value.toLowerCase();renderTable()">`
-    :'';
+    : '';
   return `<th class="${cls}"><div class="hdr-inner">
     <span class="hdr-label">${label}</span>${filter}
   </div><div class="resize-handle" onmousedown="startResize(event,this)"></div></th>`;
 }
 
-/* ======================================================
+/* ============================================================
    COLUMN RESIZE
-====================================================== */
+============================================================ */
 let _rz={};
 function startResize(e,h){
   e.preventDefault();
-  _rz.th=h.parentElement;_rz.startX=e.clientX;_rz.startW=_rz.th.offsetWidth;
+  _rz.th=h.parentElement; _rz.startX=e.clientX; _rz.startW=_rz.th.offsetWidth;
   _rz.idx=Array.from(_rz.th.parentElement.children).indexOf(_rz.th);
   _rz.table=_rz.th.closest('table');
   document.addEventListener('mousemove',doResize);
@@ -782,62 +1538,141 @@ function stopResize(){
   _rz={};
 }
 
-/* ======================================================
+/* ============================================================
    ROW HANDLERS
-====================================================== */
-function handleInput(idx,field,val){
+============================================================ */
+function handleInput(idx, field, val){
   const list=rows();
-  if(['qty','uPrice','sPrice','amt'].includes(field)){
+  list[idx]._editor = S.user;
+  if(['qty','uPrice','sPrice','amt','vat','wh3','vwh75'].includes(field)){
     list[idx][field]=val===''?'':parseFloat(val)||0;
   } else {
     list[idx][field]=val;
   }
-  if(field==='id'){saveUserData();return;}
-  if(idx===list.length-1){pushBlankRow();saveUserData();renderTable();}
-  else{saveUserData();refreshTotal(idx);}
+  if(idx===list.length-1 && val!==''){pushBlankRow();saveUserData();renderTable();}
+  else{saveUserData();}
 }
-function validateAndLink(idx,val){
-  if(!val)return;
+function validateAndLink(idx, val){
+  if(!val) return;
   const item=S.items.find(m=>m.id===val);
   if(!item){
-    alert(`Part Number "${val}" not found in Items.`);
-    rows()[idx].id='';rows()[idx].name='';rows()[idx].desc='';
+    showToast(`Part Number "${val}" not found in Items`,'error');
+    rows()[idx].id=''; rows()[idx].name=''; rows()[idx].desc='';
   } else {
-    rows()[idx].name=item.name;rows()[idx].desc=item.desc;
-    if(idx===rows().length-1)pushBlankRow();
+    rows()[idx].name=item.name; rows()[idx].desc=item.desc;
+    rows()[idx]._editor=S.user;
+    if(idx===rows().length-1) pushBlankRow();
   }
-  saveUserData();renderTable();
+  saveUserData(); renderTable();
 }
 function deleteRow(idx){
-  if(!confirm('Delete this row?'))return;
-  rows().splice(idx,1);
-  ensureTrailing();
-  saveUserData();renderTable();
-}
-function refreshTotal(idx){
-  const row=rows()[idx],qty=parseFloat(row.qty)||0;
-  let v=0;
-  if(S.tab==='PURCHASE')v=qty*(parseFloat(row.uPrice)||0);
-  else v=qty*(parseFloat(row.sPrice)||0)-fifoCost(row.id,qty,idx);
-  const c=document.getElementById(`tt_${idx}`);
-  if(c)c.textContent=fmt(v);
+  const list=rows();
+  const row=list[idx];
+  const label=row.id||row.reason||row.name||'this row';
+  customConfirm(
+    t('Delete this row?'),
+    `"${label}" — ${t('Cannot be undone')}`,
+    '🗑️', t('Delete'),
+    () => {
+      list.splice(idx,1);
+      ensureTrailing();
+      saveUserData();
+      renderTable();
+      showToast('Row deleted','success');
+    }
+  );
 }
 
-/* ======================================================
-   RENDER
-====================================================== */
+/* ============================================================
+   HEAD ACTIONS (receipt button)
+============================================================ */
+function renderHeadActions(){
+  const ha = document.getElementById('head-actions');
+  if (!ha) return;
+  const receiptTabs = ['PURCHASE','SALES','EXPENSE'];
+  if (receiptTabs.includes(S.tab)) {
+    ha.innerHTML = `<button class="action-btn" onclick="openReceipt()">🧾 Receipt</button>`;
+  } else {
+    ha.innerHTML = '';
+  }
+}
+
+/* ============================================================
+   RECEIPT
+============================================================ */
+function openReceipt(){
+  const tab = S.tab;
+  let html = `<div class="receipt-header-print">
+    <div class="receipt-biz">POWER-IMS</div>
+    <div class="receipt-sub">${tab} Receipt</div>
+    <div class="receipt-sub">${new Date().toLocaleString()}</div>
+    <div class="receipt-sub">User: ${esc(S.user)}</div>
+  </div>`;
+
+  if(tab==='PURCHASE'){
+    const rows2=S.purchase.filter(r=>r.id||r.qty||r.uPrice);
+    let total=0;
+    rows2.forEach(r=>{
+      const v=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);
+      total+=v;
+      html+=`<div class="receipt-line"><span>${esc(r.id||r.name||'—')}</span><span>${fmtQ(r.qty)} × ${fmt(r.uPrice)}</span></div>
+             <div class="receipt-line sub"><span>${esc(r.party||'')}</span><span>${fmt(v)}</span></div>`;
+    });
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL PURCHASE</div>
+      <div class="receipt-total-val">${fmt(total)}</div></div>`;
+  } else if(tab==='SALES'){
+    const rows2=S.sales.filter(r=>r.id||r.qty||r.sPrice);
+    let total=0;
+    rows2.forEach(r=>{
+      const v=(parseFloat(r.qty)||0)*(parseFloat(r.sPrice)||0);
+      const vat=(parseFloat(r.vat)||0);
+      total+=v+vat;
+      html+=`<div class="receipt-line"><span>${esc(r.id||r.name||'—')}</span><span>${fmtQ(r.qty)} × ${fmt(r.sPrice)}</span></div>
+             <div class="receipt-line sub"><span>VAT</span><span>${fmt(vat)}</span></div>
+             <div class="receipt-line sub"><span>${esc(r.party||'')}</span><span>${fmt(v)}</span></div>`;
+    });
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL (incl. VAT)</div>
+      <div class="receipt-total-val">${fmt(total)}</div></div>`;
+  } else if(tab==='EXPENSE'){
+    const rows2=S.expense.filter(r=>r.reason||r.amt);
+    let total=0;
+    rows2.forEach(r=>{
+      const v=parseFloat(r.amt)||0; total+=v;
+      html+=`<div class="receipt-line"><span>${esc(r.reason||'—')}</span><span>${fmt(v)}</span></div>`;
+    });
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL EXPENSES</div>
+      <div class="receipt-total-val">${fmt(total)}</div></div>`;
+  }
+  html+=`<div class="receipt-footer">Thank you for using POWER-IMS<br>Printed: ${new Date().toLocaleString()}</div>`;
+  document.getElementById('receipt-content').innerHTML=html;
+  openModal('receipt-modal');
+}
+function printReceipt(){
+  const pa=document.getElementById('report-print-area');
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
+  #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:20px;}
+  .receipt-header-print{text-align:center;padding:16px 0;border-bottom:2px dashed #ccc;margin-bottom:12px;}
+  .receipt-biz{font-size:18px;font-weight:800;letter-spacing:.06em;}
+  .receipt-sub{font-size:11px;color:#64748b;margin-top:2px;}
+  .receipt-line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;font-family:monospace;}
+  .receipt-line.sub{color:#64748b;font-size:11px;}
+  .receipt-total-block{background:#eff6ff;border-radius:8px;padding:12px;text-align:center;margin:12px 0;}
+  .receipt-total-val{font-size:22px;font-weight:800;color:#2563eb;font-family:monospace;}
+  .receipt-footer{text-align:center;color:#64748b;font-size:10px;margin-top:12px;border-top:2px dashed #ccc;padding-top:12px;}
+  </style>${document.getElementById('receipt-content').innerHTML}`;
+  window.print();
+  setTimeout(()=>{ pa.innerHTML=''; }, 1200);
+}
+
+/* ============================================================
+   RENDER TABLE
+============================================================ */
 function renderTable(){
   const thead=document.getElementById('thead');
   const tbody=document.getElementById('tbody');
   const extras=document.getElementById('extras');
-  thead.innerHTML='';tbody.innerHTML='';extras.innerHTML='';
-
-  // Admin: show shared uploads tab if selected
-  if (S.user === ADMIN && S.tab === 'UPLOADS') {
-    renderSharedUploads(thead, tbody, extras);
-    return;
-  }
-
+  thead.innerHTML=''; tbody.innerHTML=''; extras.innerHTML='';
+  renderHeadActions();
   if(S.tab==='ITEMS')         renderItems(thead,tbody);
   else if(S.tab==='PURCHASE'||S.tab==='SALES') renderTx(thead,tbody);
   else if(S.tab==='BALANCE')  renderBalance(thead,tbody,extras);
@@ -845,163 +1680,189 @@ function renderTable(){
   else if(S.tab==='REPORT')   renderReport(thead,tbody,extras);
 }
 
-// Admin: render all shared uploads
-function renderSharedUploads(thead, tbody, extras) {
-  thead.innerHTML = `<tr><th>Uploader</th><th>Date</th><th>Data</th></tr>`;
-  (S.sharedUploads || []).forEach(up => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${esc(up.uploader)}</td><td>${esc(up.date)}</td><td><pre style="white-space:pre-wrap;max-width:400px;">${esc(JSON.stringify(up.data))}</pre></td>`;
-    tbody.appendChild(tr);
-  });
-  if (!(S.sharedUploads && S.sharedUploads.length)) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="3" style="text-align:center;color:var(--muted)">No uploads yet.</td>`;
-    tbody.appendChild(tr);
-  }
-}
-
-/* --- ITEMS --- */
+/* ============================================================
+   ITEMS
+============================================================ */
 function renderItems(thead,tbody){
   const rw=canWrite('ITEMS');
   thead.innerHTML=`<tr>
     ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr('PART NUMBER','id')}
-    ${makeHdr('ITEM NAME','name')}
-    ${makeHdr('DESCRIPTION','desc')}
+    ${makeHdr(t('Part Number'),'id')}
+    ${makeHdr(t('Item Name'),'name')}
+    ${makeHdr(t('Description'),'desc')}
+    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
   </tr>`;
+  const seen = new Set();
   S.items.forEach((row,i)=>{
     if(S.filters.id   && !row.id.toLowerCase().includes(S.filters.id))   return;
     if(S.filters.name && !row.name.toLowerCase().includes(S.filters.name)) return;
-    const dup=row.id&&S.items.filter((r,j)=>r.id===row.id&&j!==i).length>0;
+    // Duplicate ID check
+    const dup = row.id && S.items.filter((r,j)=>r.id===row.id&&j!==i).length>0;
     const tr=document.createElement('tr');
     if(!rw) tr.style.pointerEvents='none';
     tr.innerHTML=`
-      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
-      <td><input value="${esc(row.id)}" style="${dup?'background:var(--warn-bg);color:var(--error)':''}"
+      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})" title="Delete">×</button></td>`:''}
+      <td><input value="${esc(row.id)}" style="${dup?'background:var(--row-err);color:var(--error);font-weight:700':''}"
+            placeholder="Part #"
             oninput="S.items[${i}].id=this.value;saveUserData()"
-            onblur="if(S.items[${i}].id&&${i}===S.items.length-1){pushBlankRow();renderTable()}"
+            onblur="checkDupId(${i})"
             ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.name)}" oninput="handleInput(${i},'name',this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.desc)}" oninput="handleInput(${i},'desc',this.value)" ${!rw?'readonly':''}></td>`;
+      <td><input value="${esc(row.name)}" placeholder="Item name" oninput="handleInput(${i},'name',this.value)" ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.desc)}" placeholder="Description" oninput="handleInput(${i},'desc',this.value)" ${!rw?'readonly':''}></td>
+      <td><div class="edited-by">${row._editor ? '✏️ '+esc(row._editor) : ''}</div></td>`;
     tbody.appendChild(tr);
   });
 }
+function checkDupId(idx){
+  const row=S.items[idx];
+  if(!row.id) return;
+  const dup=S.items.filter((r,j)=>r.id===row.id&&j!==idx).length>0;
+  if(dup){
+    showToast(`Part Number "${row.id}" already exists! Duplicate IDs are forbidden.`,'error',4000);
+    S.items[idx].id='';
+    saveUserData(); renderTable();
+  } else {
+    if(idx===S.items.length-1){ pushBlankRow(); renderTable(); }
+  }
+}
 
-/* --- PURCHASE / SALES --- */
+/* ============================================================
+   PURCHASE / SALES
+============================================================ */
 function renderTx(thead,tbody){
   const isP=S.tab==='PURCHASE';
   const perm=getPerm(S.tab);
   const rw=canWrite(S.tab);
   const addOnly=perm==='add_only';
+  const list=isP?S.purchase:S.sales;
+  const visibleRows=addOnly?[list[list.length-1]].filter(Boolean):list;
+  const idxOffset=addOnly?list.length-1:0;
 
-  // For add_only: only show the last (blank) row
-  const list=(isP?S.purchase:S.sales);
-  const visibleRows=addOnly ? [list[list.length-1]].filter(Boolean) : list;
-  const idxOffset=addOnly ? list.length-1 : 0;
-
-  const salesHdrs=isP?'':`
-    ${makeHdr('PRICE','',         'num')}
-    ${makeHdr('TOTAL PRICE','',   'num')}
-    ${makeHdr('PURCH. PRICE','',  'num')}
-    ${makeHdr('TOTAL PURCH.','',  'num')}`;
+  let extraHdrs='';
+  if(!isP){
+    extraHdrs=`
+      ${makeHdr(t('Price'),'','num')}
+      ${makeHdr(t('VAT (15%)'),'','num vat-cell')}
+      ${makeHdr(t('Total Price'),'','num')}
+      ${makeHdr(t('Withhold 3%'),'','num withhold-cell')}
+      ${makeHdr(t('VAT WH 7.5%'),'','num withhold-cell')}
+      ${makeHdr(t('Purch. Price'),'','num')}
+      ${makeHdr(t('Total Purch.'),'','num')}`;
+  }
 
   thead.innerHTML=`<tr>
     ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr('DATE','date')}
-    ${makeHdr(isP?'SUPPLIER':'CUSTOMER','party')}
-    ${makeHdr('PART NO.','id')}
-    ${makeHdr('NAME','name')}
-    ${makeHdr('DESC','desc')}
-    ${makeHdr('QTY','', 'num')}
-    ${isP?makeHdr('U.PRICE','','num')+makeHdr('TOTAL','','num'):salesHdrs}
-    ${makeHdr('STATUS','status')}
+    ${makeHdr(t('Date'),'date')}
+    ${makeHdr(isP?t('Supplier'):t('Customer'),'party')}
+    ${makeHdr(t('Part Number'),'id')}
+    ${makeHdr(t('Item Name'),'name')}
+    ${makeHdr(t('Description'),'desc')}
+    ${makeHdr(t('Qty'),'','num')}
+    ${isP ? makeHdr(t('Unit Price'),'','num')+makeHdr(t('Total'),'','num') : extraHdrs}
+    ${makeHdr(t('Status'),'status')}
+    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
   </tr>`;
 
-  let totQty=0,totVal=0;
+  let totQty=0, totVal=0;
 
   visibleRows.forEach((row,vi)=>{
     const i=idxOffset+vi;
     if(Object.keys(S.filters).some(f=>S.filters[f]&&!String(row[f]||'').toLowerCase().includes(S.filters[f])))return;
 
-    const qty  =parseFloat(row.qty)  ||0;
+    const qty  =parseFloat(row.qty)||0;
     const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
-    const rowTotal=isP ? qty*price : qty*price-fifoCost(row.id,qty,i);
-    totQty+=qty; totVal+=rowTotal;
+    const rowVal=isP?qty*price:qty*price-fifoCost(row.id,qty,i);
+    totQty+=qty; totVal+=rowVal;
 
-    // Incomplete row check — must have id, qty, price
     const incomplete=row.id&&(!row.qty||!price);
-
     let stockWarn='';
     if(!isP&&row.id){
       const inQ=S.purchase.filter(p=>p.id===row.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
       const outQ=S.sales.filter((s,j)=>s.id===row.id&&j<i).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-      if(qty>inQ-outQ)stockWarn=`<div class="stock-warn">⚠ Not enough stock</div>`;
+      if(qty>inQ-outQ) stockWarn=`<div class="stock-warn">⚠ Not enough stock</div>`;
     }
 
     let extraCells='';
     if(isP){
+      const tot=qty*(parseFloat(row.uPrice)||0);
       extraCells=`
-        <td class="num"><input id="cell_p_${i}" type="number" class="num mono" value="${row.uPrice===''?'':row.uPrice}"
-              oninput="handleInput(${i},'uPrice',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num num-pad" id="tt_${i}">${fmt(rowTotal)}</td>`;
+        <td class="num"><input type="number" class="mono" value="${row.uPrice===''?'':row.uPrice}"
+              placeholder="0.00" oninput="handleInput(${i},'uPrice',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num num-pad" style="padding:9px 10px">${colorNum(tot)}</td>`;
     } else {
+      const totPrice=qty*price;
+      const vatAmt=parseFloat(row.vat)||totPrice*0.15;
+      const wh3=parseFloat(row.wh3)||totPrice*0.03;
+      const vwh75=parseFloat(row.vwh75)||totPrice*0.075;
       const pp=fifoBuyPrice(row.id,qty,i);
       extraCells=`
-        <td class="num"><input id="cell_p_${i}" type="number" class="num mono" value="${row.sPrice===''?'':row.sPrice}"
-              oninput="handleInput(${i},'sPrice',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num num-pad">${fmt(qty*price)}</td>
+        <td class="num"><input type="number" class="mono" value="${row.sPrice===''?'':row.sPrice}"
+              placeholder="0.00" oninput="handleInput(${i},'sPrice',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num vat-cell"><input type="number" class="mono" value="${row.vat===''?'':row.vat}"
+              placeholder="${fmt(totPrice*0.15)}" oninput="handleInput(${i},'vat',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num num-pad">${colorNum(totPrice)}</td>
+        <td class="num withhold-cell"><input type="number" class="mono" value="${row.wh3===''?'':row.wh3}"
+              placeholder="${fmt(totPrice*0.03)}" oninput="handleInput(${i},'wh3',this.value)" ${!rw?'readonly':''}></td>
+        <td class="num withhold-cell"><input type="number" class="mono" value="${row.vwh75===''?'':row.vwh75}"
+              placeholder="${fmt(totPrice*0.075)}" oninput="handleInput(${i},'vwh75',this.value)" ${!rw?'readonly':''}></td>
         <td class="num num-pad">${fmt(pp)}</td>
-        <td class="num num-pad">${fmt(qty*(pp||0))}</td>`;
+        <td class="num num-pad">${colorNum(qty*(pp||0))}</td>`;
     }
+
+    const valClass=rowVal<0?'neg-val':'';
 
     const tr=document.createElement('tr');
     if(incomplete) tr.className='row-incomplete';
     tr.innerHTML=`
       ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
       <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
-      <td><input list="party-list" value="${esc(row.party||'')}" oninput="handleInput(${i},'party',this.value)" ${!rw?'readonly':''}></td>
-      <td><input list="item-list" value="${esc(row.id||'')}"
-            oninput="${isP?'S.purchase':'S.sales'}[${i}].id=this.value"
+      <td><input list="party-list" value="${esc(row.party||'')}" placeholder="${isP?'Supplier':'Customer'}" oninput="handleInput(${i},'party',this.value)" ${!rw?'readonly':''}></td>
+      <td><input list="item-list" value="${esc(row.id||'')}" placeholder="Part #"
+            oninput="${isP?'S.purchase':'S.sales'}[${i}].id=this.value;S.${isP?'purchase':'sales'}[${i}]._editor='${S.user}'"
             onchange="validateAndLink(${i},this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.name||'')}" readonly tabindex="-1"></td>
-      <td><input value="${esc(row.desc||'')}" readonly tabindex="-1"></td>
-      <td class="num"><input type="number" class="num mono" value="${row.qty===''?'':row.qty}"
-            oninput="handleInput(${i},'qty',this.value)" ${!rw?'readonly':''}></td>
+      <td><input value="${esc(row.name||'')}" readonly tabindex="-1" placeholder="Auto-filled"></td>
+      <td><input value="${esc(row.desc||'')}" readonly tabindex="-1" placeholder="Auto-filled"></td>
+      <td class="num"><input type="number" class="mono" value="${row.qty===''?'':row.qty}"
+            placeholder="0" oninput="handleInput(${i},'qty',this.value)" ${!rw?'readonly':''}></td>
       ${extraCells}
       <td>
         <select onchange="handleInput(${i},'status',this.value)" ${!rw?'disabled':''}>
-          <option value="CASH"   ${row.status==='CASH'  ?'selected':''}>CASH</option>
-          <option value="CREDIT" ${row.status==='CREDIT'?'selected':''}>CREDIT</option>
+          <option value="CASH"  ${row.status==='CASH'  ?'selected':''}>${t('Cash')}</option>
+          <option value="CREDIT"${row.status==='CREDIT'?'selected':''}>${t('Credit')}</option>
         </select>${stockWarn}
-      </td>`;
+      </td>
+      <td><div class="edited-by">${row._editor?'✏️ '+esc(row._editor):''}</div></td>`;
     tbody.appendChild(tr);
   });
 
   if(!addOnly){
-    const span=isP?6:10;
+    const colCount=(isP?6:12)+(rw?1:0)+2;
     const sr=document.createElement('tr');
     sr.className='summary-row';
     sr.innerHTML=`
       ${rw?'<td></td>':''}
-      <td class="summary-label" colspan="${span}">TOTALS</td>
-      <td class="num num-pad">${fmtQ(totQty)}</td>
+      <td class="summary-label" colspan="${isP?6:10}">${t('Totals')}</td>
+      <td class="num num-pad" style="font-family:var(--mono);font-weight:700">${fmtQ(totQty)}</td>
       <td></td>
-      <td class="num num-pad">${fmt(totVal)}</td>
-      ${!isP?'<td></td>':''}`;
+      <td class="num num-pad ${totVal<0?'neg-val':''}" style="font-family:var(--mono);font-weight:700">${fmt(totVal)}</td>
+      ${!isP?'<td></td><td></td><td></td><td></td>':''}
+      <td></td><td></td>`;
     tbody.appendChild(sr);
   }
 }
 
-/* --- BALANCE --- */
+/* ============================================================
+   BALANCE
+============================================================ */
 function renderBalance(thead,tbody,extras){
   thead.innerHTML=`<tr>
-    ${makeHdr('PART NO.','id')}
-    ${makeHdr('NAME','name')}
-    ${makeHdr('DESCRIPTION','desc')}
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">PURCHASE</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">SALES</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">BALANCE</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">PRICE</span></div></th>
+    ${makeHdr(t('Part Number'),'id')}
+    ${makeHdr(t('Item Name'),'name')}
+    ${makeHdr(t('Description'),'desc')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">Purchase Qty</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">Sales Qty</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">Balance</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">Inv. Value</span></div></th>
   </tr>`;
   let totalV=0;
   S.items.filter(m=>m.id).forEach(item=>{
@@ -1012,7 +1873,8 @@ function renderBalance(thead,tbody,extras){
     const stock=inQ-outQ;
     const cost =S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
     const avg  =inQ>0?cost/inQ:0;
-    totalV+=stock*avg;
+    const val  =stock*avg;
+    totalV+=val;
     const balClass=stock>0?'bal-positive':stock===0?'bal-zero':'bal-negative';
     const tr=document.createElement('tr');
     tr.innerHTML=`
@@ -1022,54 +1884,62 @@ function renderBalance(thead,tbody,extras){
       <td class="num num-pad">${fmtQ(inQ)}</td>
       <td class="num num-pad">${fmtQ(outQ)}</td>
       <td class="num num-pad ${balClass}">${fmtQ(stock)}</td>
-      <td class="num num-pad">${fmt(stock*avg)}</td>`;
+      <td class="num num-pad ${val<0?'neg-val':''}">${fmt(val)}</td>`;
     tbody.appendChild(tr);
   });
-  extras.innerHTML=`<div style="background:var(--ok-bg);padding:14px 18px;
-    border-top:2px solid var(--ok-bdr);display:flex;justify-content:space-between;
-    font-weight:700;font-family:var(--mono)">
-    <span style="font-family:var(--font);color:var(--muted)">TOTAL INVENTORY VALUE</span>
-    <span style="color:var(--ok-bdr)">${fmt(totalV)}</span>
+  extras.innerHTML=`<div style="background:linear-gradient(90deg,var(--row-ok),var(--surface2));
+    padding:14px 18px;border-top:2px solid var(--success);
+    display:flex;justify-content:space-between;align-items:center;font-weight:700;font-family:var(--mono)">
+    <span style="font-family:var(--font);color:var(--muted);font-size:12px">TOTAL INVENTORY VALUE</span>
+    <span class="${totalV<0?'neg-val':'pos-val'}" style="font-size:1.05rem">${fmt(totalV)}</span>
   </div>`;
 }
 
-/* --- EXPENSE --- */
+/* ============================================================
+   EXPENSE
+============================================================ */
 function renderExpense(thead,tbody){
   const rw=canWrite('EXPENSE');
   thead.innerHTML=`<tr>
     ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr('DATE','date')}
-    ${makeHdr('REASON','reason')}
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">AMOUNT</span></div></th>
+    ${makeHdr(t('Date'),'date')}
+    ${makeHdr('Reason','reason')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label">Amount</span></div></th>
+    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
   </tr>`;
   let total=0;
   S.expense.forEach((row,i)=>{
-    total+=parseFloat(row.amt)||0;
+    const amt=parseFloat(row.amt)||0;
+    total+=amt;
     const tr=document.createElement('tr');
     tr.innerHTML=`
       ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
       <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.reason||'')}" oninput="handleInput(${i},'reason',this.value)" ${!rw?'readonly':''}></td>
-      <td class="num"><input type="number" class="num mono" value="${row.amt===''?'':row.amt}"
-            oninput="handleInput(${i},'amt',this.value)" ${!rw?'readonly':''}></td>`;
+      <td><input value="${esc(row.reason||'')}" placeholder="Expense reason" oninput="handleInput(${i},'reason',this.value)" ${!rw?'readonly':''}></td>
+      <td class="num"><input type="number" class="mono" value="${row.amt===''?'':row.amt}"
+            placeholder="0.00" oninput="handleInput(${i},'amt',this.value)" ${!rw?'readonly':''}></td>
+      <td><div class="edited-by">${row._editor?'✏️ '+esc(row._editor):''}</div></td>`;
     tbody.appendChild(tr);
   });
   const sr=document.createElement('tr');
   sr.className='summary-row';
   sr.innerHTML=`${rw?'<td></td>':''}
-    <td class="summary-label" colspan="2">TOTAL EXPENSES</td>
-    <td class="num num-pad">${fmt(total)}</td>`;
+    <td class="summary-label" colspan="2">Total Expenses</td>
+    <td class="num num-pad ${total<0?'neg-val':''}" style="font-family:var(--mono);font-weight:700">${fmt(total)}</td>
+    <td></td>`;
   tbody.appendChild(sr);
 }
 
-/* --- REPORT --- */
+/* ============================================================
+   REPORT
+============================================================ */
 function renderReport(thead,tbody,extras){
-  thead.innerHTML=`<tr style="background:linear-gradient(90deg,var(--p2),var(--p))">
-    <th colspan="2" style="padding:16px 18px;text-align:center;color:#fff;font-size:14px;font-weight:700;letter-spacing:.06em">
-      FINANCIAL SUMMARY
+  thead.innerHTML=`<tr style="background:linear-gradient(90deg,var(--hdr-from),var(--hdr-to))">
+    <th colspan="2" style="padding:16px 18px;text-align:center;color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em">
+      ${t('Financial Summary')}
       <button onclick="printReport()" class="no-print" style="float:right;padding:5px 14px;font-size:11px;
         border-radius:6px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:700">
-        🖨 Print
+        🖨 ${t('Print')}
       </button>
     </th>
   </tr>`;
@@ -1086,8 +1956,7 @@ function renderReport(thead,tbody,extras){
     if(S.reportRange.to&&d>S.reportRange.to)return false;
     return true;
   });
-
-  const PR=inRange(S.purchase),SR=inRange(S.sales),ER=inRange(S.expense);
+  const PR=inRange(S.purchase), SR=inRange(S.sales), ER=inRange(S.expense);
   const tPC=sum(PR.filter(p=>p.status==='CASH'),  p=>(p.qty||0)*(p.uPrice||0));
   const tPCr=sum(PR.filter(p=>p.status==='CREDIT'),p=>(p.qty||0)*(p.uPrice||0));
   const tSC=sum(SR.filter(s=>s.status==='CASH'),  s=>(s.qty||0)*(s.sPrice||0));
@@ -1111,15 +1980,14 @@ function renderReport(thead,tbody,extras){
     tr.className=r.total?'report-total':'';
     tr.innerHTML=`
       <td class="report-label">${r.l}</td>
-      <td class="report-value">${r.edit
+      <td class="report-value ${!r.edit&&r.v<0?'neg-val':''}">${r.edit
         ?`<input type="number" class="mono" style="text-align:right;font-weight:700;width:140px;
-             padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)"
+             padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)"
              value="${r.v}" onchange="S.beginBal=parseFloat(this.value)||0;saveUserData();renderTable()">`
         :fmt(r.v)}</td>`;
     tbody.appendChild(tr);
   });
 
-  // Credit breakdowns
   const groupBy=(arr,kf,vf)=>arr.reduce((a,r)=>{const k=kf(r);a[k]=(a[k]||0)+vf(r);return a;},{});
   const cp=PR.filter(p=>p.status==='CREDIT'&&p.party);
   const cs=SR.filter(s=>s.status==='CREDIT'&&s.party);
@@ -1128,7 +1996,7 @@ function renderReport(thead,tbody,extras){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td colspan="2" class="credit-block">
       <b style="color:var(--p)">Purchases on Credit — by Supplier:</b><br>
-      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b>${fmt(v)}</b>`).join('<br>')}
+      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b class="${v<0?'neg-val':''}">${fmt(v)}</b>`).join('<br>')}
     </td>`;
     tbody.appendChild(tr);
   }
@@ -1137,119 +2005,193 @@ function renderReport(thead,tbody,extras){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td colspan="2" class="credit-block">
       <b style="color:var(--p)">Sales on Credit — by Customer:</b><br>
-      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b>${fmt(v)}</b>`).join('<br>')}
+      ${Object.entries(g).map(([k,v])=>`<span style="color:var(--muted)">${esc(k)}</span> — <b class="${v<0?'neg-val':''}">${fmt(v)}</b>`).join('<br>')}
     </td>`;
     tbody.appendChild(tr);
   }
 }
 
-/* ======================================================
-   PRINT REPORT ONLY
-====================================================== */
+/* ============================================================
+   PRINT REPORT
+============================================================ */
 function printReport(){
-  // Build a clean print-only version
   const pa=document.getElementById('report-print-area');
   const thead=document.getElementById('thead');
   const tbody=document.getElementById('tbody');
   pa.innerHTML=`<style>
     @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
-    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'DM Sans',sans-serif;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{border:1px solid #ccc;padding:10px 14px;}
-    thead tr th{background:#1a1aff;color:white;font-size:14px;}
-    .report-label{color:#64748b;}
-    .report-value{text-align:right;font-weight:700;font-family:monospace;}
-    .report-total{background:#f0fdf4;font-weight:700;border-top:2px solid #22c55e;border-bottom:2px solid #22c55e;}
-    .credit-block{padding:10px 14px;font-size:12px;}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:30px;}
+    h2{color:#1d4ed8;margin-bottom:4px;font-size:18px;}
+    .meta{font-size:11px;color:#64748b;margin-bottom:18px;}
+    table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;}
+    th,td{border:1px solid #e2e8f0;padding:11px 14px;}
+    thead tr th{background:#1d4ed8;color:white;font-size:13px;text-align:left;}
+    .report-label{color:#64748b;font-size:13px;}
+    .report-value{text-align:right;font-weight:700;font-family:monospace;font-size:13px;}
+    .report-total{background:#f0fdf4;font-weight:700;}
+    .report-total td{border-top:2px solid #10b981;border-bottom:2px solid #10b981;}
+    .credit-block{padding:10px 14px;font-size:12px;line-height:1.8;}
+    .neg-val{color:#ef4444;font-weight:700;}
+    .no-print{display:none!important;}
   </style>
+  <h2>POWER-IMS — Financial Report</h2>
+  <div class="meta">Generated: ${new Date().toLocaleString()} &nbsp;|&nbsp; User: ${S.user}</div>
   <table>${thead.innerHTML}<tbody>${tbody.innerHTML}</tbody></table>`;
   window.print();
-  setTimeout(()=>{pa.innerHTML='';},1000);
+  setTimeout(()=>{ pa.innerHTML=''; }, 1200);
 }
 
-/* ======================================================
-   PDF EXPORT (print-based)
-====================================================== */
+/* ============================================================
+   PDF EXPORT
+============================================================ */
 function exportPDF(tab){
-  const prevTab=S.tab;
-  S.tab=tab;
-  const titles={PURCHASE:'Purchase',SALES:'Sales',BALANCE:'Balance',EXPENSE:'Expense'};
-  // Temporarily render chosen tab into a hidden area and print
+  const prevTab=S.tab, prevFilters=S.filters;
+  S.tab=tab; S.filters={};
   const pa=document.getElementById('report-print-area');
-  // Re-render in a temporary container
-  const tmpThead=document.createElement('thead');
-  const tmpTbody=document.createElement('tbody');
-  const tmpExtras=document.createElement('div');
-
-  // Temporarily swap DOM refs — easiest approach: render to real table, capture, print
   const thead=document.getElementById('thead');
   const tbody=document.getElementById('tbody');
   const extras=document.getElementById('extras');
-  const savedHead=thead.innerHTML,savedBody=tbody.innerHTML,savedExtras=extras.innerHTML;
-  const savedSheetTitle=document.getElementById('sheet-title').textContent;
-
-  S.tab=tab;S.filters={};
+  const savedH=thead.innerHTML, savedB=tbody.innerHTML, savedE=extras.innerHTML;
+  const savedTitle=document.getElementById('sheet-title').textContent;
   renderTable();
-  const capturedHead=thead.innerHTML;
-  const capturedBody=tbody.innerHTML;
-
+  const capH=thead.innerHTML, capB=tbody.innerHTML;
   pa.innerHTML=`<style>
     @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
-    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'DM Sans',sans-serif;}
-    h2{color:#1a1aff;margin-bottom:12px;}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:24px;}
+    .print-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #2563eb;}
+    .print-biz{font-size:20px;font-weight:800;color:#1d4ed8;letter-spacing:.04em;}
+    .print-meta{font-size:11px;color:#64748b;text-align:right;}
+    h2{color:#1d4ed8;margin-bottom:4px;}
     table{width:100%;border-collapse:collapse;font-size:12px;}
-    th{background:#1a1aff;color:#fff;padding:8px 10px;text-align:left;font-size:11px;}
+    th{background:#1d4ed8;color:#fff;padding:8px 10px;text-align:left;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;}
     td{border-bottom:1px solid #e2e8f0;padding:8px 10px;}
     .num,.num-pad{text-align:right;font-family:monospace;}
     .summary-row td{background:#f0fdf4;font-weight:700;}
     .row-incomplete td{background:#fff1f1;}
-    .hdr-filter,.del-btn,.resize-handle{display:none!important;}
-    input,select{border:none;background:transparent;width:100%;font-family:inherit;}
+    .neg-val{color:#ef4444;font-weight:700;}
+    .vat-cell{background:#f5f3ff;}
+    .withhold-cell{background:#ecfeff;}
+    .hdr-filter,.del-btn,.resize-handle,.no-print,.edited-by{display:none!important;}
+    input,select{border:none;background:transparent;width:100%;font-family:inherit;font-size:12px;}
+    .report-total{background:#f0fdf4;}
+    .report-value{text-align:right;font-weight:700;font-family:monospace;}
+    .credit-block{padding:10px 14px;font-size:12px;}
   </style>
-  <h2>POWER-IMS — ${titles[tab]||tab}</h2>
-  <p style="font-size:11px;color:#64748b;margin-bottom:10px">Printed: ${new Date().toLocaleString()} | User: ${S.user}</p>
-  <table><thead>${capturedHead}</thead><tbody>${capturedBody}</tbody></table>`;
-
+  <div class="print-hdr">
+    <div><div class="print-biz">📦 POWER-IMS</div><div style="font-size:12px;color:#64748b;margin-top:2px">${TAB_TITLES[tab]||tab} Report</div></div>
+    <div class="print-meta">Printed: ${new Date().toLocaleString()}<br>User: ${S.user}</div>
+  </div>
+  <table><thead>${capH}</thead><tbody>${capB}</tbody></table>`;
   window.print();
-
   setTimeout(()=>{
     pa.innerHTML='';
-    thead.innerHTML=savedHead;
-    tbody.innerHTML=savedBody;
-    extras.innerHTML=savedExtras;
-    S.tab=prevTab;
-    document.getElementById('sheet-title').textContent=savedSheetTitle;
-  },1000);
+    thead.innerHTML=savedH; tbody.innerHTML=savedB; extras.innerHTML=savedE;
+    S.tab=prevTab; S.filters=prevFilters;
+    document.getElementById('sheet-title').textContent=savedTitle;
+  },1200);
 }
 
-/* ======================================================
+/* ============================================================
+   EXCEL EXPORT
+============================================================ */
+function exportXL(tab){
+  if(typeof XLSX==='undefined'){showToast('XLSX library not loaded','error');return;}
+  let data=[], headers=[], rows2=[];
+  if(tab==='PURCHASE'){
+    headers=['Date','Supplier','Part No.','Name','Description','Qty','Unit Price','Total','Status','Last Edited By'];
+    rows2=S.purchase.filter(r=>r.id||r.party||r.qty);
+    data=rows2.map(r=>[r.date||'',r.party||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.status||'',r._editor||'']);
+    const tot=data.reduce((a,b)=>a+(b[7]||0),0);
+    data.push(['','','','','','TOTAL','','',fmt(tot),'']);
+  } else if(tab==='SALES'){
+    headers=['Date','Customer','Part No.','Name','Desc','Qty','Price','VAT(15%)','Total Price','WH 3%','VAT WH 7.5%','Purch.Price','Total Purch.','Status','Last Edited By'];
+    rows2=S.sales.filter(r=>r.id||r.party||r.qty);
+    data=rows2.map((r,i)=>{
+      const qty=parseFloat(r.qty)||0,sp=parseFloat(r.sPrice)||0;
+      const totP=qty*sp,pp=fifoBuyPrice(r.id,qty,i);
+      const vat=parseFloat(r.vat)||totP*0.15;
+      const wh3=parseFloat(r.wh3)||totP*0.03;
+      const vwh75=parseFloat(r.vwh75)||totP*0.075;
+      return [r.date||'',r.party||'',r.id||'',r.name||'',r.desc||'',qty,sp,vat,totP,wh3,vwh75,pp,qty*(pp||0),r.status||'',r._editor||''];
+    });
+  } else if(tab==='BALANCE'){
+    headers=['Part No.','Name','Description','Purchase Qty','Sales Qty','Balance','Inventory Value'];
+    S.items.filter(m=>m.id).forEach(item=>{
+      const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      const stock=inQ-outQ;
+      const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+      const avg=inQ>0?cost/inQ:0;
+      data.push([item.id,item.name,item.desc,inQ,outQ,stock,stock*avg]);
+    });
+  } else if(tab==='EXPENSE'){
+    headers=['Date','Reason','Amount','Last Edited By'];
+    rows2=S.expense.filter(r=>r.reason||r.amt);
+    data=rows2.map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r._editor||'']);
+    const tot=data.reduce((a,b)=>a+(b[2]||0),0);
+    data.push(['','TOTAL',tot,'']);
+  }
+  const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
+  // Style header row (xlsx doesn't support rich styling without pro, but set width)
+  const colWidths=headers.map(h=>({wch:Math.max(h.length+4,14)}));
+  ws['!cols']=colWidths;
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,TAB_TITLES[tab]||tab);
+  XLSX.writeFile(wb,`POWER-IMS_${tab}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast(`${TAB_TITLES[tab]} exported as Excel ✓`,'success');
+}
+
+/* ============================================================
    KEYBOARD NAV
-====================================================== */
+============================================================ */
 document.addEventListener('keydown',e=>{
   const el=document.activeElement;
   if(!el||(el.tagName!=='INPUT'&&el.tagName!=='SELECT'))return;
   const inputs=[...document.querySelectorAll('tbody input:not([readonly]),tbody select:not([disabled])')];
-  const ci=inputs.indexOf(el);if(ci<0)return;
+  const ci=inputs.indexOf(el); if(ci<0)return;
   const row=el.closest('tr');
   const nc=row?[...row.querySelectorAll('input:not([readonly]),select:not([disabled])')].length:1;
   const mv={ArrowDown:nc,ArrowUp:-nc,Enter:nc};
   if(e.key in mv){const ni=ci+mv[e.key];if(ni>=0&&ni<inputs.length){e.preventDefault();inputs[ni].focus();}}
-  if(e.key==='ArrowRight'&&(el.tagName==='SELECT'||el.selectionEnd===el.value.length))
-    {if(ci+1<inputs.length)inputs[ci+1].focus();}
-  if(e.key==='ArrowLeft'&&(el.tagName==='SELECT'||el.selectionStart===0))
-    {if(ci-1>=0)inputs[ci-1].focus();}
+  if(e.key==='ArrowRight'&&(el.tagName==='SELECT'||el.selectionEnd===el.value.length)){if(ci+1<inputs.length)inputs[ci+1].focus();}
+  if(e.key==='ArrowLeft' &&(el.tagName==='SELECT'||el.selectionStart===0)){if(ci-1>=0)inputs[ci-1].focus();}
 });
 
-/* ======================================================
-   BOOT
-====================================================== */
-function init(){
-  // Ensure admin exists
-  const reg=getRegistry();
-  if(!reg[ADMIN]){reg[ADMIN]='admin';saveRegistry(reg);}
+/* ============================================================
+   RIGHT-CLICK — bottom nav only
+============================================================ */
+document.addEventListener('contextmenu', e => {
+  // Allow default context menu everywhere except bottom nav
+  if (!e.target.closest('.bottom-nav')) {
+    // suppress or allow — we allow default (browser context menu) everywhere else
+    // Only intercept on bottom nav
+    return true;
+  }
+  e.preventDefault();
+  // On bottom nav right-click: small tip
+  showToast('Use the Settings gear to export','',2000);
+});
 
+/* ============================================================
+   CLOSE PANELS ON ESC
+============================================================ */
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){
+    closeSettings();
+    closeApprovals();
+    cancelConfirm();
+    closeModal('receipt-modal');
+  }
+});
+
+/* ============================================================
+   BOOT
+============================================================ */
+function init(){
+  const reg=getRegistry();
+  if(!reg[ADMIN]){ reg[ADMIN]='admin'; saveRegistry(reg); }
   const saved=localStorage.getItem('ims_currentUser');
-  if(saved&&getRegistry()[saved]){doLogin(saved);return;}
+  if(saved&&getRegistry()[saved]){ doLogin(saved); return; }
   openModal('auth-modal');
 }
 init();

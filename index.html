@@ -3,694 +3,425 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>POWER-IMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>POWER-IMS v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<!-- XLSX -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* ============================================================
    CSS VARIABLES & THEMES
 ============================================================ */
 :root {
-  --p:         #2563eb;
-  --p-light:   #3b82f6;
-  --p-dark:    #1d4ed8;
-  --p-glass:   rgba(37,99,235,0.12);
-  --accent:    #06b6d4;
-  --accent2:   #8b5cf6;
-  --success:   #10b981;
-  --warn:      #f59e0b;
-  --error:     #ef4444;
-  --border:    rgba(0,0,0,0.08);
-  --bg:        #f0f4ff;
-  --bg2:       #e8eeff;
-  --surface:   #ffffff;
-  --surface2:  #f8faff;
-  --surface3:  #f0f4ff;
-  --text:      #0f1729;
-  --text2:     #374151;
-  --muted:     #6b7280;
-  --muted2:    #9ca3af;
-  --nav-bg:    #0f1729;
-  --hdr-from:  #1e3a8a;
-  --hdr-to:    #2563eb;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
-  --shadow:    0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.05);
-  --shadow-lg: 0 20px 60px rgba(0,0,0,.14), 0 6px 20px rgba(0,0,0,.08);
-  --radius:    12px;
-  --radius-sm: 8px;
-  --radius-lg: 18px;
-  --font:      'Sora', sans-serif;
-  --mono:      'JetBrains Mono', monospace;
-  --row-err:   rgba(239,68,68,.07);
-  --row-ok:    rgba(16,185,129,.05);
+  --p:#1a56db;--p-light:#3b82f6;--p-dark:#1239a0;--p-glass:rgba(26,86,219,.1);
+  --accent:#0ea5e9;--accent2:#7c3aed;--accent3:#059669;
+  --success:#059669;--warn:#d97706;--error:#dc2626;
+  --border:rgba(0,0,0,.09);--bg:#f1f5fb;--bg2:#e6ecf8;
+  --surface:#fff;--surface2:#f8fafc;--surface3:#eef2f8;
+  --text:#0d1b35;--text2:#374151;--muted:#6b7280;--muted2:#9ca3af;
+  --nav-bg:#0d1b35;--hdr-from:#0d1b35;--hdr-to:#1a56db;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --shadow:0 4px 16px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.05);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.14),0 6px 20px rgba(0,0,0,.08);
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+  --font:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --row-err:rgba(220,38,38,.07);--row-ok:rgba(5,150,105,.05);
+  --nav-h:64px;--hdr-h:56px;
 }
-[data-theme="dark"] {
-  --p:         #60a5fa;
-  --p-light:   #93c5fd;
-  --p-dark:    #3b82f6;
-  --p-glass:   rgba(96,165,250,0.15);
-  --accent:    #22d3ee;
-  --accent2:   #a78bfa;
-  --success:   #34d399;
-  --warn:      #fbbf24;
-  --error:     #f87171;
-  --border:    rgba(255,255,255,0.08);
-  --bg:        #070d1a;
-  --bg2:       #0d1628;
-  --surface:   #111827;
-  --surface2:  #1a2438;
-  --surface3:  #0d1628;
-  --text:      #f0f6ff;
-  --text2:     #d1d9f0;
-  --muted:     #8899bb;
-  --muted2:    #4b6080;
-  --nav-bg:    #070d1a;
-  --hdr-from:  #0d1f4a;
-  --hdr-to:    #1e3a8a;
-  --shadow-sm: 0 1px 4px rgba(0,0,0,.3);
-  --shadow:    0 4px 20px rgba(0,0,0,.4);
-  --shadow-lg: 0 24px 70px rgba(0,0,0,.6);
-  --row-err:   rgba(248,113,113,.1);
+[data-theme="dark"]{
+  --p:#60a5fa;--p-light:#93c5fd;--p-dark:#3b82f6;--p-glass:rgba(96,165,250,.15);
+  --accent:#22d3ee;--accent2:#a78bfa;--accent3:#34d399;
+  --success:#34d399;--warn:#fbbf24;--error:#f87171;
+  --border:rgba(255,255,255,.08);--bg:#070d1a;--bg2:#0d1628;
+  --surface:#111827;--surface2:#1a2438;--surface3:#0d1628;
+  --text:#f0f6ff;--text2:#d1d9f0;--muted:#8899bb;--muted2:#4b6080;
+  --nav-bg:#070d1a;--hdr-from:#0a1229;--hdr-to:#1a3a7a;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.3);--shadow:0 4px 20px rgba(0,0,0,.4);
+  --shadow-lg:0 24px 70px rgba(0,0,0,.6);
+  --row-err:rgba(248,113,113,.1);--row-ok:rgba(52,211,153,.07);
 }
 
-/* ============================================================
-   RESET
-============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  padding-bottom: 76px;
-  transition: background .3s, color .3s;
-  -webkit-font-smoothing: antialiased;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;
+  padding-bottom:var(--nav-h);transition:background .3s,color .3s;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator { display: none; }
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-::selection { background: var(--p-glass); color: var(--p); }
+input[type="datetime-local"]::-webkit-calendar-picker-indicator{display:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+::selection{background:var(--p-glass);color:var(--p)}
 
-/* ============================================================
-   HEADER
-============================================================ */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, var(--hdr-from) 0%, var(--hdr-to) 100%);
-  color: #fff;
-  padding: 10px 18px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  box-shadow: 0 4px 30px rgba(37,99,235,.35);
-  gap: 12px;
-}
-.header-left { display: flex; align-items: center; gap: 12px; }
-.brand-icon {
-  width: 38px; height: 38px;
-  background: rgba(255,255,255,.18);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.2);
-  flex-shrink: 0;
-}
-.app-title { font-size: 1rem; font-weight: 800; letter-spacing: .08em; }
-.app-subtitle { font-size: .6rem; opacity: .65; margin-top: 1px; letter-spacing: .06em; text-transform: uppercase; }
-.header-right { display: flex; align-items: center; gap: 8px; }
-.hdr-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.35);
-  object-fit: cover; cursor: pointer;
-  background: rgba(255,255,255,.15);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.hdr-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-pill {
-  display: flex; flex-direction: column;
-  line-height: 1.2;
-}
-.user-name { font-size: .72rem; font-weight: 700; }
-.user-role { font-size: .58rem; opacity: .65; letter-spacing: .04em; text-transform: uppercase; }
+/* ============================================================ HEADER */
+.app-header{display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,var(--hdr-from) 0%,var(--hdr-to) 100%);
+  color:#fff;padding:0 18px;height:var(--hdr-h);position:sticky;top:0;z-index:200;
+  box-shadow:0 4px 30px rgba(26,86,219,.3);gap:12px}
+.header-left{display:flex;align-items:center;gap:12px}
+.brand-icon{width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);flex-shrink:0}
+.app-title{font-size:.9rem;font-weight:800;letter-spacing:.06em}
+.app-subtitle{font-size:.55rem;opacity:.6;margin-top:1px;letter-spacing:.08em;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:8px}
+.hdr-avatar{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
+  object-fit:cover;cursor:pointer;background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;
+  flex-shrink:0;overflow:hidden;transition:all .2s}
+.hdr-avatar:hover{border-color:#fff;transform:scale(1.06)}
+.hdr-avatar img{width:100%;height:100%;object-fit:cover}
+.user-pill{display:flex;flex-direction:column;line-height:1.2}
+.user-name{font-size:.7rem;font-weight:700}
+.user-role{font-size:.56rem;opacity:.65;letter-spacing:.04em;text-transform:uppercase}
+.hdr-btn{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.15);
+  color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;backdrop-filter:blur(4px);position:relative}
+.hdr-btn:hover{background:rgba(255,255,255,.28);transform:scale(1.08)}
+.sync-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;
+  background:var(--success);border:1.5px solid var(--hdr-to);animation:syncPulse 2s infinite}
+.sync-dot.offline{background:var(--warn);animation:none}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* ============================================================
-   SETTINGS PANEL (slide-in drawer)
-============================================================ */
-.settings-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5);
-  backdrop-filter: blur(4px);
-  z-index: 500;
-  display: none;
-  opacity: 0;
-  transition: opacity .25s;
-}
-.settings-overlay.open { display: block; opacity: 1; }
-.settings-drawer {
-  position: fixed;
-  top: 0; right: -340px;
-  width: min(340px, 90vw);
-  height: 100dvh;
-  background: var(--surface);
-  z-index: 501;
-  box-shadow: var(--shadow-lg);
-  transition: right .3s cubic-bezier(.4,0,.2,1);
-  display: flex; flex-direction: column;
-}
-.settings-drawer.open { right: 0; }
-.drawer-header {
-  padding: 20px 20px 16px;
-  background: linear-gradient(135deg, var(--hdr-from), var(--hdr-to));
-  color: #fff;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
-}
-.drawer-header h3 { font-size: .95rem; font-weight: 700; }
-.drawer-close {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(255,255,255,.2); border: none;
-  color: #fff; font-size: 18px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s;
-}
-.drawer-close:hover { background: rgba(255,255,255,.35); }
-.drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 0 20px;
-}
-.drawer-section {
-  padding: 6px 16px 2px;
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-top: 8px;
-}
-.drawer-item {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; border: none; background: transparent;
-  padding: 11px 16px; text-align: left; cursor: pointer;
-  font-family: var(--font); font-size: 13px; color: var(--text);
-  transition: background .12s;
-  text-decoration: none;
-}
-.drawer-item:hover { background: var(--surface2); }
-.drawer-item .di-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; flex-shrink: 0;
-}
-.drawer-item .di-label { font-size: 13px; font-weight: 500; }
-.drawer-item .di-sub { font-size: 10px; color: var(--muted); }
-.drawer-divider { height: 1px; background: var(--border); margin: 6px 16px; }
-.drawer-select-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px;
-}
-.drawer-select-row label { font-size: 12px; font-weight: 600; color: var(--text2); }
-.drawer-select {
-  padding: 6px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface2);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 12px;
-  cursor: pointer;
-  min-width: 120px;
-}
-.settings-btn {
-  width: 36px; height: 36px; border-radius: 50%; border: none;
-  background: rgba(255,255,255,.18); color: #fff; cursor: pointer;
-  font-size: 17px; display: flex; align-items: center; justify-content: center;
-  transition: background .18s, transform .3s;
-  backdrop-filter: blur(4px);
-}
-.settings-btn:hover { background: rgba(255,255,255,.3); transform: rotate(60deg); }
+/* ============================================================ SETTINGS DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  z-index:500;opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-overlay.open{opacity:1;pointer-events:auto}
+.settings-drawer{position:fixed;top:0;right:-360px;width:min(360px,92vw);height:100dvh;
+  background:var(--surface);z-index:501;box-shadow:var(--shadow-lg);
+  transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.settings-drawer.open{right:0}
+.drawer-hdr{padding:18px 20px 14px;background:linear-gradient(135deg,var(--hdr-from),var(--hdr-to));
+  color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-hdr h3{font-size:.9rem;font-weight:700}
+.drawer-close{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);
+  border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:background .15s}
+.drawer-close:hover{background:rgba(255,255,255,.35)}
+.drawer-body{flex:1;overflow-y:auto;padding:8px 0 20px}
+.drawer-section{padding:10px 16px 4px;font-size:9px;font-weight:800;color:var(--muted);
+  letter-spacing:.12em;text-transform:uppercase;margin-top:6px}
+.drawer-item{display:flex;align-items:center;gap:12px;width:100%;border:none;background:transparent;
+  padding:10px 16px;text-align:left;cursor:pointer;font-family:var(--font);font-size:13px;
+  color:var(--text);transition:background .12s;text-decoration:none}
+.drawer-item:hover{background:var(--surface2)}
+.drawer-item .di-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0}
+.drawer-item .di-label{font-size:12.5px;font-weight:600}
+.drawer-item .di-sub{font-size:10px;color:var(--muted)}
+.drawer-divider{height:1px;background:var(--border);margin:6px 16px}
+.drawer-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px}
+.drawer-toggle-row label{font-size:12px;font-weight:600;color:var(--text2)}
+.drawer-select{padding:5px 9px;border:1.5px solid var(--border);border-radius:7px;
+  background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px;
+  cursor:pointer;min-width:110px}
+/* Toggle switch */
+.toggle-sw{position:relative;width:38px;height:20px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sw span{position:absolute;inset:0;background:var(--muted2);border-radius:99px;
+  cursor:pointer;transition:background .2s}
+.toggle-sw span::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;
+  background:#fff;left:3px;top:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle-sw input:checked+span{background:var(--p)}
+.toggle-sw input:checked+span::before{transform:translateX(18px)}
 
-/* ============================================================
-   CONTENT
-============================================================ */
-.content { padding: 14px 14px 0; }
-@media (min-width: 768px) { .content { padding: 20px 28px 0; } }
+/* ============================================================ FIREBASE CONFIG MODAL */
+#firebase-modal .modal-box{max-width:480px}
+.firebase-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+  background:var(--surface2);margin-bottom:12px;font-size:12px;font-weight:600}
+.firebase-status .dot{width:8px;height:8px;border-radius:50%;background:var(--muted2)}
+.firebase-status.connected .dot{background:var(--success)}
+.firebase-status.error .dot{background:var(--error)}
 
-/* ============================================================
-   SHEET CARD
-============================================================ */
-.sheet-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-.sheet-card-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.sheet-title-block { display: flex; align-items: center; gap: 10px; }
-.sheet-icon {
-  width: 34px; height: 34px; border-radius: 8px;
-  background: var(--p-glass); color: var(--p);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-}
-.sheet-title { font-size: .85rem; font-weight: 700; color: var(--text); letter-spacing: .02em; }
-.tab-badge {
-  font-size: 9.5px; font-weight: 800; padding: 3px 10px; border-radius: 99px;
-  background: var(--p); color: #fff; letter-spacing: .06em; text-transform: uppercase;
-}
-.head-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.action-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 7px 12px; border-radius: var(--radius-sm);
-  font-size: 11px; font-weight: 700; cursor: pointer;
-  border: 1.5px solid var(--border); background: var(--surface);
-  color: var(--text2); transition: all .15s; font-family: var(--font);
-  white-space: nowrap;
-}
-.action-btn:hover { background: var(--p); color: #fff; border-color: var(--p); }
-.action-btn.primary { background: var(--p); color: #fff; border-color: var(--p); }
-.action-btn.success { background: var(--success); color: #fff; border-color: var(--success); }
-.sheet-body { overflow-x: auto; }
+/* ============================================================ CONTENT */
+.content{padding:12px 12px 0}
+@media(min-width:768px){.content{padding:18px 24px 0}}
 
-/* ============================================================
-   TABLE
-============================================================ */
-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0; }
-th:last-child, td:last-child { border-right: none; }
-thead th { background: var(--surface2); position: sticky; top: 0; z-index: 2; }
-.hdr-inner { display: flex; flex-direction: column; }
-.hdr-label {
-  font-size: 9.5px; font-weight: 700; color: var(--muted);
-  padding: 7px 8px 2px; letter-spacing: .06em; text-transform: uppercase;
-  white-space: nowrap;
-}
-.hdr-filter {
-  border: none; border-top: 1px solid var(--border); background: transparent;
-  color: var(--text); padding: 5px 8px; font-size: 11px; outline: none;
-  font-family: var(--font); width: 100%;
-}
-.hdr-filter::placeholder { color: var(--muted2); }
-.hdr-filter:focus, .hdr-filter:not(:placeholder-shown) {
-  background: var(--p-glass); color: var(--p); font-weight: 600;
-}
-.resize-handle { position: absolute; right: 0; top: 0; width: 4px; height: 100%; cursor: col-resize; z-index: 5; }
-thead th { position: relative; }
+/* ============================================================ SHEET CARD */
+.sheet-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+.sheet-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  border-bottom:1px solid var(--border);background:var(--surface2);gap:10px;flex-wrap:wrap}
+.sheet-title-block{display:flex;align-items:center;gap:10px}
+.sheet-icon{width:32px;height:32px;border-radius:7px;background:var(--p-glass);color:var(--p);
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.sheet-title{font-size:.82rem;font-weight:700;color:var(--text);letter-spacing:.02em}
+.tab-badge{font-size:9px;font-weight:800;padding:3px 9px;border-radius:99px;
+  background:var(--p);color:#fff;letter-spacing:.06em;text-transform:uppercase}
+.head-actions{display:flex;gap:5px;flex-wrap:wrap}
+.action-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--radius-sm);
+  font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--text2);transition:all .15s;font-family:var(--font);
+  white-space:nowrap;position:relative}
+.action-btn:hover{background:var(--p);color:#fff;border-color:var(--p)}
+.action-btn.primary{background:var(--p);color:#fff;border-color:var(--p)}
+.action-btn.success-btn{background:var(--success);color:#fff;border-color:var(--success)}
+.action-btn[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);background:var(--nav-bg);color:#fff;font-size:10px;white-space:nowrap;
+  padding:4px 9px;border-radius:5px;pointer-events:none;z-index:999;opacity:.95}
+.sheet-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
-td input, td select {
-  width: 100%; border: none; padding: 9px 8px;
-  background: transparent; color: var(--text);
-  font-family: var(--font); font-size: 12.5px; outline: none;
-}
-td input.mono { font-family: var(--mono); font-size: 12px; }
-td input:focus { background: var(--p-glass); box-shadow: inset 0 0 0 2px var(--p); }
-td input[readonly] { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
-td select { background: var(--surface); color: var(--text); }
-td select:focus { outline: none; background: var(--p-glass); }
-.num { text-align: right; font-family: var(--mono); font-weight: 500; }
-.num-pad { padding-right: 10px; }
+/* ============================================================ TABLE */
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:600px}
+th,td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:0}
+th:last-child,td:last-child{border-right:none}
+thead th{background:var(--surface2);position:sticky;top:0;z-index:2}
+.hdr-inner{display:flex;flex-direction:column}
+.hdr-label{font-size:9px;font-weight:700;color:var(--muted);padding:6px 8px 2px;
+  letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;cursor:help}
+.hdr-filter{border:none;border-top:1px solid var(--border);background:transparent;
+  color:var(--text);padding:4px 8px;font-size:11px;outline:none;font-family:var(--font);width:100%}
+.hdr-filter::placeholder{color:var(--muted2)}
+.hdr-filter:focus,.hdr-filter:not(:placeholder-shown){background:var(--p-glass);color:var(--p);font-weight:600}
+.resize-handle{position:absolute;right:0;top:0;width:4px;height:100%;cursor:col-resize;z-index:5}
+thead th{position:relative}
+td input,td select{width:100%;border:none;padding:8px 8px;background:transparent;color:var(--text);
+  font-family:var(--font);font-size:12.5px;outline:none}
+td input.mono{font-family:var(--mono);font-size:12px}
+td input:focus{background:var(--p-glass);box-shadow:inset 0 0 0 2px var(--p)}
+td input[readonly]{background:var(--surface2);color:var(--muted);cursor:not-allowed}
+td select{background:var(--surface);color:var(--text)}
+td select:focus{outline:none;background:var(--p-glass)}
+.num{text-align:right;font-family:var(--mono);font-weight:500}
+.num-pad{padding-right:10px}
+.neg-val{color:var(--error)!important;font-weight:700}
+.pos-val{color:var(--success);font-weight:700}
+tr.row-incomplete td{background:var(--row-err)}
+tr.row-incomplete td input:not(:focus){background:transparent}
+.stock-warn{color:var(--error);font-size:9px;padding:0 6px 3px}
+.summary-row td{background:linear-gradient(90deg,var(--row-ok),var(--surface2));font-weight:700}
+.summary-label{padding:8px 10px;font-size:11px;letter-spacing:.03em;color:var(--muted);font-family:var(--font)}
+.edited-by{font-size:9px;color:var(--muted2);padding:0 6px 3px;font-family:var(--mono);white-space:nowrap;opacity:.8}
+.bal-positive{color:var(--success);font-weight:700}
+.bal-zero{color:var(--muted)}
+.bal-negative{color:var(--error);font-weight:700}
+/* Row highlight on hover */
+tbody tr:hover td{background:rgba(26,86,219,.03)}
+tbody tr.row-incomplete:hover td{background:var(--row-err)}
+tbody tr.summary-row:hover td{background:linear-gradient(90deg,var(--row-ok),var(--surface2))}
 
-/* Negative number in red */
-.neg-val { color: var(--error) !important; font-weight: 700; }
-.pos-val { color: var(--success); font-weight: 700; }
+/* ============================================================ CONTEXT MENU */
+.ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:700;
+  min-width:180px;overflow:hidden;animation:ctxIn .12s ease}
+@keyframes ctxIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.ctx-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;
+  font-size:12.5px;font-weight:500;transition:background .1s;color:var(--text)}
+.ctx-item:hover{background:var(--p-glass);color:var(--p)}
+.ctx-item.danger:hover{background:rgba(220,38,38,.08);color:var(--error)}
+.ctx-item .ctx-icon{font-size:14px;width:18px;text-align:center}
+.ctx-divider{height:1px;background:var(--border);margin:3px 0}
 
-/* ============================================================
-   ROW STATES
-============================================================ */
-tr.row-incomplete td { background: var(--row-err); }
-tr.row-incomplete td input:not(:focus) { background: transparent; }
-tr.row-incomplete td input:focus { background: var(--p-glass); }
-.stock-warn { color: var(--error); font-size: 9.5px; padding: 0 6px 4px; }
-.summary-row td { background: linear-gradient(90deg, var(--row-ok), var(--surface2)); font-weight: 700; }
-.summary-label { padding: 9px 10px; font-size: 11px; letter-spacing: .03em; color: var(--muted); font-family: var(--font); }
+/* ============================================================ REPORT */
+.report-label{padding:10px 14px;color:var(--muted);font-weight:500;font-size:12.5px}
+.report-value{padding:10px 14px;text-align:right;font-weight:700;font-family:var(--mono)}
+.report-total{background:linear-gradient(90deg,var(--row-ok),var(--surface2));border-top:2px solid var(--success)}
+.report-total .report-label{color:var(--text);font-weight:700}
+.report-total .report-value{color:var(--success)}
+.credit-block{padding:10px 14px;font-size:12px;line-height:1.9}
+.date-range-bar{display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;
+  background:var(--surface2);border-bottom:1px solid var(--border);align-items:center}
+.date-range-bar label{font-size:11px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px}
+.date-range-bar input{padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;
+  background:var(--surface);color:var(--text);font-family:var(--font);font-size:12px}
+.chart-container{padding:16px;background:var(--surface);border-top:1px solid var(--border)}
+.chart-canvas{max-height:280px}
 
-/* Last-edited tag */
-.edited-by {
-  font-size: 9px; color: var(--muted2); padding: 0 6px 3px;
-  font-family: var(--mono); white-space: nowrap; opacity: .8;
-}
+/* ============================================================ BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));display:flex;gap:3px;
+  z-index:400;box-shadow:0 -4px 30px rgba(0,0,0,.4);border-top:1px solid rgba(255,255,255,.06);
+  height:var(--nav-h)}
+.nav-btn{flex:1;padding:6px 3px;border:none;border-radius:7px;background:transparent;
+  color:#475569;cursor:pointer;font-size:8.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;font-family:var(--font);transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn .nb-icon{font-size:15px;transition:transform .2s}
+.nav-btn:hover{color:#94a3b8;background:rgba(255,255,255,.05)}
+.nav-btn:hover .nb-icon{transform:translateY(-2px)}
+.nav-btn.active{background:var(--p);color:#fff;box-shadow:0 2px 12px rgba(26,86,219,.4)}
+.nav-btn.active .nb-icon{transform:translateY(-2px)}
 
-/* ============================================================
-   BALANCE
-============================================================ */
-.bal-positive { color: var(--success); font-weight: 700; }
-.bal-zero { color: var(--muted); }
-.bal-negative { color: var(--error); font-weight: 700; }
+/* ============================================================ MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:600;padding:14px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(460px,100%);
+  box-shadow:var(--shadow-lg);animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);
+  max-height:92dvh;overflow-y:auto}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-head{padding:20px 22px 16px;background:linear-gradient(135deg,var(--hdr-from),var(--hdr-to));
+  color:#fff;border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:flex;align-items:center;gap:12px}
+.modal-head-icon{font-size:22px}
+.modal-head h2{font-size:.95rem;font-weight:700}
+.modal-head p{font-size:.67rem;opacity:.7;margin-top:2px}
+.modal-body{padding:20px 22px 22px}
+.field{margin-bottom:13px}
+.field label{display:block;font-weight:700;margin-bottom:5px;color:var(--muted);
+  font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;
+  border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);
+  color:var(--text);font-family:var(--font);font-size:13px;transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px var(--p-glass)}
+.modal-btn{width:100%;padding:11px;border:none;border-radius:var(--radius-sm);background:var(--p);
+  color:#fff;font-weight:700;cursor:pointer;font-size:13.5px;transition:all .15s;margin-top:5px;
+  font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px}
+.modal-btn:hover{opacity:.9;transform:translateY(-1px)}
+.modal-btn.secondary{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border)}
+.modal-btn.danger{background:var(--error)}
+.modal-error{margin-top:8px;color:var(--error);font-size:12px;min-height:15px;font-weight:500}
+.modal-success{margin-top:8px;color:var(--success);font-size:12px;font-weight:500}
+.modal-link{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}
+.modal-link a{color:var(--p);cursor:pointer;font-weight:700}
 
-/* ============================================================
-   REPORT
-============================================================ */
-.report-label { padding: 11px 16px; color: var(--muted); font-weight: 500; }
-.report-value { padding: 11px 16px; text-align: right; font-weight: 700; font-family: var(--mono); }
-.report-total { background: linear-gradient(90deg, var(--row-ok), var(--surface2)); border-top: 2px solid var(--success); }
-.report-total .report-label { color: var(--text); font-weight: 700; }
-.report-total .report-value { color: var(--success); }
-.credit-block { padding: 12px 16px; font-size: 12px; line-height: 1.9; }
-.date-range-bar {
-  display: flex; gap: 14px; flex-wrap: wrap;
-  padding: 12px 18px; background: var(--surface2); border-bottom: 1px solid var(--border);
-}
-.date-range-bar label { font-size: 11px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.date-range-bar input {
-  padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px;
-  background: var(--surface); color: var(--text); font-family: var(--font); font-size: 12px;
-}
+/* ============================================================ AVATAR */
+.avatar-upload-wrap{text-align:center;margin-bottom:14px}
+.avatar-preview{width:76px;height:76px;border-radius:50%;margin:0 auto 9px;background:var(--surface2);
+  border:3px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:30px;
+  overflow:hidden;cursor:pointer;transition:border-color .2s}
+.avatar-preview:hover{border-color:var(--p)}
+.avatar-preview img{width:100%;height:100%;object-fit:cover}
+.avatar-upload-hint{font-size:10.5px;color:var(--muted)}
+#auth-avatar-file,#avatar-modal-file{display:none}
 
-/* ============================================================
-   BOTTOM NAV
-============================================================ */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--nav-bg);
-  padding: 8px 10px;
-  display: flex; gap: 4px;
-  z-index: 400;
-  box-shadow: 0 -4px 30px rgba(0,0,0,.4);
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-.nav-btn {
-  flex: 1;
-  padding: 8px 4px;
-  border: none; border-radius: 8px;
-  background: transparent; color: #475569;
-  cursor: pointer; font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .05em; font-family: var(--font);
-  transition: all .2s;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-}
-.nav-btn .nb-icon { font-size: 16px; transition: transform .2s; }
-.nav-btn:hover { color: #94a3b8; background: rgba(255,255,255,.05); }
-.nav-btn:hover .nb-icon { transform: translateY(-2px); }
-.nav-btn.active {
-  background: var(--p); color: #fff;
-  box-shadow: 0 2px 12px rgba(37,99,235,.4);
-}
-.nav-btn.active .nb-icon { transform: translateY(-2px); }
+/* ============================================================ NOTIFICATIONS */
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--error);color:#fff;
+  font-size:8.5px;font-weight:800;width:15px;height:15px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.approval-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);
+  display:none;align-items:flex-start;justify-content:flex-end;z-index:650;padding:66px 14px 14px}
+.approval-overlay.open{display:flex}
+.approval-panel{background:var(--surface);border-radius:var(--radius-lg);width:min(380px,100%);
+  max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideLeft .25s ease}
+@keyframes slideLeft{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.approval-header{padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.approval-title{font-size:.82rem;font-weight:700}
+.approval-close{background:none;border:none;font-size:17px;cursor:pointer;color:var(--muted)}
+.approval-item{padding:12px 16px;border-bottom:1px solid var(--border)}
+.approval-item:last-child{border-bottom:none}
+.approval-type{font-size:9.5px;font-weight:700;color:var(--p);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.approval-msg{font-size:12px;font-weight:500;color:var(--text);margin-bottom:6px}
+.approval-time{font-size:9.5px;color:var(--muted);margin-bottom:8px}
+.approval-actions{display:flex;gap:7px}
+.appr-btn{flex:1;padding:6px;border-radius:6px;border:none;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:var(--font);transition:opacity .15s}
+.appr-btn.approve{background:var(--success);color:#fff}
+.appr-btn.deny{background:var(--error);color:#fff}
+.appr-btn:hover{opacity:.85}
 
-/* ============================================================
-   MODALS
-============================================================ */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
-  display: none; align-items: center; justify-content: center;
-  z-index: 600; padding: 16px;
-}
-.modal-overlay.open { display: flex; }
-.modal-box {
-  background: var(--surface); border-radius: var(--radius-lg);
-  width: min(460px, 100%); box-shadow: var(--shadow-lg);
-  animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
-  max-height: 92dvh; overflow-y: auto;
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(.88) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.modal-head {
-  padding: 22px 24px 18px;
-  background: linear-gradient(135deg, var(--hdr-from), var(--hdr-to));
-  color: #fff; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  display: flex; align-items: center; gap: 12px;
-}
-.modal-head-icon { font-size: 24px; }
-.modal-head h2 { font-size: 1rem; font-weight: 700; }
-.modal-head p { font-size: .7rem; opacity: .7; margin-top: 2px; }
-.modal-body { padding: 22px 24px 24px; }
-.field { margin-bottom: 14px; }
-.field label {
-  display: block; font-weight: 600; margin-bottom: 6px;
-  color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
-}
-.field input, .field select, .field textarea {
-  width: 100%; padding: 11px 13px;
-  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--surface2); color: var(--text);
-  font-family: var(--font); font-size: 13.5px;
-  transition: border-color .15s, box-shadow .15s;
-}
-.field input:focus, .field select:focus, .field textarea:focus {
-  outline: none; border-color: var(--p);
-  box-shadow: 0 0 0 3px var(--p-glass);
-}
-.modal-btn {
-  width: 100%; padding: 12px; border: none; border-radius: var(--radius-sm);
-  background: var(--p); color: #fff; font-weight: 700; cursor: pointer;
-  font-size: 14px; transition: opacity .15s, transform .1s; margin-top: 6px;
-  font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.modal-btn:hover { opacity: .9; transform: translateY(-1px); }
-.modal-btn:active { transform: translateY(0); }
-.modal-btn.secondary {
-  background: var(--surface2); color: var(--text2);
-  border: 1.5px solid var(--border);
-}
-.modal-btn.danger { background: var(--error); }
-.modal-link { margin-top: 14px; text-align: center; font-size: 12.5px; color: var(--muted); }
-.modal-link a { color: var(--p); cursor: pointer; font-weight: 700; }
-.modal-error { margin-top: 10px; color: var(--error); font-size: 12px; min-height: 16px; font-weight: 500; }
-.modal-success { margin-top: 10px; color: var(--success); font-size: 12px; font-weight: 500; }
+/* ============================================================ CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:900;padding:14px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border-radius:var(--radius-lg);width:min(340px,100%);
+  box-shadow:var(--shadow-lg);animation:modalIn .2s ease;overflow:hidden}
+.confirm-box-icon{text-align:center;padding:24px 22px 10px;font-size:38px}
+.confirm-box-title{text-align:center;font-size:.9rem;font-weight:700;padding:0 22px 5px}
+.confirm-box-msg{text-align:center;font-size:.77rem;color:var(--muted);padding:0 22px 18px}
+.confirm-box-actions{display:flex;border-top:1px solid var(--border)}
+.confirm-box-actions button{flex:1;padding:13px;border:none;background:transparent;
+  font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:background .12s;color:var(--text)}
+.confirm-box-actions button:first-child{border-right:1px solid var(--border);color:var(--muted)}
+.confirm-box-actions button:last-child{color:var(--error)}
+.confirm-box-actions button:hover{background:var(--surface2)}
 
-/* ============================================================
-   NOTIFICATION BADGE
-============================================================ */
-.notif-badge {
-  position: absolute; top: -4px; right: -4px;
-  background: var(--error); color: #fff; font-size: 9px; font-weight: 800;
-  width: 16px; height: 16px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  animation: pulse 1.5s infinite;
-}
-@keyframes pulse {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
+/* ============================================================ RECEIPT */
+.receipt-body{padding:0 22px 22px;font-family:var(--mono)}
+.receipt-header-print{text-align:center;padding:18px 0 12px;border-bottom:2px dashed var(--border);margin-bottom:12px}
+.receipt-biz{font-size:1rem;font-weight:700;letter-spacing:.06em}
+.receipt-sub{font-size:.67rem;color:var(--muted);margin-top:2px}
+.receipt-line{display:flex;justify-content:space-between;padding:3px 0;font-size:11.5px}
+.receipt-line.bold{font-weight:700;font-size:12.5px;border-top:1px solid var(--border);padding-top:7px;margin-top:3px}
+.receipt-line.sub{color:var(--muted);font-size:10.5px}
+.receipt-total-block{background:var(--p-glass);border-radius:7px;padding:9px 11px;margin:9px 0;text-align:center}
+.receipt-total-val{font-size:1.2rem;font-weight:800;color:var(--p)}
+.receipt-footer{text-align:center;color:var(--muted);font-size:9.5px;margin-top:12px;border-top:2px dashed var(--border);padding-top:10px}
 
-/* ============================================================
-   APPROVAL PANEL (notifications)
-============================================================ */
-.approval-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.6); backdrop-filter: blur(5px);
-  display: none; align-items: flex-start; justify-content: flex-end;
-  z-index: 650; padding: 70px 16px 16px;
-}
-.approval-overlay.open { display: flex; }
-.approval-panel {
-  background: var(--surface); border-radius: var(--radius-lg);
-  width: min(400px, 100%); max-height: 80dvh; overflow-y: auto;
-  box-shadow: var(--shadow-lg); animation: slideLeft .25s ease;
-}
-@keyframes slideLeft { from { opacity:0;transform:translateX(20px); } to { opacity:1;transform:none; } }
-.approval-header {
-  padding: 16px 18px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.approval-title { font-size: .85rem; font-weight: 700; }
-.approval-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
-.approval-item {
-  padding: 14px 18px; border-bottom: 1px solid var(--border);
-}
-.approval-item:last-child { border-bottom: none; }
-.approval-type { font-size: 10px; font-weight: 700; color: var(--p); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
-.approval-msg { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
-.approval-time { font-size: 10px; color: var(--muted); margin-bottom: 10px; }
-.approval-actions { display: flex; gap: 8px; }
-.appr-btn {
-  flex: 1; padding: 7px; border-radius: 6px; border: none;
-  font-size: 11px; font-weight: 700; cursor: pointer; font-family: var(--font);
-  transition: opacity .15s;
-}
-.appr-btn.approve { background: var(--success); color: #fff; }
-.appr-btn.deny { background: var(--error); color: #fff; }
-.appr-btn:hover { opacity: .85; }
+/* ============================================================ TOAST */
+.toast-container{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  z-index:800;display:flex;flex-direction:column;gap:7px;pointer-events:none;align-items:center}
+.toast{background:var(--nav-bg);color:#fff;padding:9px 16px;border-radius:99px;font-size:12px;
+  font-weight:600;box-shadow:var(--shadow-lg);animation:toastIn .3s ease;
+  border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:7px;pointer-events:auto}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--error)}
+.toast.warn{background:var(--warn)}
 
-/* ============================================================
-   CUSTOM CONFIRM MODAL
-============================================================ */
-.confirm-modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
-  display: none; align-items: center; justify-content: center;
-  z-index: 900; padding: 16px;
-}
-.confirm-modal-overlay.open { display: flex; }
-.confirm-box {
-  background: var(--surface); border-radius: var(--radius-lg);
-  width: min(360px, 100%); box-shadow: var(--shadow-lg);
-  animation: modalIn .2s ease; overflow: hidden;
-}
-.confirm-box-icon {
-  text-align: center; padding: 28px 24px 12px; font-size: 40px;
-}
-.confirm-box-title {
-  text-align: center; font-size: .95rem; font-weight: 700; padding: 0 24px 6px;
-}
-.confirm-box-msg {
-  text-align: center; font-size: .8rem; color: var(--muted); padding: 0 24px 20px;
-}
-.confirm-box-actions {
-  display: flex; border-top: 1px solid var(--border);
-}
-.confirm-box-actions button {
-  flex: 1; padding: 14px; border: none; background: transparent;
-  font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer;
-  transition: background .12s; color: var(--text);
-}
-.confirm-box-actions button:first-child { border-right: 1px solid var(--border); color: var(--muted); }
-.confirm-box-actions button:last-child { color: var(--error); }
-.confirm-box-actions button:hover { background: var(--surface2); }
+/* ============================================================ PERMISSIONS */
+.perm-select{font-size:11px;padding:4px 6px;border:1.5px solid var(--border);border-radius:5px;
+  background:var(--surface);color:var(--text);font-family:var(--font)}
+.pending-badge{display:inline-block;font-size:9px;font-weight:800;background:var(--warn);color:#fff;
+  padding:2px 7px;border-radius:99px;letter-spacing:.04em;vertical-align:middle;margin-left:6px}
 
-/* ============================================================
-   AVATAR UPLOAD
-============================================================ */
-.avatar-upload-wrap { text-align: center; margin-bottom: 16px; }
-.avatar-preview {
-  width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px;
-  background: var(--surface2); border: 3px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 32px; overflow: hidden; cursor: pointer;
-  transition: border-color .2s;
-}
-.avatar-preview:hover { border-color: var(--p); }
-.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-upload-hint { font-size: 11px; color: var(--muted); }
-.avatar-upload-input { display: none; }
+/* ============================================================ BRANCH BADGE */
+.branch-pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;
+  background:var(--p-glass);color:var(--p);border:1px solid rgba(26,86,219,.2);margin-bottom:2px;white-space:nowrap}
 
-/* ============================================================
-   RECEIPT MODAL
-============================================================ */
-.receipt-modal .modal-box { max-width: 380px; }
-.receipt-body {
-  padding: 0 24px 24px;
-  font-family: var(--mono);
-}
-.receipt-header-print {
-  text-align: center; padding: 20px 0 14px; border-bottom: 2px dashed var(--border);
-  margin-bottom: 14px;
-}
-.receipt-biz { font-size: 1.1rem; font-weight: 700; letter-spacing: .06em; }
-.receipt-sub { font-size: .7rem; color: var(--muted); margin-top: 2px; }
-.receipt-line { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
-.receipt-line.bold { font-weight: 700; font-size: 13px; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
-.receipt-line.sub { color: var(--muted); font-size: 11px; }
-.receipt-total-block {
-  background: var(--p-glass); border-radius: 8px; padding: 10px 12px;
-  margin: 10px 0; text-align: center;
-}
-.receipt-total-val { font-size: 1.3rem; font-weight: 800; color: var(--p); }
-.receipt-footer { text-align: center; color: var(--muted); font-size: 10px; margin-top: 14px; border-top: 2px dashed var(--border); padding-top: 12px; }
+/* ============================================================ LOADING */
+.loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.page-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.page-loader-icon{font-size:48px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.page-loader-text{font-size:.9rem;font-weight:700;color:var(--p)}
+.page-loader-sub{font-size:.72rem;color:var(--muted)}
 
-/* ============================================================
-   PENDING SIGNUP BADGE (header button)
-============================================================ */
-.hdr-notif-btn {
-  position: relative;
-  width: 34px; height: 34px; border-radius: 50%;
-  border: none; background: rgba(255,255,255,.15); color: #fff;
-  cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;
-  transition: background .15s; backdrop-filter: blur(4px);
+/* ============================================================ TOOLTIPS */
+[data-tip]{position:relative}
+[data-tip]:hover::before{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);background:var(--nav-bg);color:#fff;font-size:10px;white-space:nowrap;
+  padding:4px 9px;border-radius:5px;pointer-events:none;z-index:999;opacity:.95;font-weight:600}
+[data-tip]:hover::after{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;
+  transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--nav-bg);pointer-events:none;z-index:999}
+
+/* ============================================================ PRINT STYLES */
+@media print{
+  .app-header,.bottom-nav,.drawer-overlay,.settings-drawer,.approval-overlay,
+  .toast-container,.confirm-overlay,.modal-overlay:not(#receipt-print-target),
+  .ctx-menu,.head-actions,.hdr-filter,.no-print{display:none!important}
+  body{padding:0;background:white;color:black}
+  .content{padding:0}
+  .sheet-card{box-shadow:none;border:1px solid #ccc;border-radius:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
-.hdr-notif-btn:hover { background: rgba(255,255,255,.28); }
+#report-print-area{display:none}
 
-/* ============================================================
-   TOAST
-============================================================ */
-.toast-container {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  z-index: 800; display: flex; flex-direction: column; gap: 8px;
-  pointer-events: none; align-items: center;
+/* ============================================================ MOBILE */
+@media(max-width:500px){
+  .app-title{font-size:.82rem}
+  .user-pill{display:none}
+  table{min-width:650px}
 }
-.toast {
-  background: var(--nav-bg); color: #fff; padding: 10px 18px;
-  border-radius: 99px; font-size: 12.5px; font-weight: 600;
-  box-shadow: var(--shadow-lg); animation: toastIn .3s ease;
-  border: 1px solid rgba(255,255,255,.1);
-  display: flex; align-items: center; gap: 8px;
-  pointer-events: auto;
-}
-@keyframes toastIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:none;} }
-.toast.success { background: var(--success); }
-.toast.error { background: var(--error); }
-
-/* ============================================================
-   PERMISSIONS MODAL
-============================================================ */
-.perm-select {
-  font-size: 11px; padding: 4px 6px; border: 1.5px solid var(--border);
-  border-radius: 5px; background: var(--surface); color: var(--text);
-  font-family: var(--font);
-}
-
-/* ============================================================
-   PRINT STYLES
-============================================================ */
-@media print {
-  .app-header, .bottom-nav, .settings-overlay, .settings-drawer,
-  .approval-overlay, .toast-container, .confirm-modal-overlay,
-  .modal-overlay:not(#receipt-print-target),
-  .del-btn, .hdr-filter, .no-print, .head-actions, .action-btn { display: none !important; }
-  body { padding: 0; background: white; color: black; }
-  .content { padding: 0; }
-  .sheet-card { box-shadow: none; border: 1px solid #ccc; border-radius: 0; }
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
-#report-print-area { display: none; }
-
-/* ============================================================
-   SCROLLABLE SETTINGS
-============================================================ */
-.drawer-body::-webkit-scrollbar { width: 4px; }
-.drawer-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-/* ============================================================
-   MOBILE OPTIMIZATIONS
-============================================================ */
-@media (max-width: 500px) {
-  .app-title { font-size: .85rem; }
-  .sheet-card-head { flex-direction: column; align-items: flex-start; }
-  table { min-width: 700px; }
-  .user-pill { display: none; }
-}
-
-/* ============================================================
-   VAT CELL HIGHLIGHT
-============================================================ */
-.vat-cell { background: rgba(139,92,246,.06); }
-.withhold-cell { background: rgba(6,182,212,.06); }
-
-/* ============================================================
-   PENDING USER ROW
-============================================================ */
-.pending-badge {
-  display: inline-block; font-size: 9px; font-weight: 800;
-  background: var(--warn); color: #fff; padding: 2px 7px;
-  border-radius: 99px; letter-spacing: .04em; vertical-align: middle; margin-left: 6px;
+@media(min-width:900px){
+  .bottom-nav{justify-content:center;gap:8px}
+  .nav-btn{flex:none;min-width:90px}
 }
 </style>
 </head>
 <body>
 
-<!-- ====== TOAST CONTAINER ====== -->
+<!-- PAGE LOADER -->
+<div class="page-loader" id="page-loader">
+  <div class="page-loader-icon">📦</div>
+  <div class="page-loader-text">POWER-IMS</div>
+  <div class="page-loader-sub">Loading your inventory system…</div>
+</div>
+
+<!-- TOAST -->
 <div class="toast-container" id="toast-container"></div>
 
-<!-- ====== HEADER ====== -->
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu" style="display:none"></div>
+
+<!-- HEADER -->
 <div class="app-header" id="app-header" style="display:none">
   <div class="header-left">
     <div class="brand-icon">📦</div>
@@ -700,92 +431,98 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
     </div>
   </div>
   <div class="header-right">
-    <!-- Notifications (admin only) -->
-    <button class="hdr-notif-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none" title="Approvals">
+    <button class="hdr-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync" data-tip="Cloud Sync">
+      ☁️<span class="sync-dot offline" id="sync-dot"></span>
+    </button>
+    <button class="hdr-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none" title="Approvals" data-tip="Pending Approvals">
       🔔<span class="notif-badge" id="notif-count" style="display:none">0</span>
     </button>
     <div class="user-pill no-print">
       <span class="user-name" id="user-label">—</span>
       <span class="user-role" id="user-role-label">User</span>
     </div>
-    <div class="hdr-avatar no-print" id="hdr-avatar" onclick="openSettings()">👤</div>
-    <button class="settings-btn no-print" onclick="openSettings()" title="Settings">⚙</button>
+    <div class="hdr-avatar no-print" id="hdr-avatar" onclick="openSettings()" data-tip="Settings">👤</div>
+    <button class="hdr-btn no-print" onclick="openSettings()" data-tip="Settings" style="font-size:16px">⚙</button>
   </div>
 </div>
 
-<!-- ====== SETTINGS DRAWER ====== -->
-<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+<!-- SETTINGS DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeSettings()"></div>
 <div class="settings-drawer" id="settings-drawer">
-  <div class="drawer-header">
+  <div class="drawer-hdr">
     <h3>⚙ Settings</h3>
     <button class="drawer-close" onclick="closeSettings()">✕</button>
   </div>
   <div class="drawer-body">
     <div class="drawer-section">Navigate</div>
     <button class="drawer-item" onclick="switchTab('ITEMS');closeSettings()">
-      <span class="di-icon" style="background:rgba(37,99,235,.12);color:var(--p)">📋</span>
+      <span class="di-icon" style="background:rgba(26,86,219,.1);color:var(--p)">📋</span>
       <div><div class="di-label">Add Items</div><div class="di-sub">Manage inventory items</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Export</div>
-    <button class="drawer-item" onclick="exportPDF('PURCHASE');closeSettings()">
-      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+    <button class="drawer-item" id="exp-pdf-purchase" onclick="checkExportPerm('PDF','PURCHASE')">
+      <span class="di-icon" style="background:rgba(220,38,38,.1);color:var(--error)">📄</span>
       <div><div class="di-label">Purchase as PDF</div></div>
     </button>
-    <button class="drawer-item" onclick="exportPDF('SALES');closeSettings()">
-      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+    <button class="drawer-item" id="exp-pdf-sales" onclick="checkExportPerm('PDF','SALES')">
+      <span class="di-icon" style="background:rgba(220,38,38,.1);color:var(--error)">📄</span>
       <div><div class="di-label">Sales as PDF</div></div>
     </button>
-    <button class="drawer-item" onclick="exportPDF('BALANCE');closeSettings()">
-      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+    <button class="drawer-item" id="exp-pdf-balance" onclick="checkExportPerm('PDF','BALANCE')">
+      <span class="di-icon" style="background:rgba(220,38,38,.1);color:var(--error)">📄</span>
       <div><div class="di-label">Balance as PDF</div></div>
     </button>
-    <button class="drawer-item" onclick="exportPDF('EXPENSE');closeSettings()">
-      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">📄</span>
+    <button class="drawer-item" id="exp-pdf-expense" onclick="checkExportPerm('PDF','EXPENSE')">
+      <span class="di-icon" style="background:rgba(220,38,38,.1);color:var(--error)">📄</span>
       <div><div class="di-label">Expense as PDF</div></div>
     </button>
-    <div class="drawer-divider"></div>
     <div class="drawer-section">Excel Export</div>
-    <button class="drawer-item" onclick="exportXL('PURCHASE');closeSettings()">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+    <button class="drawer-item" id="exp-xl-purchase" onclick="checkExportPerm('XL','PURCHASE')">
+      <span class="di-icon" style="background:rgba(5,150,105,.12);color:var(--success)">📊</span>
       <div><div class="di-label">Purchase as Excel</div></div>
     </button>
-    <button class="drawer-item" onclick="exportXL('SALES');closeSettings()">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+    <button class="drawer-item" id="exp-xl-sales" onclick="checkExportPerm('XL','SALES')">
+      <span class="di-icon" style="background:rgba(5,150,105,.12);color:var(--success)">📊</span>
       <div><div class="di-label">Sales as Excel</div></div>
     </button>
-    <button class="drawer-item" onclick="exportXL('BALANCE');closeSettings()">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+    <button class="drawer-item" id="exp-xl-balance" onclick="checkExportPerm('XL','BALANCE')">
+      <span class="di-icon" style="background:rgba(5,150,105,.12);color:var(--success)">📊</span>
       <div><div class="di-label">Balance as Excel</div></div>
     </button>
-    <button class="drawer-item" onclick="exportXL('EXPENSE');closeSettings()">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📊</span>
+    <button class="drawer-item" id="exp-xl-expense" onclick="checkExportPerm('XL','EXPENSE')">
+      <span class="di-icon" style="background:rgba(5,150,105,.12);color:var(--success)">📊</span>
       <div><div class="di-label">Expense as Excel</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Account</div>
     <button class="drawer-item" onclick="openChangePass();closeSettings()">
-      <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">🔑</span>
+      <span class="di-icon" style="background:rgba(217,119,6,.12);color:var(--warn)">🔑</span>
       <div><div class="di-label">Change Password</div></div>
     </button>
     <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
-      <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼</span>
+      <span class="di-icon" style="background:rgba(124,58,237,.12);color:var(--accent2)">🖼</span>
       <div><div class="di-label">Change Profile Photo</div></div>
     </button>
     <button class="drawer-item" id="admin-perms-btn" onclick="openPermissions();closeSettings()" style="display:none">
-      <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
+      <span class="di-icon" style="background:rgba(14,165,233,.12);color:var(--accent)">👥</span>
       <div><div class="di-label">User Permissions</div></div>
+    </button>
+    <button class="drawer-item" id="admin-branches-btn" onclick="openBranches();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(5,150,105,.12);color:var(--success)">🏢</span>
+      <div><div class="di-label">Manage Branches</div></div>
+    </button>
+    <button class="drawer-item" id="admin-firebase-btn" onclick="openFirebaseConfig();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(249,115,22,.12);color:#f97316">🔥</span>
+      <div><div class="di-label">Cloud Sync (Firebase)</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Preferences</div>
-    <div class="drawer-select-row">
-      <label>🌓 Theme</label>
-      <select class="drawer-select" id="theme-select" onchange="setTheme(this.value)">
-        <option value="light">☀️ Light</option>
-        <option value="dark">🌙 Dark</option>
-      </select>
+    <div class="drawer-toggle-row">
+      <label>🌓 Dark Mode</label>
+      <label class="toggle-sw"><input type="checkbox" id="dark-toggle" onchange="setTheme(this.checked?'dark':'light')"><span></span></label>
     </div>
-    <div class="drawer-select-row">
+    <div class="drawer-toggle-row">
       <label>🌐 Language</label>
       <select class="drawer-select" id="lang-select" onchange="setLang(this.value)">
         <option value="en">🇬🇧 English</option>
@@ -794,13 +531,13 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
     </div>
     <div class="drawer-divider"></div>
     <button class="drawer-item" onclick="logout()" style="color:var(--error)">
-      <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">🚪</span>
+      <span class="di-icon" style="background:rgba(220,38,38,.1);color:var(--error)">🚪</span>
       <div><div class="di-label" style="color:var(--error)">Log Out</div></div>
     </button>
   </div>
 </div>
 
-<!-- ====== AUTH MODAL ====== -->
+<!-- AUTH MODAL -->
 <div class="modal-overlay open" id="auth-modal">
   <div class="modal-box">
     <div class="modal-head">
@@ -808,10 +545,9 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
       <div><h2 id="auth-title">Welcome Back</h2><p>POWER-IMS — Inventory Management</p></div>
     </div>
     <div class="modal-body">
-      <!-- Avatar Upload (signup only) -->
       <div id="auth-avatar-wrap" class="avatar-upload-wrap" style="display:none">
         <div class="avatar-preview" id="auth-avatar-preview" onclick="document.getElementById('auth-avatar-file').click()">👤</div>
-        <input type="file" id="auth-avatar-file" class="avatar-upload-input" accept="image/*" onchange="previewAuthAvatar(this)">
+        <input type="file" id="auth-avatar-file" accept="image/*" onchange="previewAuthAvatar(this)">
         <div class="avatar-upload-hint">Click to add profile photo (optional)</div>
       </div>
       <div class="field"><label>Username</label><input id="auth-user" autocomplete="username" placeholder="Enter username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
@@ -830,7 +566,7 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
   </div>
 </div>
 
-<!-- ====== CHANGE PASSWORD ====== -->
+<!-- CHANGE PASSWORD -->
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box">
     <div class="modal-head"><span class="modal-head-icon">🔑</span><div><h2>Change Password</h2></div></div>
@@ -839,38 +575,75 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
       <div class="field"><label>New Password</label><input id="cp-new" type="password"></div>
       <div class="field"><label>Confirm New Password</label><input id="cp-confirm" type="password"></div>
       <button class="modal-btn" onclick="submitChangePass()">💾 Save</button>
-      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:6px">Cancel</button>
+      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px">Cancel</button>
       <div class="modal-error" id="cp-error"></div>
     </div>
   </div>
 </div>
 
-<!-- ====== AVATAR CHANGE (settings) ====== -->
+<!-- AVATAR CHANGE -->
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box">
     <div class="modal-head"><span class="modal-head-icon">🖼</span><div><h2>Profile Photo</h2></div></div>
     <div class="modal-body">
       <div class="avatar-upload-wrap">
         <div class="avatar-preview" id="avatar-modal-preview" onclick="document.getElementById('avatar-modal-file').click()">👤</div>
-        <input type="file" id="avatar-modal-file" class="avatar-upload-input" accept="image/*" onchange="previewModalAvatar(this)">
+        <input type="file" id="avatar-modal-file" accept="image/*" onchange="previewModalAvatar(this)">
         <div class="avatar-upload-hint">Click to choose a photo</div>
       </div>
       <button class="modal-btn" onclick="saveAvatar()">💾 Save Photo</button>
-      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:6px">Cancel</button>
+      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:5px">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- ====== PERMISSIONS MODAL ====== -->
+<!-- PERMISSIONS MODAL -->
 <div class="modal-overlay" id="perm-modal">
-  <div class="modal-box">
-    <div class="modal-head"><span class="modal-head-icon">👥</span><div><h2>User Permissions</h2></div></div>
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-head"><span class="modal-head-icon">👥</span><div><h2>User Permissions</h2><p>Control tab, branch & export access per user</p></div></div>
     <div class="modal-body" id="perm-body"></div>
   </div>
 </div>
 
-<!-- ====== CUSTOM CONFIRM MODAL ====== -->
-<div class="confirm-modal-overlay" id="confirm-modal">
+<!-- BRANCHES MODAL -->
+<div class="modal-overlay" id="branch-modal">
+  <div class="modal-box">
+    <div class="modal-head"><span class="modal-head-icon">🏢</span><div><h2>Branch Management</h2><p>Add and manage branches</p></div></div>
+    <div class="modal-body">
+      <div id="branch-list-ui"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="new-branch-input" class="field" style="flex:1;margin:0;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font)" placeholder="New branch name…">
+        <button class="modal-btn" style="width:auto;padding:9px 16px;margin-top:0" onclick="addBranch()">+ Add</button>
+      </div>
+      <button class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:10px">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE CONFIG MODAL -->
+<div class="modal-overlay" id="firebase-modal">
+  <div class="modal-box">
+    <div class="modal-head"><span class="modal-head-icon">🔥</span><div><h2>Firebase Cloud Sync</h2><p>Connect to enable real-time sync across all devices</p></div></div>
+    <div class="modal-body">
+      <div class="firebase-status" id="fb-status"><span class="dot"></span><span id="fb-status-text">Not connected</span></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.7">
+        Paste your Firebase project config below. Get it from <strong>Firebase Console → Project Settings → Web App</strong>.<br>
+        Once connected, all data syncs in real-time across every device.
+      </div>
+      <div class="field"><label>API Key</label><input id="fb-apiKey" placeholder="AIzaSy..."></div>
+      <div class="field"><label>Auth Domain</label><input id="fb-authDomain" placeholder="your-project.firebaseapp.com"></div>
+      <div class="field"><label>Project ID</label><input id="fb-projectId" placeholder="your-project-id"></div>
+      <div class="field"><label>App ID</label><input id="fb-appId" placeholder="1:123456:web:abc..."></div>
+      <button class="modal-btn" onclick="connectFirebase()">🔥 Connect & Sync</button>
+      <button class="modal-btn secondary" id="fb-disconnect-btn" onclick="disconnectFirebase()" style="margin-top:5px;display:none">Disconnect</button>
+      <button class="modal-btn secondary" onclick="closeModal('firebase-modal')" style="margin-top:5px">Close</button>
+      <div class="modal-error" id="fb-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM CONFIRM -->
+<div class="confirm-overlay" id="confirm-modal">
   <div class="confirm-box">
     <div class="confirm-box-icon" id="confirm-icon">🗑️</div>
     <div class="confirm-box-title" id="confirm-title">Delete Row?</div>
@@ -882,7 +655,7 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
   </div>
 </div>
 
-<!-- ====== APPROVALS PANEL ====== -->
+<!-- APPROVALS PANEL -->
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
     <div class="approval-header">
@@ -893,26 +666,27 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
   </div>
 </div>
 
-<!-- ====== RECEIPT MODAL ====== -->
-<div class="modal-overlay receipt-modal" id="receipt-modal">
+<!-- RECEIPT MODAL -->
+<div class="modal-overlay" id="receipt-modal">
   <div class="modal-box" style="max-width:380px">
     <div class="modal-head"><span class="modal-head-icon">🧾</span><div><h2>Receipt</h2></div></div>
     <div class="receipt-body" id="receipt-content"></div>
-    <div style="padding:0 24px 20px;display:flex;gap:8px;">
+    <div style="padding:0 22px 20px;display:flex;gap:7px">
       <button class="modal-btn" onclick="printReceipt()">🖨 Print</button>
       <button class="modal-btn secondary" onclick="closeModal('receipt-modal')">Close</button>
     </div>
   </div>
 </div>
 
-<!-- ====== EXPORT/PRINT AREA ====== -->
+<!-- EXPORT AREA -->
 <div id="report-print-area"></div>
 
-<!-- ====== DATALISTS ====== -->
+<!-- DATALISTS -->
 <datalist id="party-list"></datalist>
 <datalist id="item-list"></datalist>
+<datalist id="branch-list-dl"></datalist>
 
-<!-- ====== MAIN CONTENT ====== -->
+<!-- MAIN CONTENT -->
 <div class="content" id="content" style="display:none">
   <div class="sheet-card">
     <div class="sheet-card-head">
@@ -920,10 +694,10 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
         <div class="sheet-icon" id="sheet-icon">📋</div>
         <div>
           <div class="sheet-title" id="sheet-title">Items</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:1px" id="last-edited-global"></div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:1px" id="last-edited-global"></div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
         <span class="tab-badge" id="tab-badge">ITEMS</span>
         <div class="head-actions" id="head-actions"></div>
       </div>
@@ -935,18 +709,18 @@ tr.row-incomplete td input:focus { background: var(--p-glass); }
   </div>
 </div>
 
-<!-- ====== BOTTOM NAV ====== -->
+<!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-btn" data-tab="PURCHASE" onclick="switchTab('PURCHASE')"><span class="nb-icon">🛒</span>Purchase</button>
-  <button class="nav-btn" data-tab="SALES"    onclick="switchTab('SALES')"><span class="nb-icon">💰</span>Sales</button>
-  <button class="nav-btn" data-tab="BALANCE"  onclick="switchTab('BALANCE')"><span class="nb-icon">⚖️</span>Balance</button>
-  <button class="nav-btn" data-tab="EXPENSE"  onclick="switchTab('EXPENSE')"><span class="nb-icon">💸</span>Expense</button>
-  <button class="nav-btn" data-tab="REPORT"   onclick="switchTab('REPORT')"><span class="nb-icon">📊</span>Report</button>
+  <button class="nav-btn" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" data-tip="Purchase records"><span class="nb-icon">🛒</span>Purchase</button>
+  <button class="nav-btn" data-tab="SALES"    onclick="switchTab('SALES')"    data-tip="Sales records"><span class="nb-icon">💰</span>Sales</button>
+  <button class="nav-btn" data-tab="BALANCE"  onclick="switchTab('BALANCE')"  data-tip="Inventory balance"><span class="nb-icon">⚖️</span>Balance</button>
+  <button class="nav-btn" data-tab="EXPENSE"  onclick="switchTab('EXPENSE')"  data-tip="Expense tracking"><span class="nb-icon">💸</span>Expense</button>
+  <button class="nav-btn" data-tab="REPORT"   onclick="switchTab('REPORT')"   data-tip="Financial reports"><span class="nb-icon">📊</span>Report</button>
 </div>
 
 <script>
 /* ============================================================
-   CONSTANTS
+   CONSTANTS & STATE
 ============================================================ */
 const ADMIN = 'admin';
 const TABS  = ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
@@ -955,20 +729,12 @@ const PERM_OPTS = [
   {v:'full',l:'Full Access'},{v:'add_only',l:'Add Only'},
   {v:'read',l:'Read Only'},{v:'none',l:'No Access'}
 ];
+const TAB_ICONS  = {ITEMS:'📋',PURCHASE:'🛒',SALES:'💰',BALANCE:'⚖️',EXPENSE:'💸',REPORT:'📊'};
+const TAB_TITLES = {ITEMS:'Add Items',PURCHASE:'Purchase',SALES:'Sales',BALANCE:'Balance',EXPENSE:'Expense',REPORT:'Report'};
+const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
 
-const TAB_ICONS = {
-  ITEMS:'📋', PURCHASE:'🛒', SALES:'💰', BALANCE:'⚖️', EXPENSE:'💸', REPORT:'📊'
-};
-const TAB_TITLES = {
-  ITEMS:'Add Items', PURCHASE:'Purchase', SALES:'Sales',
-  BALANCE:'Balance', EXPENSE:'Expense', REPORT:'Report'
-};
-
-/* ============================================================
-   TRANSLATION MAP
-============================================================ */
 const LANG = {
-  en: {
+  en:{
     'Add Items':'Add Items','Purchase':'Purchase','Sales':'Sales',
     'Balance':'Balance','Expense':'Expense','Report':'Report',
     'Part Number':'Part Number','Item Name':'Item Name','Description':'Description',
@@ -976,15 +742,14 @@ const LANG = {
     'Qty':'Qty','Unit Price':'Unit Price','Total':'Total','Status':'Status',
     'Cash':'Cash','Credit':'Credit','Totals':'Totals',
     'Delete this row?':'Delete this row?','Cannot be undone':'This action cannot be undone.',
-    'Delete':'Delete','Cancel':'Cancel',
-    'Log In':'Log In','Sign Up':'Sign Up',
+    'Delete':'Delete','Cancel':'Cancel','Log In':'Log In','Sign Up':'Sign Up',
     'Username':'Username','Password':'Password','Confirm Password':'Confirm Password',
     'Price':'Price','Total Price':'Total Price',
-    'Purch. Price':'Purch. Price','Total Purch.':'Total Purch.',
     'VAT (15%)':'VAT (15%)','Withhold 3%':'Withhold 3%','VAT WH 7.5%':'VAT WH 7.5%',
-    'Financial Summary':'Financial Summary','Print':'Print',
+    'Financial Summary':'Financial Summary','Print':'Print','Branch':'Branch',
+    'Payment':'Payment',
   },
-  am: {
+  am:{
     'Add Items':'ዕቃዎችን ጨምር','Purchase':'ግዢ','Sales':'ሽያጭ',
     'Balance':'ሂሳብ','Expense':'ወጪ','Report':'ሪፖርት',
     'Part Number':'ቁጥር','Item Name':'ስም','Description':'መግለጫ',
@@ -992,162 +757,309 @@ const LANG = {
     'Qty':'ብዛት','Unit Price':'ዋጋ','Total':'ድምር','Status':'ሁኔታ',
     'Cash':'ጥሬ ገንዘብ','Credit':'ክሬዲት','Totals':'ድምሮች',
     'Delete this row?':'ይህን ረድፍ ይሰርዙ?','Cannot be undone':'ይህ ድርጊት ሊቀለበስ አይችልም።',
-    'Delete':'ሰርዝ','Cancel':'ሰርዝ',
-    'Log In':'ግባ','Sign Up':'ይመዝገቡ',
+    'Delete':'ሰርዝ','Cancel':'ሰርዝ','Log In':'ግባ','Sign Up':'ይመዝገቡ',
     'Username':'የተጠቃሚ ስም','Password':'የይለፍ ቃል','Confirm Password':'የይለፍ ቃሉን አረጋግጥ',
     'Price':'ዋጋ','Total Price':'ጠቅላላ ዋጋ',
-    'Purch. Price':'የግዢ ዋጋ','Total Purch.':'ጠቅላላ ግዢ',
     'VAT (15%)':'ተ.እ.ታ (15%)','Withhold 3%':'ምዝገባ 3%','VAT WH 7.5%':'ተ.እ.ታ ምዝገባ 7.5%',
-    'Financial Summary':'የፋይናንስ ማጠቃለያ','Print':'አትም',
+    'Financial Summary':'የፋይናንስ ማጠቃለያ','Print':'አትም','Branch':'ቅርንጫፍ','Payment':'ክፍያ',
   }
 };
-function t(k) { return (LANG[S.lang]||LANG.en)[k] || k; }
+const t = k => (LANG[S.lang]||LANG.en)[k]||k;
+
+/* APP STATE */
+const S = {
+  user:null,tab:'ITEMS',theme:'light',lang:'en',filters:{},
+  items:[],purchase:[],sales:[],expense:[],beginBal:0,
+  reportRange:{from:'',to:''},
+  perms:{},exportPerms:{},pendingSignups:[],
+  avatarDataUrl:null,branches:['Main'],currentBranch:'Main',
+  db:null,dbConnected:false,fbConfig:null,
+};
 
 /* ============================================================
    HELPERS
 ============================================================ */
-const fmt  = n => (parseFloat(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtQ = n => (parseFloat(n)||0).toLocaleString();
-const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const now  = () => new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
-const sum  = (arr, fn) => arr.reduce((a,b)=>a+(fn(b)||0), 0);
-const numClass = n => parseFloat(n) < 0 ? 'neg-val' : '';
-const colorNum = n => `<span class="${numClass(n)}">${fmt(n)}</span>`;
+const fmt  = n=>{const v=parseFloat(n)||0;return v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true});};
+const fmtQ = n=>(parseFloat(n)||0).toLocaleString();
+const esc  = s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const now  = ()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+const sum  = (arr,fn)=>arr.reduce((a,b)=>a+(fn(b)||0),0);
+const colorNum = n=>`<span class="${parseFloat(n)<0?'neg-val':''}">${fmt(n)}</span>`;
 
-function showToast(msg, type='', duration=2800) {
-  const c = document.getElementById('toast-container');
-  const d = document.createElement('div');
-  d.className = `toast ${type}`;
-  d.textContent = msg;
-  c.appendChild(d);
-  setTimeout(() => { d.style.opacity='0'; d.style.transform='translateY(10px)'; d.style.transition='all .3s'; setTimeout(()=>d.remove(),300); }, duration);
+function showToast(msg,type='',duration=2800){
+  const c=document.getElementById('toast-container');
+  const d=document.createElement('div');
+  d.className=`toast ${type}`;d.textContent=msg;c.appendChild(d);
+  setTimeout(()=>{d.style.opacity='0';d.style.transform='translateY(10px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300);},duration);
 }
 
 /* ============================================================
-   STORAGE
+   STORAGE — with Firebase fallback to localStorage
 ============================================================ */
-const getRegistry = () => JSON.parse(localStorage.getItem('ims_reg') || '{}');
-const saveRegistry = r => localStorage.setItem('ims_reg', JSON.stringify(r));
-const uKey = (u,k) => `ims_${u}_${k}`;
+const getRegistry    = ()=>JSON.parse(localStorage.getItem('ims_reg')||'{}');
+const saveRegistry   = r=>localStorage.setItem('ims_reg',JSON.stringify(r));
+const uKey           = (u,k)=>`ims_${u}_${k}`;
+
+function loadUserData(u){
+  S.items    = JSON.parse(localStorage.getItem(uKey('shared','items'))    ||JSON.stringify([blankItem()]));
+  S.purchase = JSON.parse(localStorage.getItem(uKey('shared','purchase')) ||JSON.stringify([blankPurchase()]));
+  S.sales    = JSON.parse(localStorage.getItem(uKey('shared','sales'))    ||JSON.stringify([blankSales()]));
+  S.expense  = JSON.parse(localStorage.getItem(uKey('shared','expense'))  ||JSON.stringify([blankExpense()]));
+  S.beginBal = parseFloat(localStorage.getItem(uKey('shared','beginBal')) ||'0');
+  S.perms    = JSON.parse(localStorage.getItem('ims_perms')||'{}');
+  S.exportPerms = JSON.parse(localStorage.getItem('ims_exportperms')||'{}');
+  S.pendingSignups = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  S.avatarDataUrl  = localStorage.getItem(uKey(u,'avatar'))||null;
+  S.branches = JSON.parse(localStorage.getItem('ims_branches')||'["Main"]');
+}
+
+function saveUserData(){
+  localStorage.setItem(uKey('shared','items'),    JSON.stringify(S.items));
+  localStorage.setItem(uKey('shared','purchase'), JSON.stringify(S.purchase));
+  localStorage.setItem(uKey('shared','sales'),    JSON.stringify(S.sales));
+  localStorage.setItem(uKey('shared','expense'),  JSON.stringify(S.expense));
+  localStorage.setItem(uKey('shared','beginBal'), S.beginBal);
+  localStorage.setItem('ims_perms', JSON.stringify(S.perms));
+  localStorage.setItem('ims_exportperms', JSON.stringify(S.exportPerms));
+  localStorage.setItem('ims_pending_signups', JSON.stringify(S.pendingSignups));
+  localStorage.setItem('ims_branches', JSON.stringify(S.branches));
+  if(S.dbConnected) syncToCloud();
+}
+
+/* ============================================================
+   FIREBASE CLOUD SYNC
+============================================================ */
+function openFirebaseConfig(){
+  const saved = JSON.parse(localStorage.getItem('ims_fbconfig')||'null');
+  if(saved){
+    document.getElementById('fb-apiKey').value    = saved.apiKey||'';
+    document.getElementById('fb-authDomain').value= saved.authDomain||'';
+    document.getElementById('fb-projectId').value = saved.projectId||'';
+    document.getElementById('fb-appId').value     = saved.appId||'';
+    document.getElementById('fb-disconnect-btn').style.display= S.dbConnected?'':'none';
+    updateFbStatus(S.dbConnected?'connected':'idle');
+  }
+  openModal('firebase-modal');
+}
+
+function updateFbStatus(state,msg=''){
+  const el=document.getElementById('fb-status');
+  const txt=document.getElementById('fb-status-text');
+  el.className='firebase-status'+(state==='connected'?' connected':state==='error'?' error':'');
+  txt.textContent = state==='connected'?'✅ Connected & Syncing':state==='error'?`❌ ${msg}`:'⏳ Not connected';
+}
+
+function connectFirebase(){
+  const cfg={
+    apiKey:document.getElementById('fb-apiKey').value.trim(),
+    authDomain:document.getElementById('fb-authDomain').value.trim(),
+    projectId:document.getElementById('fb-projectId').value.trim(),
+    appId:document.getElementById('fb-appId').value.trim(),
+  };
+  if(!cfg.apiKey||!cfg.projectId){document.getElementById('fb-error').textContent='Please fill in all fields.';return;}
+  try{
+    document.getElementById('fb-error').textContent='';
+    updateFbStatus('idle','Connecting…');
+    // Check if already initialized
+    let app;
+    try{app=firebase.app('power-ims');}catch(e){app=firebase.initializeApp(cfg,'power-ims');}
+    S.db = firebase.firestore(app);
+    S.fbConfig = cfg;
+    S.dbConnected=true;
+    localStorage.setItem('ims_fbconfig',JSON.stringify(cfg));
+    document.getElementById('sync-dot').className='sync-dot';
+    document.getElementById('fb-disconnect-btn').style.display='';
+    updateFbStatus('connected');
+    showToast('🔥 Firebase connected!','success');
+    // Subscribe to real-time updates
+    subscribeFirestore();
+    // Push local data to cloud first time
+    syncToCloud();
+  }catch(err){
+    document.getElementById('fb-error').textContent=err.message;
+    updateFbStatus('error',err.message.slice(0,40));
+  }
+}
+
+function disconnectFirebase(){
+  S.dbConnected=false;S.db=null;
+  localStorage.removeItem('ims_fbconfig');
+  document.getElementById('sync-dot').className='sync-dot offline';
+  document.getElementById('fb-disconnect-btn').style.display='none';
+  updateFbStatus('idle');
+  closeModal('firebase-modal');
+  showToast('Disconnected from cloud','warn');
+}
+
+let _unsubFirestore = null;
+function subscribeFirestore(){
+  if(!S.db||_unsubFirestore)return;
+  _unsubFirestore = S.db.collection('power_ims').doc('shared_data')
+    .onSnapshot(doc=>{
+      if(doc.exists){
+        const d=doc.data();
+        const parse=v=>{try{return JSON.parse(v);}catch{return null;}};
+        if(d.items)    S.items    = parse(d.items)    ||S.items;
+        if(d.purchase) S.purchase = parse(d.purchase) ||S.purchase;
+        if(d.sales)    S.sales    = parse(d.sales)    ||S.sales;
+        if(d.expense)  S.expense  = parse(d.expense)  ||S.expense;
+        if(d.beginBal!==undefined) S.beginBal=parseFloat(d.beginBal)||0;
+        if(d.perms)    S.perms    = parse(d.perms)    ||S.perms;
+        if(d.exportPerms) S.exportPerms = parse(d.exportPerms)||S.exportPerms;
+        if(d.pendingSignups) S.pendingSignups = parse(d.pendingSignups)||S.pendingSignups;
+        if(d.branches) S.branches = parse(d.branches) ||S.branches;
+        if(d.registry) { const reg=parse(d.registry); if(reg) saveRegistry(reg); }
+        // Sync back to localStorage
+        localStorage.setItem(uKey('shared','items'),    JSON.stringify(S.items));
+        localStorage.setItem(uKey('shared','purchase'), JSON.stringify(S.purchase));
+        localStorage.setItem(uKey('shared','sales'),    JSON.stringify(S.sales));
+        localStorage.setItem(uKey('shared','expense'),  JSON.stringify(S.expense));
+        localStorage.setItem(uKey('shared','beginBal'), S.beginBal);
+        localStorage.setItem('ims_perms', JSON.stringify(S.perms));
+        localStorage.setItem('ims_exportperms', JSON.stringify(S.exportPerms));
+        localStorage.setItem('ims_pending_signups', JSON.stringify(S.pendingSignups));
+        localStorage.setItem('ims_branches', JSON.stringify(S.branches));
+        renderTable();
+        if(isAdmin()) updateNotifBadge();
+      }
+    },err=>{
+      showToast('⚠ Sync error: '+err.message.slice(0,30),'error');
+      document.getElementById('sync-dot').className='sync-dot offline';
+    });
+}
+
+let _syncTimer=null;
+function syncToCloud(){
+  if(!S.dbConnected||!S.db) return;
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(()=>{
+    S.db.collection('power_ims').doc('shared_data').set({
+      items:JSON.stringify(S.items),
+      purchase:JSON.stringify(S.purchase),
+      sales:JSON.stringify(S.sales),
+      expense:JSON.stringify(S.expense),
+      beginBal:S.beginBal,
+      perms:JSON.stringify(S.perms),
+      exportPerms:JSON.stringify(S.exportPerms),
+      pendingSignups:JSON.stringify(S.pendingSignups),
+      branches:JSON.stringify(S.branches),
+      registry:JSON.stringify(getRegistry()),
+      updatedAt:new Date().toISOString(),
+    }).then(()=>{
+      document.getElementById('sync-dot').className='sync-dot';
+    }).catch(e=>{
+      document.getElementById('sync-dot').className='sync-dot offline';
+      showToast('Sync failed: '+e.message.slice(0,30),'error');
+    });
+  },1200);
+}
+
+function manualSync(){
+  if(!S.dbConnected){ openFirebaseConfig(); return; }
+  syncToCloud();
+  showToast('☁ Syncing…');
+}
+
+/* Auto-reconnect Firebase on load */
+function autoReconnectFirebase(){
+  const saved=JSON.parse(localStorage.getItem('ims_fbconfig')||'null');
+  if(!saved||!saved.apiKey) return;
+  try{
+    let app;
+    try{app=firebase.app('power-ims');}catch(e){app=firebase.initializeApp(saved,'power-ims');}
+    S.db=firebase.firestore(app);
+    S.fbConfig=saved;S.dbConnected=true;
+    document.getElementById('sync-dot').className='sync-dot';
+    subscribeFirestore();
+  }catch(e){
+    document.getElementById('sync-dot').className='sync-dot offline';
+  }
+}
 
 /* ============================================================
    BLANK ROW FACTORIES
 ============================================================ */
-const blankPurchase = () => ({id:'',name:'',desc:'',date:now(),party:'Supplier',qty:'',uPrice:'',status:'CASH',_editor:''});
-const blankSales    = () => ({id:'',name:'',desc:'',date:now(),party:'Customer',qty:'',sPrice:'',status:'CASH',vat:'',wh3:'',vwh75:'',_editor:''});
-const blankExpense  = () => ({date:now(),reason:'',amt:'',_editor:''});
-const blankItem     = () => ({id:'',name:'',desc:'',_editor:''});
-
-/* ============================================================
-   APP STATE
-============================================================ */
-const S = {
-  user:null, tab:'ITEMS', theme:'light', lang:'en', filters:{},
-  items:[], purchase:[], sales:[], expense:[], beginBal:0,
-  reportRange:{from:'',to:''},
-  perms:{},
-  pendingSignups:[],
-  avatarDataUrl: null,
-  _pendingAvatarDataUrl: null,
-};
-
-/* ============================================================
-   USER DATA LOAD / SAVE
-============================================================ */
-function loadUserData(u) {
-  S.items    = JSON.parse(localStorage.getItem(uKey(u,'items'))    || JSON.stringify([blankItem()]));
-  S.purchase = JSON.parse(localStorage.getItem(uKey(u,'purchase')) || JSON.stringify([blankPurchase()]));
-  S.sales    = JSON.parse(localStorage.getItem(uKey(u,'sales'))    || JSON.stringify([blankSales()]));
-  S.expense  = JSON.parse(localStorage.getItem(uKey(u,'expense'))  || JSON.stringify([blankExpense()]));
-  S.beginBal = parseFloat(localStorage.getItem(uKey(u,'beginBal')) || '0');
-  S.perms    = JSON.parse(localStorage.getItem('ims_perms') || '{}');
-  S.pendingSignups = JSON.parse(localStorage.getItem('ims_pending_signups') || '[]');
-  S.avatarDataUrl = localStorage.getItem(uKey(u,'avatar')) || null;
-}
-function saveUserData() {
-  if (!S.user) return;
-  const u = S.user;
-  localStorage.setItem(uKey(u,'items'),    JSON.stringify(S.items));
-  localStorage.setItem(uKey(u,'purchase'), JSON.stringify(S.purchase));
-  localStorage.setItem(uKey(u,'sales'),    JSON.stringify(S.sales));
-  localStorage.setItem(uKey(u,'expense'),  JSON.stringify(S.expense));
-  localStorage.setItem(uKey(u,'beginBal'), S.beginBal);
-  localStorage.setItem('ims_perms', JSON.stringify(S.perms));
-  localStorage.setItem('ims_pending_signups', JSON.stringify(S.pendingSignups));
-}
+const blankPurchase = ()=>({id:'',name:'',desc:'',date:now(),party:'',qty:'',uPrice:'',status:'CASH',payment:'CASH',branch:S.currentBranch||'Main',_editor:'',_uploader:''});
+const blankSales    = ()=>({id:'',name:'',desc:'',date:now(),party:'',qty:'',sPrice:'',status:'CASH',payment:'CASH',branch:S.currentBranch||'Main',vat:'',wh3:'',vwh75:'',_editor:'',_uploader:''});
+const blankExpense  = ()=>({date:now(),reason:'',amt:'',payment:'CASH',_editor:'',_uploader:''});
+const blankItem     = ()=>({id:'',name:'',desc:'',_editor:'',_uploader:''});
 
 /* ============================================================
    PERMISSIONS
 ============================================================ */
-const isAdmin  = () => S.user === ADMIN;
-const getPerm  = tab => isAdmin() ? 'full' : (S.perms[S.user]?.[tab] ?? 'full');
-const canWrite = tab => ['full','add_only'].includes(getPerm(tab));
-const canRead  = tab => getPerm(tab) !== 'none';
+const isAdmin   = ()=>S.user===ADMIN;
+const getPerm   = tab=>isAdmin()?'full':(S.perms[S.user]?.[tab]??'full');
+const canWrite  = tab=>['full','add_only'].includes(getPerm(tab));
+const canRead   = tab=>getPerm(tab)!=='none';
+const canExport = ()=>isAdmin()||(S.exportPerms[S.user]??true);
+const canEditRow= row=>isAdmin()||(row._uploader&&row._uploader===S.user)||(!row._uploader);
+
+function checkExportPerm(type,tab){
+  if(!canExport()){showToast('⛔ You do not have export permission','error');closeSettings();return;}
+  if(type==='PDF') exportPDF(tab);
+  else exportXL(tab);
+  closeSettings();
+}
 
 /* ============================================================
-   ROWS
+   ROW ACCESS
 ============================================================ */
-function rows() {
-  if (S.tab==='ITEMS')    return S.items;
-  if (S.tab==='PURCHASE') return S.purchase;
-  if (S.tab==='SALES')    return S.sales;
-  if (S.tab==='EXPENSE')  return S.expense;
-  return [];
+function rows(){
+  if(S.tab==='ITEMS')    return S.items;
+  if(S.tab==='PURCHASE') return S.purchase;
+  if(S.tab==='SALES')    return S.sales;
+  if(S.tab==='EXPENSE')  return S.expense;
+  return[];
 }
-function pushBlankRow() {
-  if (S.tab==='ITEMS')    S.items.push(blankItem());
-  if (S.tab==='PURCHASE') S.purchase.push(blankPurchase());
-  if (S.tab==='SALES')    S.sales.push(blankSales());
-  if (S.tab==='EXPENSE')  S.expense.push(blankExpense());
+function pushBlankRow(){
+  if(S.tab==='ITEMS')    S.items.push(blankItem());
+  if(S.tab==='PURCHASE') S.purchase.push(blankPurchase());
+  if(S.tab==='SALES')    S.sales.push(blankSales());
+  if(S.tab==='EXPENSE')  S.expense.push(blankExpense());
 }
-function ensureTrailing() { if (!rows().length) pushBlankRow(); }
+function ensureTrailing(){ if(!rows().length) pushBlankRow(); }
 
 /* ============================================================
-   FIFO HELPERS
+   FIFO
 ============================================================ */
-function fifoCost(itemId, qty, beforeIdx) {
-  if (!itemId || qty<=0) return 0;
-  const buys = S.purchase.filter(p=>p.id===itemId)
-    .sort((a,b)=>new Date(a.date)-new Date(b.date))
-    .map(p=>({...p,rem:parseFloat(p.qty)||0}));
-  let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  for (const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+function fifoCost(itemId,qty,beforeIdx){
+  if(!itemId||qty<=0)return 0;
+  const buys=S.purchase.filter(p=>p.id===itemId).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(p=>({...p,rem:parseFloat(p.qty)||0}));
+  let sold=S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  for(const b of buys){const tt=Math.min(b.rem,sold);b.rem-=tt;sold-=tt;}
   let cost=0,need=qty;
-  for (const b of buys){if(!need)break;const t=Math.min(b.rem,need);cost+=t*(parseFloat(b.uPrice)||0);need-=t;}
+  for(const b of buys){if(!need)break;const tt=Math.min(b.rem,need);cost+=tt*(parseFloat(b.uPrice)||0);need-=tt;}
   return cost;
 }
-function fifoBuyPrice(itemId, qty, beforeIdx) {
-  if (!itemId || qty<=0) return 0;
-  const buys = S.purchase.filter(p=>p.id===itemId)
-    .sort((a,b)=>new Date(a.date)-new Date(b.date))
-    .map(p=>({...p,rem:parseFloat(p.qty)||0}));
-  let sold = S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  for (const b of buys){const t=Math.min(b.rem,sold);b.rem-=t;sold-=t;}
+function fifoBuyPrice(itemId,qty,beforeIdx){
+  if(!itemId||qty<=0)return 0;
+  const buys=S.purchase.filter(p=>p.id===itemId).sort((a,b)=>new Date(a.date)-new Date(b.date)).map(p=>({...p,rem:parseFloat(p.qty)||0}));
+  let sold=S.sales.filter((s,i)=>s.id===itemId&&i<beforeIdx).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  for(const b of buys){const tt=Math.min(b.rem,sold);b.rem-=tt;sold-=tt;}
   let need=qty,price=0;
-  for (const b of buys){if(!need)break;const t=Math.min(b.rem,need);price=parseFloat(b.uPrice)||0;need-=t;}
+  for(const b of buys){if(!need)break;const tt=Math.min(b.rem,need);price=parseFloat(b.uPrice)||0;need-=tt;}
   return price;
 }
 
 /* ============================================================
    THEME & LANGUAGE
 ============================================================ */
-function setTheme(t) {
-  S.theme=t;
-  document.documentElement.setAttribute('data-theme',t);
-  const sel=document.getElementById('theme-select');
-  if(sel) sel.value=t;
-  if(S.user) localStorage.setItem(uKey(S.user,'theme'),t);
+function setTheme(th){
+  S.theme=th;
+  document.documentElement.setAttribute('data-theme',th);
+  const tog=document.getElementById('dark-toggle');
+  if(tog) tog.checked=th==='dark';
+  if(S.user) localStorage.setItem(uKey(S.user,'theme'),th);
 }
-function setLang(l) {
+function setLang(l){
   S.lang=l;
   const sel=document.getElementById('lang-select');
   if(sel) sel.value=l;
   if(S.user) localStorage.setItem(uKey(S.user,'lang'),l);
   document.documentElement.lang=l;
-  document.documentElement.dir=(l==='ar')?'rtl':'ltr';
   if(S.user) renderTable();
 }
-function loadUserPrefs(u) {
+function loadUserPrefs(u){
   setTheme(localStorage.getItem(uKey(u,'theme'))||'light');
   setLang(localStorage.getItem(uKey(u,'lang'))||'en');
 }
@@ -1155,137 +1067,106 @@ function loadUserPrefs(u) {
 /* ============================================================
    AVATAR
 ============================================================ */
-let _authAvatarData = null;
-let _modalAvatarData = null;
-
-function previewAuthAvatar(input) {
-  const file = input.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    _authAvatarData = e.target.result;
-    const prev = document.getElementById('auth-avatar-preview');
-    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  };
-  reader.readAsDataURL(file);
+let _authAvatarData=null,_modalAvatarData=null;
+function previewAuthAvatar(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{_authAvatarData=e.target.result;
+    document.getElementById('auth-avatar-preview').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};
+  r.readAsDataURL(f);
 }
-function previewModalAvatar(input) {
-  const file = input.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    _modalAvatarData = e.target.result;
-    const prev = document.getElementById('avatar-modal-preview');
-    prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  };
-  reader.readAsDataURL(file);
+function previewModalAvatar(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{_modalAvatarData=e.target.result;
+    document.getElementById('avatar-modal-preview').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`};
+  r.readAsDataURL(f);
 }
-function saveAvatar() {
-  if (!_modalAvatarData) { showToast('Please select a photo first','error'); return; }
-  S.avatarDataUrl = _modalAvatarData;
-  localStorage.setItem(uKey(S.user,'avatar'), _modalAvatarData);
-  updateHeaderAvatar();
-  closeModal('avatar-modal');
-  showToast('Profile photo updated!','success');
+function saveAvatar(){
+  if(!_modalAvatarData){showToast('Please select a photo','error');return;}
+  S.avatarDataUrl=_modalAvatarData;
+  localStorage.setItem(uKey(S.user,'avatar'),_modalAvatarData);
+  updateHeaderAvatar();closeModal('avatar-modal');showToast('Photo updated!','success');
 }
-function updateHeaderAvatar() {
-  const el = document.getElementById('hdr-avatar');
-  if (!el) return;
-  if (S.avatarDataUrl) {
-    el.innerHTML = `<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
-  } else {
-    el.innerHTML = S.user ? S.user[0].toUpperCase() : '👤';
-  }
+function updateHeaderAvatar(){
+  const el=document.getElementById('hdr-avatar');if(!el)return;
+  el.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;">`:(S.user?S.user[0].toUpperCase():'👤');
 }
-function openAvatarChange() {
-  _modalAvatarData = null;
-  const prev = document.getElementById('avatar-modal-preview');
-  prev.innerHTML = S.avatarDataUrl
-    ? `<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-    : '👤';
+function openAvatarChange(){
+  _modalAvatarData=null;
+  const p=document.getElementById('avatar-modal-preview');
+  p.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:'👤';
   openModal('avatar-modal');
 }
 
 /* ============================================================
-   AUTH & SIGNUP APPROVAL
+   AUTH
 ============================================================ */
-let authMode = 'login';
-
-function toggleAuthMode() {
-  authMode = authMode==='login' ? 'signup' : 'login';
-  const isS = authMode==='signup';
-  document.getElementById('auth-title').textContent    = isS ? 'Create Account' : 'Welcome Back';
-  document.getElementById('auth-submit-btn').innerHTML = isS ? '📝 Request Sign Up' : '🔐 Log In';
-  document.getElementById('auth-confirm-wrap').style.display = isS ? '' : 'none';
-  document.getElementById('auth-avatar-wrap').style.display  = isS ? '' : 'none';
-  document.getElementById('auth-toggle-hint').textContent = isS ? 'Already have an account?' : "Don't have an account?";
-  document.getElementById('auth-toggle-link').textContent = isS ? ' Log In' : ' Sign Up';
-  document.getElementById('auth-error').textContent = '';
+let authMode='login';
+function toggleAuthMode(){
+  authMode=authMode==='login'?'signup':'login';
+  const isS=authMode==='signup';
+  document.getElementById('auth-title').textContent   =isS?'Create Account':'Welcome Back';
+  document.getElementById('auth-submit-btn').innerHTML=isS?'📝 Request Sign Up':'🔐 Log In';
+  document.getElementById('auth-confirm-wrap').style.display=isS?'':'none';
+  document.getElementById('auth-avatar-wrap').style.display=isS?'':'none';
+  document.getElementById('auth-toggle-hint').textContent=isS?'Already have an account?':"Don't have an account?";
+  document.getElementById('auth-toggle-link').textContent=isS?' Log In':' Sign Up';
+  document.getElementById('auth-error').textContent='';
+  document.getElementById('auth-error').style.color='';
 }
-
-function submitAuth() {
-  const u   = document.getElementById('auth-user').value.trim();
-  const p   = document.getElementById('auth-pass').value;
-  const err = document.getElementById('auth-error');
-  if (!u || !p) { err.textContent='Please enter username and password.'; return; }
-  const reg = getRegistry();
-  if (authMode==='login') {
-    // Check pending
-    if (S.pendingSignups.find(x=>x.username===u)) {
-      err.textContent='Your account is awaiting admin approval.'; return;
-    }
-    if (!reg[u] || reg[u]!==p) { err.textContent='Invalid username or password.'; return; }
+function submitAuth(){
+  const u=document.getElementById('auth-user').value.trim();
+  const p=document.getElementById('auth-pass').value;
+  const err=document.getElementById('auth-error');
+  if(!u||!p){err.textContent='Please enter username and password.';return;}
+  const reg=getRegistry();
+  if(authMode==='login'){
+    const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+    if(pending.find(x=>x.username===u)){err.textContent='Your account is awaiting admin approval.';return;}
+    if(!reg[u]||reg[u]!==p){err.textContent='Invalid username or password.';return;}
     doLogin(u);
-  } else {
-    const c = document.getElementById('auth-confirm').value;
-    if (reg[u]) { err.textContent='Username already taken.'; return; }
-    if (S.pendingSignups.find(x=>x.username===u)) { err.textContent='This username already has a pending request.'; return; }
-    if (p!==c) { err.textContent='Passwords do not match.'; return; }
-    if (p.length<4) { err.textContent='Password must be at least 4 characters.'; return; }
-    // Queue signup for admin approval
-    const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
-    pending.push({ username:u, password:p, avatar:_authAvatarData||null, requestedAt:new Date().toISOString() });
-    localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
+  }else{
+    const c=document.getElementById('auth-confirm').value;
+    if(reg[u]){err.textContent='Username already taken.';return;}
+    const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+    if(pending.find(x=>x.username===u)){err.textContent='This username has a pending request.';return;}
+    if(p!==c){err.textContent='Passwords do not match.';return;}
+    if(p.length<4){err.textContent='Password must be at least 4 characters.';return;}
+    pending.push({username:u,password:p,avatar:_authAvatarData||null,requestedAt:new Date().toISOString()});
+    localStorage.setItem('ims_pending_signups',JSON.stringify(pending));
+    if(S.dbConnected) syncToCloud();
     err.style.color='var(--success)';
-    err.textContent='✅ Signup request sent! Please wait for admin approval.';
+    err.textContent='✅ Signup request sent! Wait for admin approval.';
     showToast('Signup request submitted!','success');
   }
 }
-
-function doLogin(u) {
-  S.user = u;
-  localStorage.setItem('ims_currentUser', u);
-  loadUserData(u);
-  loadUserPrefs(u);
-  // Restore last active tab
-  const lastTab = localStorage.getItem(uKey(u,'lastTab'));
-  S.avatarDataUrl = localStorage.getItem(uKey(u,'avatar')) || null;
-  document.getElementById('user-label').textContent = u;
-  document.getElementById('user-role-label').textContent = isAdmin() ? 'Administrator' : 'User';
-  document.getElementById('admin-perms-btn').style.display = isAdmin() ? 'flex' : 'none';
-  document.getElementById('notif-btn').style.display = isAdmin() ? 'flex' : 'none';
+function doLogin(u){
+  S.user=u;
+  localStorage.setItem('ims_currentUser',u);
+  loadUserData(u);loadUserPrefs(u);
+  const lastTab=localStorage.getItem(uKey(u,'lastTab'));
+  S.avatarDataUrl=localStorage.getItem(uKey(u,'avatar'))||null;
+  document.getElementById('user-label').textContent=u;
+  document.getElementById('user-role-label').textContent=isAdmin()?'Administrator':'User';
+  document.getElementById('admin-perms-btn').style.display=isAdmin()?'flex':'none';
+  document.getElementById('admin-branches-btn').style.display=isAdmin()?'flex':'none';
+  document.getElementById('admin-firebase-btn').style.display=isAdmin()?'flex':'none';
+  document.getElementById('notif-btn').style.display=isAdmin()?'flex':'none';
   updateHeaderAvatar();
-  closeModal('auth-modal');
-  showUI();
-  if (isAdmin()) updateNotifBadge();
-  // Determine start tab
-  let startTab = 'ITEMS';
-  if (lastTab && (isAdmin() || canRead(lastTab))) startTab = lastTab;
-  else if (!isAdmin()) {
-    for (const t of PERM_TABS) { if(canRead(t)){startTab=t;break;} }
-  }
+  closeModal('auth-modal');showUI();
+  if(isAdmin()) updateNotifBadge();
+  let startTab='ITEMS';
+  if(lastTab&&(isAdmin()||canRead(lastTab))) startTab=lastTab;
+  else if(!isAdmin()){for(const t of PERM_TABS){if(canRead(t)){startTab=t;break;}}}
   switchTab(startTab);
 }
-
-function logout() {
-  saveUserData();
-  S.user = null;
+function logout(){
+  saveUserData();S.user=null;
   localStorage.removeItem('ims_currentUser');
-  closeSettings();
-  hideUI();
-  authMode='login';
-  _authAvatarData = null;
-  document.getElementById('auth-user').value='';
-  document.getElementById('auth-pass').value='';
-  document.getElementById('auth-confirm').value='';
+  closeSettings();hideUI();
+  authMode='login';_authAvatarData=null;
+  ['auth-user','auth-pass','auth-confirm'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('auth-confirm-wrap').style.display='none';
   document.getElementById('auth-avatar-wrap').style.display='none';
   document.getElementById('auth-submit-btn').innerHTML='🔐 Log In';
@@ -1308,44 +1189,40 @@ function openChangePass(){
 }
 function submitChangePass(){
   const cur=document.getElementById('cp-current').value;
-  const nw =document.getElementById('cp-new').value;
+  const nw=document.getElementById('cp-new').value;
   const con=document.getElementById('cp-confirm').value;
   const err=document.getElementById('cp-error');
   const reg=getRegistry();
   if(reg[S.user]!==cur){err.textContent='Current password is incorrect.';return;}
-  if(nw.length<4){err.textContent='New password must be at least 4 chars.';return;}
+  if(nw.length<4){err.textContent='Password must be at least 4 chars.';return;}
   if(nw!==con){err.textContent='Passwords do not match.';return;}
-  reg[S.user]=nw; saveRegistry(reg);
-  closeModal('pass-modal');
-  showToast('Password changed!','success');
+  reg[S.user]=nw;saveRegistry(reg);
+  if(S.dbConnected) syncToCloud();
+  closeModal('pass-modal');showToast('Password changed!','success');
 }
 
 /* ============================================================
-   ADMIN APPROVAL SYSTEM
+   APPROVAL SYSTEM
 ============================================================ */
-function updateNotifBadge() {
-  if (!isAdmin()) return;
-  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
-  const nb = document.getElementById('notif-count');
-  const btn = document.getElementById('notif-btn');
-  if (pending.length > 0) {
-    nb.style.display='flex'; nb.textContent=pending.length;
-    btn.style.display='flex';
-  } else {
-    nb.style.display='none';
-  }
+function updateNotifBadge(){
+  if(!isAdmin())return;
+  const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const nb=document.getElementById('notif-count');
+  const btn=document.getElementById('notif-btn');
+  if(pending.length>0){nb.style.display='flex';nb.textContent=pending.length;btn.style.display='flex';}
+  else{nb.style.display='none';}
 }
-function openApprovals() {
-  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
-  const list = document.getElementById('approval-list');
-  if (!pending.length) {
-    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No pending approvals 🎉</div>';
-  } else {
-    list.innerHTML = pending.map((p,i) => `
+function openApprovals(){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const list=document.getElementById('approval-list');
+  if(!pending.length){
+    list.innerHTML='<div style="padding:22px;text-align:center;color:var(--muted);font-size:13px">No pending approvals 🎉</div>';
+  }else{
+    list.innerHTML=pending.map((p,i)=>`
       <div class="approval-item">
         <div class="approval-type">🧑 New User Signup</div>
         <div class="approval-msg">
-          ${p.avatar ? `<img src="${esc(p.avatar)}" style="width:36px;height:36px;border-radius:50%;vertical-align:middle;margin-right:8px;object-fit:cover;">` : ''}
+          ${p.avatar?`<img src="${esc(p.avatar)}" style="width:34px;height:34px;border-radius:50%;vertical-align:middle;margin-right:8px;object-fit:cover;">`:''}
           <strong>${esc(p.username)}</strong> wants to join
         </div>
         <div class="approval-time">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
@@ -1357,70 +1234,125 @@ function openApprovals() {
   }
   document.getElementById('approval-overlay').classList.add('open');
 }
-function closeApprovals() {
-  document.getElementById('approval-overlay').classList.remove('open');
-}
-function approveSignup(i) {
-  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
-  const p = pending[i];
-  const reg = getRegistry();
-  reg[p.username] = p.password;
-  saveRegistry(reg);
-  if (p.avatar) localStorage.setItem(uKey(p.username,'avatar'), p.avatar);
+function closeApprovals(){ document.getElementById('approval-overlay').classList.remove('open'); }
+function approveSignup(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const p=pending[i];const reg=getRegistry();
+  reg[p.username]=p.password;saveRegistry(reg);
+  if(p.avatar) localStorage.setItem(uKey(p.username,'avatar'),p.avatar);
   pending.splice(i,1);
-  localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
-  S.pendingSignups = pending;
+  localStorage.setItem('ims_pending_signups',JSON.stringify(pending));
+  S.pendingSignups=pending;
+  if(S.dbConnected) syncToCloud();
   showToast(`✅ ${p.username} approved!`,'success');
-  updateNotifBadge();
-  openApprovals();
+  updateNotifBadge();openApprovals();
 }
-function denySignup(i) {
-  const pending = JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
-  const p = pending[i];
-  pending.splice(i,1);
-  localStorage.setItem('ims_pending_signups', JSON.stringify(pending));
+function denySignup(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_signups')||'[]');
+  const p=pending[i];pending.splice(i,1);
+  localStorage.setItem('ims_pending_signups',JSON.stringify(pending));
   showToast(`❌ ${p.username} denied`,'error');
-  updateNotifBadge();
-  openApprovals();
+  updateNotifBadge();openApprovals();
 }
 
 /* ============================================================
-   PERMISSIONS
+   PERMISSIONS MODAL
 ============================================================ */
 function openPermissions(){
   const reg=getRegistry();
   const users=Object.keys(reg).filter(u=>u!==ADMIN);
   const body=document.getElementById('perm-body');
   if(!users.length){
-    body.innerHTML='<p style="color:var(--muted)">No other users registered yet.</p>';
-  } else {
+    body.innerHTML='<p style="color:var(--muted);font-size:13px">No other users registered yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:12px">Close</button>';
+  }else{
     body.innerHTML=users.map(u=>{
       const up=S.perms[u]||{};
-      return `<div style="margin-bottom:20px">
-        <div style="font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px">
-          <div style="width:30px;height:30px;border-radius:50%;background:var(--p-glass);display:flex;align-items:center;justify-content:center;color:var(--p);font-weight:800">${u[0].toUpperCase()}</div>
+      const ep=S.exportPerms[u]??true;
+      const branchPerms=S.perms[u]?.branches||[];
+      return `<div style="margin-bottom:20px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm)">
+        <div style="font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--p-glass);display:flex;align-items:center;justify-content:center;color:var(--p);font-weight:800;font-size:13px">${u[0].toUpperCase()}</div>
           ${esc(u)}
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          ${PERM_TABS.map(t=>`
-            <label style="font-size:10px;color:var(--muted);font-weight:600;">${t}
-              <select class="perm-select" style="display:block;width:100%;margin-top:3px"
-                onchange="setUserPerm('${u}','${t}',this.value)">
-                ${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}
-              </select>
-            </label>`).join('')}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          ${PERM_TABS.map(t=>`<label style="font-size:10px;color:var(--muted);font-weight:700;">${t}
+            <select class="perm-select" style="display:block;width:100%;margin-top:2px" onchange="setUserPerm('${u}','${t}',this.value)">
+              ${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}
+            </select></label>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border)">
+          <span style="font-size:11px;font-weight:600;color:var(--muted)">Export Permission (PDF/Excel)</span>
+          <label class="toggle-sw"><input type="checkbox" ${ep?'checked':''} onchange="setExportPerm('${u}',this.checked)"><span></span></label>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:6px">BRANCH ACCESS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${S.branches.map(b=>`<label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer">
+              <input type="checkbox" ${!branchPerms.length||branchPerms.includes(b)?'checked':''} onchange="setBranchPerm('${u}','${b}',this.checked)">
+              ${esc(b)}</label>`).join('')}
+          </div>
         </div>
       </div>`;
     }).join('');
+    body.innerHTML += `<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
   }
-  body.innerHTML += `<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:10px">Close</button>`;
   openModal('perm-modal');
 }
 function setUserPerm(user,tab,val){
   if(!S.perms[user]) S.perms[user]={};
   S.perms[user][tab]=val;
+  saveUserData();showToast(`Permission updated for ${user}`,'success');
+}
+function setExportPerm(user,val){
+  S.exportPerms[user]=val;
+  saveUserData();showToast(`Export permission ${val?'enabled':'disabled'} for ${user}`,'success');
+}
+function setBranchPerm(user,branch,val){
+  if(!S.perms[user]) S.perms[user]={};
+  if(!S.perms[user].branches) S.perms[user].branches=[];
+  if(val){if(!S.perms[user].branches.includes(branch)) S.perms[user].branches.push(branch);}
+  else{S.perms[user].branches=S.perms[user].branches.filter(b=>b!==branch);}
   saveUserData();
-  showToast(`Permission updated for ${user}`,'success');
+}
+function canAccessBranch(branch){
+  if(isAdmin()) return true;
+  const bp=S.perms[S.user]?.branches||[];
+  return !bp.length||bp.includes(branch);
+}
+
+/* ============================================================
+   BRANCHES
+============================================================ */
+function openBranches(){
+  renderBranchList();openModal('branch-modal');
+}
+function renderBranchList(){
+  const el=document.getElementById('branch-list-ui');
+  el.innerHTML=S.branches.map((b,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;
+      background:var(--surface2);border-radius:7px;margin-bottom:6px;gap:8px">
+      <span style="font-weight:600;font-size:13px">🏢 ${esc(b)}</span>
+      ${i>0?`<button onclick="deleteBranch(${i})" style="border:none;background:rgba(220,38,38,.1);color:var(--error);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:700">✕ Remove</button>`:'<span style="font-size:10px;color:var(--muted)">Default</span>'}
+    </div>`).join('');
+}
+function addBranch(){
+  const inp=document.getElementById('new-branch-input');
+  const name=inp.value.trim();
+  if(!name){showToast('Enter a branch name','error');return;}
+  if(S.branches.includes(name)){showToast('Branch already exists','error');return;}
+  S.branches.push(name);inp.value='';
+  saveUserData();renderBranchList();updateBranchDatalist();
+  showToast(`Branch "${name}" added`,'success');
+}
+function deleteBranch(i){
+  customConfirm('Delete Branch?',`Remove "${S.branches[i]}"? Existing records will keep the branch name.`,'🏢','Delete',()=>{
+    S.branches.splice(i,1);saveUserData();renderBranchList();updateBranchDatalist();
+    showToast('Branch removed','success');
+  });
+}
+function updateBranchDatalist(){
+  const dl=document.getElementById('branch-list-dl');
+  if(dl) dl.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">`).join('');
 }
 
 /* ============================================================
@@ -1436,82 +1368,105 @@ function hideUI(){
   document.getElementById('content').style.display='none';
   document.getElementById('bottom-nav').style.display='none';
 }
-function openModal(id) { document.getElementById(id).classList.add('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-
-function openSettings()  {
+function openSettings(){
   document.getElementById('settings-drawer').classList.add('open');
-  document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
 }
-function closeSettings() {
+function closeSettings(){
   document.getElementById('settings-drawer').classList.remove('open');
-  document.getElementById('settings-overlay').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
 }
 
 /* ============================================================
-   CUSTOM CONFIRM (replaces browser confirm)
+   CUSTOM CONFIRM
 ============================================================ */
-let _confirmCb = null;
-function customConfirm(title, msg, icon, okLabel, cb) {
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-msg').textContent = msg;
-  document.getElementById('confirm-icon').textContent = icon;
-  document.getElementById('confirm-ok-btn').textContent = okLabel;
-  _confirmCb = cb;
+let _confirmCb=null;
+function customConfirm(title,msg,icon,okLabel,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-icon').textContent=icon;
+  document.getElementById('confirm-ok-btn').textContent=okLabel;
+  _confirmCb=cb;
   document.getElementById('confirm-modal').classList.add('open');
 }
-function cancelConfirm() {
-  document.getElementById('confirm-modal').classList.remove('open');
-  _confirmCb = null;
+function cancelConfirm(){ document.getElementById('confirm-modal').classList.remove('open');_confirmCb=null; }
+function doConfirm(){ document.getElementById('confirm-modal').classList.remove('open');if(_confirmCb){_confirmCb();_confirmCb=null;} }
+
+/* ============================================================
+   CONTEXT MENU
+============================================================ */
+let _ctxRowIdx=-1;
+function showCtxMenu(e,idx,listType){
+  e.preventDefault();
+  _ctxRowIdx=idx;
+  const menu=document.getElementById('ctx-menu');
+  const row=listType==='items'?S.items[idx]:listType==='purchase'?S.purchase[idx]:listType==='sales'?S.sales[idx]:S.expense[idx];
+  const editable=canEditRow(row);
+  const writeAllowed=canWrite(S.tab);
+  let items=[
+    writeAllowed&&editable?`<div class="ctx-item danger" onclick="ctxDelete(${idx},'${listType}')"><span class="ctx-icon">🗑️</span>Delete Row</div>`:
+      `<div class="ctx-item" style="opacity:.4;cursor:not-allowed"><span class="ctx-icon">🗑️</span>Delete Row (no access)</div>`,
+  ];
+  if(isAdmin()&&row?._editor){
+    items.push(`<div class="ctx-divider"></div>`);
+    items.push(`<div class="ctx-item" style="cursor:default;color:var(--muted)"><span class="ctx-icon">✏️</span>Last edited by: <strong>${esc(row._editor)}</strong></div>`);
+    if(row._uploader){
+      items.push(`<div class="ctx-item" style="cursor:default;color:var(--muted)"><span class="ctx-icon">📤</span>Uploaded by: <strong>${esc(row._uploader)}</strong></div>`);
+    }
+  }
+  menu.innerHTML=items.join('');
+  // Position
+  const x=Math.min(e.clientX,window.innerWidth-200);
+  const y=Math.min(e.clientY,window.innerHeight-menu.offsetHeight-40);
+  menu.style.left=x+'px';menu.style.top=y+'px';menu.style.display='block';
 }
-function doConfirm() {
-  document.getElementById('confirm-modal').classList.remove('open');
-  if (_confirmCb) { _confirmCb(); _confirmCb=null; }
+function ctxDelete(idx,listType){
+  hideCtxMenu();
+  const list=listType==='items'?S.items:listType==='purchase'?S.purchase:listType==='sales'?S.sales:S.expense;
+  const row=list[idx];
+  const label=row.id||row.reason||row.name||'this row';
+  customConfirm(t('Delete this row?'),`"${label}" — ${t('Cannot be undone')}`,'🗑️',t('Delete'),()=>{
+    list.splice(idx,1);ensureTrailing();saveUserData();renderTable();showToast('Row deleted','success');
+  });
 }
+function hideCtxMenu(){ document.getElementById('ctx-menu').style.display='none';_ctxRowIdx=-1; }
 
 /* ============================================================
    TAB SWITCHING
 ============================================================ */
 function switchTab(tab){
-  if (!canRead(tab) && tab!=='ITEMS') {
-    showToast('You do not have permission to view this tab.','error'); return;
-  }
-  S.tab = tab; S.filters = {};
-  document.getElementById('sheet-title').textContent = t(TAB_TITLES[tab]||tab);
-  document.getElementById('tab-badge').textContent = tab;
-  document.getElementById('sheet-icon').textContent = TAB_ICONS[tab]||'📋';
-  document.querySelectorAll('.nav-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.tab===tab);
-    b.style.display = canRead(b.dataset.tab)||isAdmin() ? '' : 'none';
+  if(!canRead(tab)&&tab!=='ITEMS'){showToast('You do not have permission to view this tab.','error');return;}
+  S.tab=tab;S.filters={};
+  document.getElementById('sheet-title').textContent=t(TAB_TITLES[tab]||tab);
+  document.getElementById('tab-badge').textContent=tab;
+  document.getElementById('sheet-icon').textContent=TAB_ICONS[tab]||'📋';
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.tab===tab);
+    b.style.display=canRead(b.dataset.tab)||isAdmin()?'':'none';
   });
-  if (S.user) localStorage.setItem(uKey(S.user,'lastTab'), tab);
-  updateSuggestions();
-  renderTable();
+  if(S.user) localStorage.setItem(uKey(S.user,'lastTab'),tab);
+  updateSuggestions();renderTable();
 }
 
 /* ============================================================
    DATALISTS
 ============================================================ */
 function updateSuggestions(){
-  const parties = S.tab==='PURCHASE'
-    ? [...new Set(S.purchase.map(r=>r.party))]
-    : [...new Set(S.sales.map(r=>r.party))];
-  document.getElementById('party-list').innerHTML =
-    parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
-  document.getElementById('item-list').innerHTML =
-    S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+  const parties=S.tab==='PURCHASE'?[...new Set(S.purchase.map(r=>r.party))]:[...new Set(S.sales.map(r=>r.party))];
+  document.getElementById('party-list').innerHTML=parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
+  document.getElementById('item-list').innerHTML=S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+  updateBranchDatalist();
 }
 
 /* ============================================================
    TABLE HEADER HELPER
 ============================================================ */
-function makeHdr(label, field, cls=''){
-  const filter = field
-    ? `<input class="hdr-filter" placeholder="Filter…" value="${esc(S.filters[field]||'')}"
-        oninput="S.filters['${field}']=this.value.toLowerCase();renderTable()">`
-    : '';
+function makeHdr(label,field='',cls='',tip=''){
+  const filter=field?`<input class="hdr-filter" placeholder="Filter…" value="${esc(S.filters[field]||'')}" oninput="S.filters['${field}']=this.value.toLowerCase();renderTable()">`:''
   return `<th class="${cls}"><div class="hdr-inner">
-    <span class="hdr-label">${label}</span>${filter}
+    <span class="hdr-label" ${tip?`title="${esc(tip)}"`:''}>${label}</span>${filter}
   </div><div class="resize-handle" onmousedown="startResize(event,this)"></div></th>`;
 }
 
@@ -1521,147 +1476,155 @@ function makeHdr(label, field, cls=''){
 let _rz={};
 function startResize(e,h){
   e.preventDefault();
-  _rz.th=h.parentElement; _rz.startX=e.clientX; _rz.startW=_rz.th.offsetWidth;
+  _rz.th=h.parentElement;_rz.startX=e.clientX;_rz.startW=_rz.th.offsetWidth;
   _rz.idx=Array.from(_rz.th.parentElement.children).indexOf(_rz.th);
   _rz.table=_rz.th.closest('table');
-  document.addEventListener('mousemove',doResize);
-  document.addEventListener('mouseup',stopResize);
+  document.addEventListener('mousemove',doResize);document.addEventListener('mouseup',stopResize);
 }
 function doResize(e){
   if(!_rz.th)return;
   const w=Math.max(50,_rz.startW+e.clientX-_rz.startX);
   Array.from(_rz.table.rows).forEach(r=>{if(r.children[_rz.idx])r.children[_rz.idx].style.width=w+'px';});
 }
-function stopResize(){
-  document.removeEventListener('mousemove',doResize);
-  document.removeEventListener('mouseup',stopResize);
-  _rz={};
-}
+function stopResize(){document.removeEventListener('mousemove',doResize);document.removeEventListener('mouseup',stopResize);_rz={};}
 
 /* ============================================================
    ROW HANDLERS
 ============================================================ */
-function handleInput(idx, field, val){
-  const list=rows();
-  list[idx]._editor = S.user;
+function handleInput(idx,field,val,listType){
+  const list=listType==='purchase'?S.purchase:listType==='sales'?S.sales:listType==='expense'?S.expense:listType==='items'?S.items:rows();
+  if(!canEditRow(list[idx])&&!isAdmin()){showToast('⛔ This row was uploaded by another user. You cannot edit it.','error');renderTable();return;}
+  list[idx]._editor=S.user;
+  if(!list[idx]._uploader) list[idx]._uploader=S.user;
   if(['qty','uPrice','sPrice','amt','vat','wh3','vwh75'].includes(field)){
     list[idx][field]=val===''?'':parseFloat(val)||0;
-  } else {
+  }else{
     list[idx][field]=val;
   }
-  if(idx===list.length-1 && val!==''){pushBlankRow();saveUserData();renderTable();}
+  if(idx===list.length-1&&val!==''){pushBlankRow();saveUserData();renderTable();}
   else{saveUserData();}
 }
-function validateAndLink(idx, val){
-  if(!val) return;
+function validateAndLink(idx,val,isP){
+  if(!val)return;
   const item=S.items.find(m=>m.id===val);
   if(!item){
     showToast(`Part Number "${val}" not found in Items`,'error');
-    rows()[idx].id=''; rows()[idx].name=''; rows()[idx].desc='';
-  } else {
-    rows()[idx].name=item.name; rows()[idx].desc=item.desc;
-    rows()[idx]._editor=S.user;
-    if(idx===rows().length-1) pushBlankRow();
+    const list=isP?S.purchase:S.sales;
+    list[idx].id='';list[idx].name='';list[idx].desc='';
+  }else{
+    const list=isP?S.purchase:S.sales;
+    list[idx].name=item.name;list[idx].desc=item.desc;list[idx]._editor=S.user;
+    if(!list[idx]._uploader) list[idx]._uploader=S.user;
+    if(idx===list.length-1) pushBlankRow();
   }
-  saveUserData(); renderTable();
-}
-function deleteRow(idx){
-  const list=rows();
-  const row=list[idx];
-  const label=row.id||row.reason||row.name||'this row';
-  customConfirm(
-    t('Delete this row?'),
-    `"${label}" — ${t('Cannot be undone')}`,
-    '🗑️', t('Delete'),
-    () => {
-      list.splice(idx,1);
-      ensureTrailing();
-      saveUserData();
-      renderTable();
-      showToast('Row deleted','success');
-    }
-  );
+  saveUserData();renderTable();
 }
 
 /* ============================================================
-   HEAD ACTIONS (receipt button)
+   HEAD ACTIONS
 ============================================================ */
 function renderHeadActions(){
-  const ha = document.getElementById('head-actions');
-  if (!ha) return;
-  const receiptTabs = ['PURCHASE','SALES','EXPENSE'];
-  if (receiptTabs.includes(S.tab)) {
-    ha.innerHTML = `<button class="action-btn" onclick="openReceipt()">🧾 Receipt</button>`;
-  } else {
-    ha.innerHTML = '';
+  const ha=document.getElementById('head-actions');if(!ha)return;
+  const receiptTabs=['PURCHASE','SALES','EXPENSE'];
+  let html='';
+  if(receiptTabs.includes(S.tab)){
+    html+=`<button class="action-btn" onclick="openReceipt()" title="Generate receipt for current tab" data-tip="Generate Receipt">🧾 Receipt</button>`;
   }
+  if(S.tab==='PURCHASE'||S.tab==='SALES'){
+    html+=`<button class="action-btn" onclick="openRowReceipt()" title="Print selected row as receipt" data-tip="Print Row Receipt">🖨 Row Receipt</button>`;
+    // Branch filter
+    html+=`<select id="branch-filter-sel" title="Filter by branch" onchange="S.currentBranch=this.value;renderTable()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+      <option value="">All Branches</option>
+      ${S.branches.map(b=>`<option value="${esc(b)}" ${S.currentBranch===b?'selected':''}>${esc(b)}</option>`).join('')}
+    </select>`;
+  }
+  ha.innerHTML=html;
 }
 
 /* ============================================================
-   RECEIPT
+   RECEIPT — full tab
 ============================================================ */
 function openReceipt(){
-  const tab = S.tab;
-  let html = `<div class="receipt-header-print">
+  const tab=S.tab;
+  let html=`<div class="receipt-header-print">
     <div class="receipt-biz">POWER-IMS</div>
     <div class="receipt-sub">${tab} Receipt</div>
     <div class="receipt-sub">${new Date().toLocaleString()}</div>
     <div class="receipt-sub">User: ${esc(S.user)}</div>
   </div>`;
-
   if(tab==='PURCHASE'){
-    const rows2=S.purchase.filter(r=>r.id||r.qty||r.uPrice);
-    let total=0;
-    rows2.forEach(r=>{
-      const v=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);
-      total+=v;
+    const rows2=S.purchase.filter(r=>r.id||r.qty||r.uPrice);let total=0;
+    rows2.forEach(r=>{const v=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);total+=v;
       html+=`<div class="receipt-line"><span>${esc(r.id||r.name||'—')}</span><span>${fmtQ(r.qty)} × ${fmt(r.uPrice)}</span></div>
-             <div class="receipt-line sub"><span>${esc(r.party||'')}</span><span>${fmt(v)}</span></div>`;
-    });
-    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL PURCHASE</div>
-      <div class="receipt-total-val">${fmt(total)}</div></div>`;
-  } else if(tab==='SALES'){
-    const rows2=S.sales.filter(r=>r.id||r.qty||r.sPrice);
-    let total=0;
-    rows2.forEach(r=>{
-      const v=(parseFloat(r.qty)||0)*(parseFloat(r.sPrice)||0);
-      const vat=(parseFloat(r.vat)||0);
-      total+=v+vat;
+             <div class="receipt-line sub"><span>${esc(r.party||'')} | ${esc(r.branch||'')}</span><span>${fmt(v)}</span></div>`;});
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted)">TOTAL PURCHASE</div><div class="receipt-total-val">${fmt(total)}</div></div>`;
+  }else if(tab==='SALES'){
+    const rows2=S.sales.filter(r=>r.id||r.qty||r.sPrice);let total=0;
+    rows2.forEach(r=>{const v=(parseFloat(r.qty)||0)*(parseFloat(r.sPrice)||0);const vat=(parseFloat(r.vat)||0);total+=v+vat;
       html+=`<div class="receipt-line"><span>${esc(r.id||r.name||'—')}</span><span>${fmtQ(r.qty)} × ${fmt(r.sPrice)}</span></div>
              <div class="receipt-line sub"><span>VAT</span><span>${fmt(vat)}</span></div>
-             <div class="receipt-line sub"><span>${esc(r.party||'')}</span><span>${fmt(v)}</span></div>`;
-    });
-    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL (incl. VAT)</div>
-      <div class="receipt-total-val">${fmt(total)}</div></div>`;
-  } else if(tab==='EXPENSE'){
-    const rows2=S.expense.filter(r=>r.reason||r.amt);
-    let total=0;
-    rows2.forEach(r=>{
-      const v=parseFloat(r.amt)||0; total+=v;
-      html+=`<div class="receipt-line"><span>${esc(r.reason||'—')}</span><span>${fmt(v)}</span></div>`;
-    });
-    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted);margin-bottom:2px">TOTAL EXPENSES</div>
-      <div class="receipt-total-val">${fmt(total)}</div></div>`;
+             <div class="receipt-line sub"><span>Total Price</span><span>${fmt(v+vat)}</span></div>
+             <div class="receipt-line sub"><span>${esc(r.party||'')} | ${esc(r.branch||'')}</span><span>${esc(r.payment||r.status||'')}</span></div>`;});
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted)">TOTAL (incl. VAT)</div><div class="receipt-total-val">${fmt(total)}</div></div>`;
+  }else if(tab==='EXPENSE'){
+    const rows2=S.expense.filter(r=>r.reason||r.amt);let total=0;
+    rows2.forEach(r=>{const v=parseFloat(r.amt)||0;total+=v;
+      html+=`<div class="receipt-line"><span>${esc(r.reason||'—')}</span><span>${fmt(v)}</span></div>`;});
+    html+=`<div class="receipt-total-block"><div style="font-size:10px;color:var(--muted)">TOTAL EXPENSES</div><div class="receipt-total-val">${fmt(total)}</div></div>`;
   }
   html+=`<div class="receipt-footer">Thank you for using POWER-IMS<br>Printed: ${new Date().toLocaleString()}</div>`;
   document.getElementById('receipt-content').innerHTML=html;
   openModal('receipt-modal');
 }
+
+/* RECEIPT — single row */
+let _lastRightClickIdx=-1,_lastRightClickType='';
+function openRowReceipt(){
+  if(_lastRightClickIdx<0){showToast('Right-click a row first, then use Row Receipt','warn');return;}
+  const isP=S.tab==='PURCHASE';
+  const row=isP?S.purchase[_lastRightClickIdx]:S.sales[_lastRightClickIdx];
+  if(!row){showToast('No row selected','error');return;}
+  const qty=parseFloat(row.qty)||0;
+  const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
+  const total=qty*price;
+  const vat=parseFloat(row.vat)||total*0.15;
+  const grandTotal=isP?total:total+vat;
+  let html=`<div class="receipt-header-print">
+    <div class="receipt-biz">POWER-IMS</div>
+    <div class="receipt-sub">${S.tab} — Row Receipt</div>
+    <div class="receipt-sub">${new Date().toLocaleString()}</div>
+  </div>
+  <div class="receipt-line"><span>Date</span><span>${row.date||'—'}</span></div>
+  <div class="receipt-line"><span>${isP?'Supplier':'Customer'}</span><span>${esc(row.party||'—')}</span></div>
+  <div class="receipt-line"><span>Part No.</span><span>${esc(row.id||'—')}</span></div>
+  <div class="receipt-line"><span>Item</span><span>${esc(row.name||'—')}</span></div>
+  <div class="receipt-line"><span>Branch</span><span>${esc(row.branch||'—')}</span></div>
+  <div class="receipt-line"><span>Qty</span><span>${fmtQ(qty)}</span></div>
+  <div class="receipt-line"><span>Unit Price</span><span>${fmt(price)}</span></div>
+  ${!isP?`<div class="receipt-line"><span>VAT (15%)</span><span>${fmt(vat)}</span></div>`:''}
+  <div class="receipt-line bold"><span>Total</span><span>${fmt(grandTotal)}</span></div>
+  <div class="receipt-line"><span>Payment</span><span>${esc(row.payment||row.status||'—')}</span></div>
+  <div class="receipt-total-block"><div style="font-size:10px;color:var(--muted)">AMOUNT DUE</div><div class="receipt-total-val">${fmt(grandTotal)}</div></div>
+  <div class="receipt-footer">POWER-IMS — Printed: ${new Date().toLocaleString()}</div>`;
+  document.getElementById('receipt-content').innerHTML=html;
+  openModal('receipt-modal');
+}
+
 function printReceipt(){
   const pa=document.getElementById('report-print-area');
   pa.innerHTML=`<style>@media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
-  #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:20px;}
+  #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Plus Jakarta Sans',sans-serif;padding:20px;}
   .receipt-header-print{text-align:center;padding:16px 0;border-bottom:2px dashed #ccc;margin-bottom:12px;}
   .receipt-biz{font-size:18px;font-weight:800;letter-spacing:.06em;}
   .receipt-sub{font-size:11px;color:#64748b;margin-top:2px;}
   .receipt-line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;font-family:monospace;}
   .receipt-line.sub{color:#64748b;font-size:11px;}
+  .receipt-line.bold{font-weight:700;border-top:1px solid #e2e8f0;padding-top:7px;}
   .receipt-total-block{background:#eff6ff;border-radius:8px;padding:12px;text-align:center;margin:12px 0;}
-  .receipt-total-val{font-size:22px;font-weight:800;color:#2563eb;font-family:monospace;}
+  .receipt-total-val{font-size:22px;font-weight:800;color:#1a56db;font-family:monospace;}
   .receipt-footer{text-align:center;color:#64748b;font-size:10px;margin-top:12px;border-top:2px dashed #ccc;padding-top:12px;}
   </style>${document.getElementById('receipt-content').innerHTML}`;
-  window.print();
-  setTimeout(()=>{ pa.innerHTML=''; }, 1200);
+  window.print();setTimeout(()=>{ pa.innerHTML=''; },1200);
 }
 
 /* ============================================================
@@ -1671,7 +1634,7 @@ function renderTable(){
   const thead=document.getElementById('thead');
   const tbody=document.getElementById('tbody');
   const extras=document.getElementById('extras');
-  thead.innerHTML=''; tbody.innerHTML=''; extras.innerHTML='';
+  thead.innerHTML='';tbody.innerHTML='';extras.innerHTML='';
   renderHeadActions();
   if(S.tab==='ITEMS')         renderItems(thead,tbody);
   else if(S.tab==='PURCHASE'||S.tab==='SALES') renderTx(thead,tbody);
@@ -1686,44 +1649,34 @@ function renderTable(){
 function renderItems(thead,tbody){
   const rw=canWrite('ITEMS');
   thead.innerHTML=`<tr>
-    ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr(t('Part Number'),'id')}
-    ${makeHdr(t('Item Name'),'name')}
-    ${makeHdr(t('Description'),'desc')}
-    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
+    ${makeHdr(t('Part Number'),'id','','Part/product code')}
+    ${makeHdr(t('Item Name'),'name','','Full item name')}
+    ${makeHdr(t('Description'),'desc','','Optional description')}
   </tr>`;
-  const seen = new Set();
   S.items.forEach((row,i)=>{
-    if(S.filters.id   && !row.id.toLowerCase().includes(S.filters.id))   return;
-    if(S.filters.name && !row.name.toLowerCase().includes(S.filters.name)) return;
-    // Duplicate ID check
-    const dup = row.id && S.items.filter((r,j)=>r.id===row.id&&j!==i).length>0;
+    if(S.filters.id&&!row.id.toLowerCase().includes(S.filters.id))return;
+    if(S.filters.name&&!row.name.toLowerCase().includes(S.filters.name))return;
+    const dup=row.id&&S.items.filter((r,j)=>r.id===row.id&&j!==i).length>0;
+    const editable=canEditRow(row)||isAdmin();
     const tr=document.createElement('tr');
-    if(!rw) tr.style.pointerEvents='none';
+    tr.oncontextmenu=e=>showCtxMenu(e,i,'items');
+    tr.title='Right-click for options';
     tr.innerHTML=`
-      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})" title="Delete">×</button></td>`:''}
       <td><input value="${esc(row.id)}" style="${dup?'background:var(--row-err);color:var(--error);font-weight:700':''}"
-            placeholder="Part #"
+            placeholder="Part #" title="Enter unique part number"
             oninput="S.items[${i}].id=this.value;saveUserData()"
             onblur="checkDupId(${i})"
-            ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.name)}" placeholder="Item name" oninput="handleInput(${i},'name',this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.desc)}" placeholder="Description" oninput="handleInput(${i},'desc',this.value)" ${!rw?'readonly':''}></td>
-      <td><div class="edited-by">${row._editor ? '✏️ '+esc(row._editor) : ''}</div></td>`;
+            ${!rw||!editable?'readonly':''}></td>
+      <td><input value="${esc(row.name)}" placeholder="Item name" title="Enter item name" oninput="handleInput(${i},'name',this.value,'items')" ${!rw||!editable?'readonly':''}></td>
+      <td><input value="${esc(row.desc)}" placeholder="Description" title="Optional description" oninput="handleInput(${i},'desc',this.value,'items')" ${!rw||!editable?'readonly':''}></td>`;
     tbody.appendChild(tr);
   });
 }
 function checkDupId(idx){
-  const row=S.items[idx];
-  if(!row.id) return;
+  const row=S.items[idx];if(!row.id)return;
   const dup=S.items.filter((r,j)=>r.id===row.id&&j!==idx).length>0;
-  if(dup){
-    showToast(`Part Number "${row.id}" already exists! Duplicate IDs are forbidden.`,'error',4000);
-    S.items[idx].id='';
-    saveUserData(); renderTable();
-  } else {
-    if(idx===S.items.length-1){ pushBlankRow(); renderTable(); }
-  }
+  if(dup){showToast(`Part Number "${row.id}" already exists!`,'error',4000);S.items[idx].id='';saveUserData();renderTable();}
+  else{if(idx===S.items.length-1){pushBlankRow();renderTable();}}
 }
 
 /* ============================================================
@@ -1731,121 +1684,113 @@ function checkDupId(idx){
 ============================================================ */
 function renderTx(thead,tbody){
   const isP=S.tab==='PURCHASE';
-  const perm=getPerm(S.tab);
-  const rw=canWrite(S.tab);
-  const addOnly=perm==='add_only';
+  const perm=getPerm(S.tab);const rw=canWrite(S.tab);const addOnly=perm==='add_only';
   const list=isP?S.purchase:S.sales;
-  const visibleRows=addOnly?[list[list.length-1]].filter(Boolean):list;
+  const branchFilter=document.getElementById('branch-filter-sel')?.value||'';
+  let visibleRows=addOnly?[list[list.length-1]].filter(Boolean):list;
+  if(branchFilter) visibleRows=visibleRows.filter(r=>r.branch===branchFilter);
   const idxOffset=addOnly?list.length-1:0;
 
   let extraHdrs='';
   if(!isP){
     extraHdrs=`
-      ${makeHdr(t('Price'),'','num')}
-      ${makeHdr(t('VAT (15%)'),'','num vat-cell')}
-      ${makeHdr(t('Total Price'),'','num')}
-      ${makeHdr(t('Withhold 3%'),'','num withhold-cell')}
-      ${makeHdr(t('VAT WH 7.5%'),'','num withhold-cell')}
-      ${makeHdr(t('Purch. Price'),'','num')}
-      ${makeHdr(t('Total Purch.'),'','num')}`;
+      ${makeHdr(t('Price'),'','num','Unit selling price')}
+      ${makeHdr(t('VAT (15%)'),'','num','VAT — editable or auto 15%')}
+      ${makeHdr(t('Total Price'),'','num','Price + VAT')}
+      ${makeHdr(t('Withhold 3%'),'','num','Withholding tax 3%')}
+      ${makeHdr(t('VAT WH 7.5%'),'','num','VAT withholding 7.5%')}`;
   }
 
   thead.innerHTML=`<tr>
-    ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr(t('Date'),'date')}
-    ${makeHdr(isP?t('Supplier'):t('Customer'),'party')}
-    ${makeHdr(t('Part Number'),'id')}
-    ${makeHdr(t('Item Name'),'name')}
-    ${makeHdr(t('Description'),'desc')}
-    ${makeHdr(t('Qty'),'','num')}
-    ${isP ? makeHdr(t('Unit Price'),'','num')+makeHdr(t('Total'),'','num') : extraHdrs}
-    ${makeHdr(t('Status'),'status')}
-    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
+    ${makeHdr(t('Date'),'date','','Transaction date & time')}
+    ${makeHdr(isP?t('Supplier'):t('Customer'),'party','','Supplier or customer name')}
+    ${makeHdr(t('Branch'),'branch','','Branch location')}
+    ${makeHdr(t('Part Number'),'id','','Part/product code')}
+    ${makeHdr(t('Item Name'),'name','','Item name (auto-filled)')}
+    ${makeHdr(t('Description'),'desc','','Item description (auto-filled)')}
+    ${makeHdr(t('Qty'),'','num','Quantity')}
+    ${isP?makeHdr(t('Unit Price'),'','num','Purchase price per unit')+makeHdr(t('Total'),'','num','Qty × Unit Price'):extraHdrs}
+    ${makeHdr(t('Payment'),'','','Payment method')}
+    ${makeHdr(t('Status'),'status','','Cash or Credit')}
   </tr>`;
 
-  let totQty=0, totVal=0;
+  let totQty=0,totVal=0;
 
   visibleRows.forEach((row,vi)=>{
-    const i=idxOffset+vi;
-    if(Object.keys(S.filters).some(f=>S.filters[f]&&!String(row[f]||'').toLowerCase().includes(S.filters[f])))return;
+    const i=addOnly?list.length-1:(branchFilter?list.indexOf(row):vi+idxOffset);
+    if(!branchFilter&&Object.keys(S.filters).some(f=>S.filters[f]&&!String(row[f]||'').toLowerCase().includes(S.filters[f])))return;
+    if(!canAccessBranch(row.branch||'Main')){return;}
 
-    const qty  =parseFloat(row.qty)||0;
+    const qty=parseFloat(row.qty)||0;
     const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
-    const rowVal=isP?qty*price:qty*price-fifoCost(row.id,qty,i);
-    totQty+=qty; totVal+=rowVal;
+    const totPrice=qty*price;
+    const vatAmt=row.vat!==''&&row.vat!==undefined?parseFloat(row.vat)||0:totPrice*0.15;
+    const totalPriceWithVat=totPrice+vatAmt;
+    totQty+=qty;totVal+=isP?totPrice:totalPriceWithVat;
 
     const incomplete=row.id&&(!row.qty||!price);
     let stockWarn='';
     if(!isP&&row.id){
       const inQ=S.purchase.filter(p=>p.id===row.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
       const outQ=S.sales.filter((s,j)=>s.id===row.id&&j<i).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-      if(qty>inQ-outQ) stockWarn=`<div class="stock-warn">⚠ Not enough stock</div>`;
+      if(qty>inQ-outQ) stockWarn=`<div class="stock-warn" title="Not enough stock!">⚠ Low stock</div>`;
     }
 
+    const editable=canEditRow(row)||isAdmin();
     let extraCells='';
     if(isP){
       const tot=qty*(parseFloat(row.uPrice)||0);
       extraCells=`
-        <td class="num"><input type="number" class="mono" value="${row.uPrice===''?'':row.uPrice}"
-              placeholder="0.00" oninput="handleInput(${i},'uPrice',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num num-pad" style="padding:9px 10px">${colorNum(tot)}</td>`;
-    } else {
-      const totPrice=qty*price;
-      const vatAmt=parseFloat(row.vat)||totPrice*0.15;
-      const wh3=parseFloat(row.wh3)||totPrice*0.03;
-      const vwh75=parseFloat(row.vwh75)||totPrice*0.075;
-      const pp=fifoBuyPrice(row.id,qty,i);
+        <td class="num"><input type="number" class="mono" value="${row.uPrice===''?'':row.uPrice}" placeholder="0.00" title="Unit purchase price" oninput="handleInput(${i},'uPrice',this.value,'purchase')" ${!rw||!editable?'readonly':''}></td>
+        <td class="num num-pad" title="Total = Qty × Unit Price">${colorNum(tot)}</td>`;
+    }else{
+      const wh3=row.wh3!==''&&row.wh3!==undefined?parseFloat(row.wh3)||0:totPrice*0.03;
+      const vwh75=row.vwh75!==''&&row.vwh75!==undefined?parseFloat(row.vwh75)||0:totPrice*0.075;
       extraCells=`
-        <td class="num"><input type="number" class="mono" value="${row.sPrice===''?'':row.sPrice}"
-              placeholder="0.00" oninput="handleInput(${i},'sPrice',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num vat-cell"><input type="number" class="mono" value="${row.vat===''?'':row.vat}"
-              placeholder="${fmt(totPrice*0.15)}" oninput="handleInput(${i},'vat',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num num-pad">${colorNum(totPrice)}</td>
-        <td class="num withhold-cell"><input type="number" class="mono" value="${row.wh3===''?'':row.wh3}"
-              placeholder="${fmt(totPrice*0.03)}" oninput="handleInput(${i},'wh3',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num withhold-cell"><input type="number" class="mono" value="${row.vwh75===''?'':row.vwh75}"
-              placeholder="${fmt(totPrice*0.075)}" oninput="handleInput(${i},'vwh75',this.value)" ${!rw?'readonly':''}></td>
-        <td class="num num-pad">${fmt(pp)}</td>
-        <td class="num num-pad">${colorNum(qty*(pp||0))}</td>`;
+        <td class="num"><input type="number" class="mono" value="${row.sPrice===''?'':row.sPrice}" placeholder="0.00" title="Unit selling price" oninput="handleInput(${i},'sPrice',this.value,'sales')" ${!rw||!editable?'readonly':''}></td>
+        <td class="num" style="background:rgba(124,58,237,.05)"><input type="number" class="mono" value="${row.vat===''||row.vat===undefined?'':row.vat}" placeholder="${fmt(totPrice*0.15)}" title="VAT — edit to override auto-calc" oninput="handleInput(${i},'vat',this.value,'sales')" ${!rw||!editable?'readonly':''}></td>
+        <td class="num num-pad" title="Total Price = Price + VAT">${colorNum(totalPriceWithVat)}</td>
+        <td class="num" style="background:rgba(14,165,233,.05)"><input type="number" class="mono" value="${row.wh3===''||row.wh3===undefined?'':row.wh3}" placeholder="${fmt(totPrice*0.03)}" title="Withholding 3% — edit to override" oninput="handleInput(${i},'wh3',this.value,'sales')" ${!rw||!editable?'readonly':''}></td>
+        <td class="num" style="background:rgba(14,165,233,.05)"><input type="number" class="mono" value="${row.vwh75===''||row.vwh75===undefined?'':row.vwh75}" placeholder="${fmt(totPrice*0.075)}" title="VAT Withholding 7.5% — edit to override" oninput="handleInput(${i},'vwh75',this.value,'sales')" ${!rw||!editable?'readonly':''}></td>`;
     }
-
-    const valClass=rowVal<0?'neg-val':'';
 
     const tr=document.createElement('tr');
     if(incomplete) tr.className='row-incomplete';
+    tr.oncontextmenu=e=>{_lastRightClickIdx=i;_lastRightClickType=isP?'purchase':'sales';showCtxMenu(e,i,isP?'purchase':'sales');};
+    tr.title='Right-click for options';
     tr.innerHTML=`
-      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
-      <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
-      <td><input list="party-list" value="${esc(row.party||'')}" placeholder="${isP?'Supplier':'Customer'}" oninput="handleInput(${i},'party',this.value)" ${!rw?'readonly':''}></td>
-      <td><input list="item-list" value="${esc(row.id||'')}" placeholder="Part #"
+      <td><input type="datetime-local" value="${row.date||''}" title="Date and time of transaction" oninput="handleInput(${i},'date',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'readonly':''}></td>
+      <td><input list="party-list" value="${esc(row.party||'')}" placeholder="${isP?'Supplier':'Customer'}" title="${isP?'Supplier':'Customer'} name" oninput="handleInput(${i},'party',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'readonly':''}></td>
+      <td><input list="branch-list-dl" value="${esc(row.branch||'Main')}" placeholder="Branch" title="Branch location" oninput="handleInput(${i},'branch',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'readonly':''}></td>
+      <td><input list="item-list" value="${esc(row.id||'')}" placeholder="Part #" title="Part number (type to search)"
             oninput="${isP?'S.purchase':'S.sales'}[${i}].id=this.value;S.${isP?'purchase':'sales'}[${i}]._editor='${S.user}'"
-            onchange="validateAndLink(${i},this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.name||'')}" readonly tabindex="-1" placeholder="Auto-filled"></td>
-      <td><input value="${esc(row.desc||'')}" readonly tabindex="-1" placeholder="Auto-filled"></td>
-      <td class="num"><input type="number" class="mono" value="${row.qty===''?'':row.qty}"
-            placeholder="0" oninput="handleInput(${i},'qty',this.value)" ${!rw?'readonly':''}></td>
+            onchange="validateAndLink(${i},this.value,${isP})" ${!rw||!editable?'readonly':''}></td>
+      <td><input value="${esc(row.name||'')}" readonly tabindex="-1" placeholder="Auto-filled" title="Auto-filled from Items"></td>
+      <td><input value="${esc(row.desc||'')}" readonly tabindex="-1" placeholder="Auto-filled" title="Auto-filled from Items"></td>
+      <td class="num"><input type="number" class="mono" value="${row.qty===''?'':row.qty}" placeholder="0" title="Quantity" oninput="handleInput(${i},'qty',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'readonly':''}></td>
       ${extraCells}
       <td>
-        <select onchange="handleInput(${i},'status',this.value)" ${!rw?'disabled':''}>
-          <option value="CASH"  ${row.status==='CASH'  ?'selected':''}>${t('Cash')}</option>
-          <option value="CREDIT"${row.status==='CREDIT'?'selected':''}>${t('Credit')}</option>
-        </select>${stockWarn}
+        <select title="Payment method" onchange="handleInput(${i},'payment',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'disabled':''}>
+          ${PAYMENT_METHODS.map(m=>`<option value="${m}"${(row.payment||'CASH')===m?' selected':''}>${m}</option>`).join('')}
+        </select>
       </td>
-      <td><div class="edited-by">${row._editor?'✏️ '+esc(row._editor):''}</div></td>`;
+      <td>
+        <select title="Cash or Credit" onchange="handleInput(${i},'status',this.value,${isP?'\'purchase\'':'\'sales\''})" ${!rw||!editable?'disabled':''}>
+          <option value="CASH" ${row.status==='CASH'?'selected':''}>${t('Cash')}</option>
+          <option value="CREDIT" ${row.status==='CREDIT'?'selected':''}>${t('Credit')}</option>
+        </select>${stockWarn}
+      </td>`;
     tbody.appendChild(tr);
   });
 
   if(!addOnly){
-    const colCount=(isP?6:12)+(rw?1:0)+2;
-    const sr=document.createElement('tr');
-    sr.className='summary-row';
+    const sr=document.createElement('tr');sr.className='summary-row';
     sr.innerHTML=`
-      ${rw?'<td></td>':''}
-      <td class="summary-label" colspan="${isP?6:10}">${t('Totals')}</td>
+      <td class="summary-label" colspan="${isP?8:9}">${t('Totals')}</td>
       <td class="num num-pad" style="font-family:var(--mono);font-weight:700">${fmtQ(totQty)}</td>
       <td></td>
       <td class="num num-pad ${totVal<0?'neg-val':''}" style="font-family:var(--mono);font-weight:700">${fmt(totVal)}</td>
-      ${!isP?'<td></td><td></td><td></td><td></td>':''}
+      ${!isP?'<td></td><td></td>':''}
       <td></td><td></td>`;
     tbody.appendChild(sr);
   }
@@ -1856,41 +1801,39 @@ function renderTx(thead,tbody){
 ============================================================ */
 function renderBalance(thead,tbody,extras){
   thead.innerHTML=`<tr>
-    ${makeHdr(t('Part Number'),'id')}
-    ${makeHdr(t('Item Name'),'name')}
-    ${makeHdr(t('Description'),'desc')}
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">Purchase Qty</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">Sales Qty</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">Balance</span></div></th>
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">Inv. Value</span></div></th>
+    ${makeHdr(t('Part Number'),'id','','Unique part code')}
+    ${makeHdr(t('Item Name'),'name','','Item name')}
+    ${makeHdr(t('Description'),'desc','','Description')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label" title="Total quantity purchased">Purchase Qty</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label" title="Total quantity sold">Sales Qty</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label" title="Remaining stock">Balance</span></div></th>
+    <th class="num"><div class="hdr-inner"><span class="hdr-label" title="Balance × Avg cost">Inv. Value</span></div></th>
   </tr>`;
   let totalV=0;
   S.items.filter(m=>m.id).forEach(item=>{
-    if(S.filters.id   && !item.id.toLowerCase().includes(S.filters.id))   return;
-    if(S.filters.name && !item.name.toLowerCase().includes(S.filters.name)) return;
-    const inQ  =S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-    const outQ =S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    if(S.filters.id&&!item.id.toLowerCase().includes(S.filters.id))return;
+    if(S.filters.name&&!item.name.toLowerCase().includes(S.filters.name))return;
+    const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
     const stock=inQ-outQ;
-    const cost =S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
-    const avg  =inQ>0?cost/inQ:0;
-    const val  =stock*avg;
-    totalV+=val;
+    const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+    const avg=inQ>0?cost/inQ:0;const val=stock*avg;totalV+=val;
     const balClass=stock>0?'bal-positive':stock===0?'bal-zero':'bal-negative';
     const tr=document.createElement('tr');
+    tr.oncontextmenu=e=>showCtxMenu(e,-1,'items');
     tr.innerHTML=`
-      <td style="padding:9px 8px;font-family:var(--mono);font-size:12px">${esc(item.id)}</td>
-      <td style="padding:9px 8px;font-weight:600">${esc(item.name)}</td>
-      <td style="padding:9px 8px;color:var(--muted);font-size:12px">${esc(item.desc)}</td>
+      <td style="padding:8px;font-family:var(--mono);font-size:12px">${esc(item.id)}</td>
+      <td style="padding:8px;font-weight:600">${esc(item.name)}</td>
+      <td style="padding:8px;color:var(--muted);font-size:12px">${esc(item.desc)}</td>
       <td class="num num-pad">${fmtQ(inQ)}</td>
       <td class="num num-pad">${fmtQ(outQ)}</td>
       <td class="num num-pad ${balClass}">${fmtQ(stock)}</td>
       <td class="num num-pad ${val<0?'neg-val':''}">${fmt(val)}</td>`;
     tbody.appendChild(tr);
   });
-  extras.innerHTML=`<div style="background:linear-gradient(90deg,var(--row-ok),var(--surface2));
-    padding:14px 18px;border-top:2px solid var(--success);
-    display:flex;justify-content:space-between;align-items:center;font-weight:700;font-family:var(--mono)">
-    <span style="font-family:var(--font);color:var(--muted);font-size:12px">TOTAL INVENTORY VALUE</span>
+  extras.innerHTML=`<div style="background:linear-gradient(90deg,var(--row-ok),var(--surface2));padding:12px 16px;
+    border-top:2px solid var(--success);display:flex;justify-content:space-between;align-items:center;font-weight:700;font-family:var(--mono)">
+    <span style="font-family:var(--font);color:var(--muted);font-size:11px">TOTAL INVENTORY VALUE</span>
     <span class="${totalV<0?'neg-val':'pos-val'}" style="font-size:1.05rem">${fmt(totalV)}</span>
   </div>`;
 }
@@ -1901,30 +1844,30 @@ function renderBalance(thead,tbody,extras){
 function renderExpense(thead,tbody){
   const rw=canWrite('EXPENSE');
   thead.innerHTML=`<tr>
-    ${rw?'<th style="width:38px"></th>':''}
-    ${makeHdr(t('Date'),'date')}
-    ${makeHdr('Reason','reason')}
-    <th class="num"><div class="hdr-inner"><span class="hdr-label">Amount</span></div></th>
-    <th><div class="hdr-inner"><span class="hdr-label">Last Edited By</span></div></th>
+    ${makeHdr(t('Date'),'date','','Date of expense')}
+    ${makeHdr('Reason','reason','','What the expense was for')}
+    <th class="num"><div class="hdr-inner"><span class="hdr-label" title="Amount in currency">Amount</span></div></th>
+    ${makeHdr(t('Payment'),'','','Payment method')}
   </tr>`;
   let total=0;
   S.expense.forEach((row,i)=>{
-    const amt=parseFloat(row.amt)||0;
-    total+=amt;
+    const amt=parseFloat(row.amt)||0;total+=amt;
+    const editable=canEditRow(row)||isAdmin();
     const tr=document.createElement('tr');
+    tr.oncontextmenu=e=>showCtxMenu(e,i,'expense');
     tr.innerHTML=`
-      ${rw?`<td><button class="del-btn no-print" onclick="deleteRow(${i})">×</button></td>`:''}
-      <td><input type="datetime-local" value="${row.date||''}" oninput="handleInput(${i},'date',this.value)" ${!rw?'readonly':''}></td>
-      <td><input value="${esc(row.reason||'')}" placeholder="Expense reason" oninput="handleInput(${i},'reason',this.value)" ${!rw?'readonly':''}></td>
-      <td class="num"><input type="number" class="mono" value="${row.amt===''?'':row.amt}"
-            placeholder="0.00" oninput="handleInput(${i},'amt',this.value)" ${!rw?'readonly':''}></td>
-      <td><div class="edited-by">${row._editor?'✏️ '+esc(row._editor):''}</div></td>`;
+      <td><input type="datetime-local" value="${row.date||''}" title="Date of expense" oninput="handleInput(${i},'date',this.value,'expense')" ${!rw||!editable?'readonly':''}></td>
+      <td><input value="${esc(row.reason||'')}" placeholder="Expense reason" title="What this expense is for" oninput="handleInput(${i},'reason',this.value,'expense')" ${!rw||!editable?'readonly':''}></td>
+      <td class="num"><input type="number" class="mono" value="${row.amt===''?'':row.amt}" placeholder="0.00" title="Amount" oninput="handleInput(${i},'amt',this.value,'expense')" ${!rw||!editable?'readonly':''}></td>
+      <td>
+        <select title="Payment method" onchange="handleInput(${i},'payment',this.value,'expense')" ${!rw||!editable?'disabled':''}>
+          ${PAYMENT_METHODS.map(m=>`<option value="${m}"${(row.payment||'CASH')===m?' selected':''}>${m}</option>`).join('')}
+        </select>
+      </td>`;
     tbody.appendChild(tr);
   });
-  const sr=document.createElement('tr');
-  sr.className='summary-row';
-  sr.innerHTML=`${rw?'<td></td>':''}
-    <td class="summary-label" colspan="2">Total Expenses</td>
+  const sr=document.createElement('tr');sr.className='summary-row';
+  sr.innerHTML=`<td class="summary-label" colspan="2">Total Expenses</td>
     <td class="num num-pad ${total<0?'neg-val':''}" style="font-family:var(--mono);font-weight:700">${fmt(total)}</td>
     <td></td>`;
   tbody.appendChild(sr);
@@ -1933,21 +1876,24 @@ function renderExpense(thead,tbody){
 /* ============================================================
    REPORT
 ============================================================ */
+let _reportChart=null;
 function renderReport(thead,tbody,extras){
   thead.innerHTML=`<tr style="background:linear-gradient(90deg,var(--hdr-from),var(--hdr-to))">
-    <th colspan="2" style="padding:16px 18px;text-align:center;color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em">
+    <th colspan="2" style="padding:14px 16px;text-align:center;color:#fff;font-size:13.5px;font-weight:800;letter-spacing:.04em">
       ${t('Financial Summary')}
-      <button onclick="printReport()" class="no-print" style="float:right;padding:5px 14px;font-size:11px;
-        border-radius:6px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:700">
+      <button onclick="printReport()" class="no-print" style="float:right;padding:4px 12px;font-size:10px;
+        border-radius:5px;border:none;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;font-weight:700">
         🖨 ${t('Print')}
       </button>
     </th>
   </tr>`;
 
-  extras.innerHTML=`<div class="date-range-bar no-print">
-    <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTable()"></label>
-    <label>To:   <input type="date" value="${S.reportRange.to}"   onchange="S.reportRange.to=this.value;renderTable()"></label>
-  </div>`;
+  const rangeBar=document.createElement('div');
+  rangeBar.className='date-range-bar no-print';
+  rangeBar.innerHTML=`
+    <label title="Filter from this date">From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTable()"></label>
+    <label title="Filter to this date">To: <input type="date" value="${S.reportRange.to}" onchange="S.reportRange.to=this.value;renderTable()"></label>
+    <button onclick="S.reportRange.from='';S.reportRange.to='';renderTable()" style="padding:5px 10px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer;font-weight:600">Clear</button>`;
 
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
@@ -1956,38 +1902,41 @@ function renderReport(thead,tbody,extras){
     if(S.reportRange.to&&d>S.reportRange.to)return false;
     return true;
   });
-  const PR=inRange(S.purchase), SR=inRange(S.sales), ER=inRange(S.expense);
-  const tPC=sum(PR.filter(p=>p.status==='CASH'),  p=>(p.qty||0)*(p.uPrice||0));
+
+  const PR=inRange(S.purchase),SR=inRange(S.sales),ER=inRange(S.expense);
+  const tPC=sum(PR.filter(p=>p.status==='CASH'),p=>(p.qty||0)*(p.uPrice||0));
   const tPCr=sum(PR.filter(p=>p.status==='CREDIT'),p=>(p.qty||0)*(p.uPrice||0));
-  const tSC=sum(SR.filter(s=>s.status==='CASH'),  s=>(s.qty||0)*(s.sPrice||0));
-  const tSCr=sum(SR.filter(s=>s.status==='CREDIT'),s=>(s.qty||0)*(s.sPrice||0));
+  const tSC=sum(SR.filter(s=>s.status==='CASH'),s=>{const tot=(s.qty||0)*(s.sPrice||0);const vat=s.vat!==''&&s.vat!==undefined?parseFloat(s.vat)||0:tot*0.15;return tot+vat;});
+  const tSCr=sum(SR.filter(s=>s.status==='CREDIT'),s=>{const tot=(s.qty||0)*(s.sPrice||0);const vat=s.vat!==''&&s.vat!==undefined?parseFloat(s.vat)||0:tot*0.15;return tot+vat;});
   const tE=sum(ER,r=>parseFloat(r.amt));
   const net=tSC+tSCr-tPC-tPCr-tE;
   const coh=S.beginBal+tSC-tPC-tE;
 
-  const rows2=[
-    {l:'Initial Cash Balance', v:S.beginBal, edit:true},
-    {l:'Total Purchases — Credit', v:tPCr},
-    {l:'Total Purchases — Cash',   v:tPC},
-    {l:'Total Sales — Cash',       v:tSC},
-    {l:'Total Sales — Credit',     v:tSCr},
-    {l:'Total Expenses',           v:tE},
-    {l:'Net Profit / Loss',        v:net,  total:true},
-    {l:'Cash on Hand',             v:coh,  total:true},
+  const reportRows=[
+    {l:'Initial Cash Balance',v:S.beginBal,edit:isAdmin()},
+    {l:'Total Purchases — Credit',v:tPCr},
+    {l:'Total Purchases — Cash',v:tPC},
+    {l:'Total Sales — Cash',v:tSC},
+    {l:'Total Sales — Credit',v:tSCr},
+    {l:'Total Expenses',v:tE},
+    {l:'Net Profit / Loss',v:net,total:true},
+    {l:'Cash on Hand',v:coh,total:true},
   ];
-  rows2.forEach(r=>{
+  reportRows.forEach(r=>{
     const tr=document.createElement('tr');
     tr.className=r.total?'report-total':'';
     tr.innerHTML=`
-      <td class="report-label">${r.l}</td>
+      <td class="report-label" title="${r.l}">${r.l}</td>
       <td class="report-value ${!r.edit&&r.v<0?'neg-val':''}">${r.edit
         ?`<input type="number" class="mono" style="text-align:right;font-weight:700;width:140px;
-             padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)"
+             padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text)"
+             title="Initial cash balance — admin only"
              value="${r.v}" onchange="S.beginBal=parseFloat(this.value)||0;saveUserData();renderTable()">`
         :fmt(r.v)}</td>`;
     tbody.appendChild(tr);
   });
 
+  // Credit breakdown
   const groupBy=(arr,kf,vf)=>arr.reduce((a,r)=>{const k=kf(r);a[k]=(a[k]||0)+vf(r);return a;},{});
   const cp=PR.filter(p=>p.status==='CREDIT'&&p.party);
   const cs=SR.filter(s=>s.status==='CREDIT'&&s.party);
@@ -2001,7 +1950,7 @@ function renderReport(thead,tbody,extras){
     tbody.appendChild(tr);
   }
   if(cs.length){
-    const g=groupBy(cs,s=>s.party,s=>(s.qty||0)*(s.sPrice||0));
+    const g=groupBy(cs,s=>s.party,s=>{const tot=(s.qty||0)*(s.sPrice||0);const vat=s.vat!==''&&s.vat!==undefined?parseFloat(s.vat)||0:tot*0.15;return tot+vat;});
     const tr=document.createElement('tr');
     tr.innerHTML=`<td colspan="2" class="credit-block">
       <b style="color:var(--p)">Sales on Credit — by Customer:</b><br>
@@ -2009,6 +1958,65 @@ function renderReport(thead,tbody,extras){
     </td>`;
     tbody.appendChild(tr);
   }
+
+  // Extras: date range bar + chart
+  extras.innerHTML='';
+  extras.appendChild(rangeBar);
+
+  // Chart
+  const chartWrap=document.createElement('div');
+  chartWrap.className='chart-container';
+  chartWrap.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase">📊 Financial Overview</div>
+    <canvas id="report-chart" class="chart-canvas"></canvas>`;
+  extras.appendChild(chartWrap);
+
+  // Build chart after DOM insertion
+  setTimeout(()=>buildReportChart(PR,SR,ER),50);
+}
+
+function buildReportChart(PR,SR,ER){
+  const canvas=document.getElementById('report-chart');if(!canvas)return;
+  if(_reportChart){_reportChart.destroy();_reportChart=null;}
+
+  // Monthly aggregation
+  const months={};
+  const addMonth=(arr,type,valFn)=>{
+    arr.forEach(r=>{
+      if(!r.date)return;
+      const m=r.date.slice(0,7);
+      if(!months[m]) months[m]={purchase:0,sales:0,expense:0};
+      months[m][type]+=(valFn(r)||0);
+    });
+  };
+  addMonth(PR,'purchase',r=>(r.qty||0)*(r.uPrice||0));
+  addMonth(SR,'sales',r=>{const tot=(r.qty||0)*(r.sPrice||0);const vat=r.vat!==''&&r.vat!==undefined?parseFloat(r.vat)||0:tot*0.15;return tot+vat;});
+  addMonth(ER,'expense',r=>parseFloat(r.amt)||0);
+
+  const labels=Object.keys(months).sort();
+  const isDark=S.theme==='dark';
+  const gridColor=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const textColor=isDark?'#8899bb':'#6b7280';
+
+  _reportChart=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Purchase',data:labels.map(m=>months[m].purchase),backgroundColor:'rgba(26,86,219,.7)',borderRadius:5},
+        {label:'Sales',data:labels.map(m=>months[m].sales),backgroundColor:'rgba(5,150,105,.7)',borderRadius:5},
+        {label:'Expense',data:labels.map(m=>months[m].expense),backgroundColor:'rgba(220,38,38,.6)',borderRadius:5},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{labels:{color:textColor,font:{family:'Plus Jakarta Sans',size:11}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},
+      scales:{
+        x:{grid:{color:gridColor},ticks:{color:textColor,font:{family:'Plus Jakarta Sans',size:10}}},
+        y:{grid:{color:gridColor},ticks:{color:textColor,font:{family:'Plus Jakarta Sans',size:10},callback:v=>fmt(v)}},
+      }
+    }
+  });
 }
 
 /* ============================================================
@@ -2020,73 +2028,68 @@ function printReport(){
   const tbody=document.getElementById('tbody');
   pa.innerHTML=`<style>
     @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
-    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:30px;}
-    h2{color:#1d4ed8;margin-bottom:4px;font-size:18px;}
-    .meta{font-size:11px;color:#64748b;margin-bottom:18px;}
-    table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;}
-    th,td{border:1px solid #e2e8f0;padding:11px 14px;}
-    thead tr th{background:#1d4ed8;color:white;font-size:13px;text-align:left;}
-    .report-label{color:#64748b;font-size:13px;}
-    .report-value{text-align:right;font-weight:700;font-family:monospace;font-size:13px;}
-    .report-total{background:#f0fdf4;font-weight:700;}
-    .report-total td{border-top:2px solid #10b981;border-bottom:2px solid #10b981;}
-    .credit-block{padding:10px 14px;font-size:12px;line-height:1.8;}
-    .neg-val{color:#ef4444;font-weight:700;}
-    .no-print{display:none!important;}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Plus Jakarta Sans',sans-serif;padding:28px;}
+    h2{color:#1a56db;margin-bottom:4px;font-size:18px}
+    .meta{font-size:11px;color:#64748b;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #e2e8f0;padding:10px 13px}
+    thead tr th{background:#1a56db;color:white;font-size:12px;text-align:left}
+    .report-label{color:#64748b;font-size:13px}
+    .report-value{text-align:right;font-weight:700;font-family:monospace;font-size:13px}
+    .report-total{background:#f0fdf4;font-weight:700}
+    .report-total td{border-top:2px solid #059669}
+    .credit-block{padding:9px 13px;font-size:12px;line-height:1.8}
+    .neg-val{color:#dc2626;font-weight:700}
+    .no-print{display:none!important}
   </style>
   <h2>POWER-IMS — Financial Report</h2>
-  <div class="meta">Generated: ${new Date().toLocaleString()} &nbsp;|&nbsp; User: ${S.user}</div>
+  <div class="meta">Generated: ${new Date().toLocaleString()} | User: ${S.user}${S.reportRange.from?` | From: ${S.reportRange.from}`:''} ${S.reportRange.to?`To: ${S.reportRange.to}`:''}</div>
   <table>${thead.innerHTML}<tbody>${tbody.innerHTML}</tbody></table>`;
-  window.print();
-  setTimeout(()=>{ pa.innerHTML=''; }, 1200);
+  window.print();setTimeout(()=>{pa.innerHTML='';},1200);
 }
 
 /* ============================================================
    PDF EXPORT
 ============================================================ */
 function exportPDF(tab){
-  const prevTab=S.tab, prevFilters=S.filters;
-  S.tab=tab; S.filters={};
+  const prevTab=S.tab,prevFilters=S.filters;
+  S.tab=tab;S.filters={};
   const pa=document.getElementById('report-print-area');
   const thead=document.getElementById('thead');
   const tbody=document.getElementById('tbody');
   const extras=document.getElementById('extras');
-  const savedH=thead.innerHTML, savedB=tbody.innerHTML, savedE=extras.innerHTML;
+  const savedH=thead.innerHTML,savedB=tbody.innerHTML,savedE=extras.innerHTML;
   const savedTitle=document.getElementById('sheet-title').textContent;
   renderTable();
-  const capH=thead.innerHTML, capB=tbody.innerHTML;
+  const capH=thead.innerHTML,capB=tbody.innerHTML;
   pa.innerHTML=`<style>
     @media print{body *{visibility:hidden}#report-print-area,#report-print-area *{visibility:visible}}
-    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Sora',sans-serif;padding:24px;}
-    .print-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #2563eb;}
-    .print-biz{font-size:20px;font-weight:800;color:#1d4ed8;letter-spacing:.04em;}
-    .print-meta{font-size:11px;color:#64748b;text-align:right;}
-    h2{color:#1d4ed8;margin-bottom:4px;}
-    table{width:100%;border-collapse:collapse;font-size:12px;}
-    th{background:#1d4ed8;color:#fff;padding:8px 10px;text-align:left;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;}
-    td{border-bottom:1px solid #e2e8f0;padding:8px 10px;}
-    .num,.num-pad{text-align:right;font-family:monospace;}
-    .summary-row td{background:#f0fdf4;font-weight:700;}
-    .row-incomplete td{background:#fff1f1;}
-    .neg-val{color:#ef4444;font-weight:700;}
-    .vat-cell{background:#f5f3ff;}
-    .withhold-cell{background:#ecfeff;}
-    .hdr-filter,.del-btn,.resize-handle,.no-print,.edited-by{display:none!important;}
-    input,select{border:none;background:transparent;width:100%;font-family:inherit;font-size:12px;}
-    .report-total{background:#f0fdf4;}
-    .report-value{text-align:right;font-weight:700;font-family:monospace;}
-    .credit-block{padding:10px 14px;font-size:12px;}
+    #report-print-area{position:fixed;top:0;left:0;width:100%;font-family:'Plus Jakarta Sans',sans-serif;padding:22px;}
+    .print-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #1a56db}
+    .print-biz{font-size:20px;font-weight:800;color:#1a56db;letter-spacing:.04em}
+    .print-meta{font-size:11px;color:#64748b;text-align:right}
+    table{width:100%;border-collapse:collapse;font-size:11.5px}
+    th{background:#1a56db;color:#fff;padding:7px 9px;text-align:left;font-size:10px;letter-spacing:.04em;text-transform:uppercase}
+    td{border-bottom:1px solid #e2e8f0;padding:7px 9px}
+    .num,.num-pad{text-align:right;font-family:monospace}
+    .summary-row td{background:#f0fdf4;font-weight:700}
+    .row-incomplete td{background:#fff1f1}
+    .neg-val{color:#dc2626;font-weight:700}
+    .hdr-filter,.resize-handle,.no-print,.edited-by{display:none!important}
+    input,select{border:none;background:transparent;width:100%;font-family:inherit;font-size:11.5px}
+    .report-total{background:#f0fdf4}
+    .report-value{text-align:right;font-weight:700;font-family:monospace}
+    .credit-block{padding:9px 13px;font-size:11.5px}
   </style>
   <div class="print-hdr">
-    <div><div class="print-biz">📦 POWER-IMS</div><div style="font-size:12px;color:#64748b;margin-top:2px">${TAB_TITLES[tab]||tab} Report</div></div>
+    <div><div class="print-biz">📦 POWER-IMS</div><div style="font-size:11px;color:#64748b;margin-top:1px">${TAB_TITLES[tab]||tab} Report</div></div>
     <div class="print-meta">Printed: ${new Date().toLocaleString()}<br>User: ${S.user}</div>
   </div>
   <table><thead>${capH}</thead><tbody>${capB}</tbody></table>`;
   window.print();
   setTimeout(()=>{
-    pa.innerHTML='';
-    thead.innerHTML=savedH; tbody.innerHTML=savedB; extras.innerHTML=savedE;
-    S.tab=prevTab; S.filters=prevFilters;
+    pa.innerHTML='';thead.innerHTML=savedH;tbody.innerHTML=savedB;extras.innerHTML=savedE;
+    S.tab=prevTab;S.filters=prevFilters;
     document.getElementById('sheet-title').textContent=savedTitle;
   },1200);
 }
@@ -2096,25 +2099,25 @@ function exportPDF(tab){
 ============================================================ */
 function exportXL(tab){
   if(typeof XLSX==='undefined'){showToast('XLSX library not loaded','error');return;}
-  let data=[], headers=[], rows2=[];
+  let data=[],headers=[],rows2=[];
   if(tab==='PURCHASE'){
-    headers=['Date','Supplier','Part No.','Name','Description','Qty','Unit Price','Total','Status','Last Edited By'];
+    headers=['Date','Supplier','Branch','Part No.','Name','Description','Qty','Unit Price','Total','Payment','Status'];
     rows2=S.purchase.filter(r=>r.id||r.party||r.qty);
-    data=rows2.map(r=>[r.date||'',r.party||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.status||'',r._editor||'']);
-    const tot=data.reduce((a,b)=>a+(b[7]||0),0);
-    data.push(['','','','','','TOTAL','','',fmt(tot),'']);
-  } else if(tab==='SALES'){
-    headers=['Date','Customer','Part No.','Name','Desc','Qty','Price','VAT(15%)','Total Price','WH 3%','VAT WH 7.5%','Purch.Price','Total Purch.','Status','Last Edited By'];
+    data=rows2.map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.payment||'CASH',r.status||'']);
+    const tot=data.reduce((a,b)=>a+(b[8]||0),0);
+    data.push(['','','','','','','TOTAL','','',fmt(tot),'','']);
+  }else if(tab==='SALES'){
+    headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT(15%)','Total Price','WH 3%','VAT WH 7.5%','Payment','Status'];
     rows2=S.sales.filter(r=>r.id||r.party||r.qty);
     data=rows2.map((r,i)=>{
       const qty=parseFloat(r.qty)||0,sp=parseFloat(r.sPrice)||0;
-      const totP=qty*sp,pp=fifoBuyPrice(r.id,qty,i);
-      const vat=parseFloat(r.vat)||totP*0.15;
-      const wh3=parseFloat(r.wh3)||totP*0.03;
-      const vwh75=parseFloat(r.vwh75)||totP*0.075;
-      return [r.date||'',r.party||'',r.id||'',r.name||'',r.desc||'',qty,sp,vat,totP,wh3,vwh75,pp,qty*(pp||0),r.status||'',r._editor||''];
+      const totP=qty*sp;
+      const vat=r.vat!==''&&r.vat!==undefined?parseFloat(r.vat)||0:totP*0.15;
+      const wh3=r.wh3!==''&&r.wh3!==undefined?parseFloat(r.wh3)||0:totP*0.03;
+      const vwh75=r.vwh75!==''&&r.vwh75!==undefined?parseFloat(r.vwh75)||0:totP*0.075;
+      return[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',qty,sp,vat,totP+vat,wh3,vwh75,r.payment||'CASH',r.status||''];
     });
-  } else if(tab==='BALANCE'){
+  }else if(tab==='BALANCE'){
     headers=['Part No.','Name','Description','Purchase Qty','Sales Qty','Balance','Inventory Value'];
     S.items.filter(m=>m.id).forEach(item=>{
       const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
@@ -2124,21 +2127,18 @@ function exportXL(tab){
       const avg=inQ>0?cost/inQ:0;
       data.push([item.id,item.name,item.desc,inQ,outQ,stock,stock*avg]);
     });
-  } else if(tab==='EXPENSE'){
-    headers=['Date','Reason','Amount','Last Edited By'];
+  }else if(tab==='EXPENSE'){
+    headers=['Date','Reason','Amount','Payment'];
     rows2=S.expense.filter(r=>r.reason||r.amt);
-    data=rows2.map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r._editor||'']);
+    data=rows2.map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r.payment||'CASH']);
     const tot=data.reduce((a,b)=>a+(b[2]||0),0);
     data.push(['','TOTAL',tot,'']);
   }
   const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
-  // Style header row (xlsx doesn't support rich styling without pro, but set width)
-  const colWidths=headers.map(h=>({wch:Math.max(h.length+4,14)}));
-  ws['!cols']=colWidths;
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,TAB_TITLES[tab]||tab);
+  ws['!cols']=headers.map(h=>({wch:Math.max(h.length+4,14)}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,TAB_TITLES[tab]||tab);
   XLSX.writeFile(wb,`POWER-IMS_${tab}_${new Date().toISOString().slice(0,10)}.xlsx`);
-  showToast(`${TAB_TITLES[tab]} exported as Excel ✓`,'success');
+  showToast(`${TAB_TITLES[tab]} exported ✓`,'success');
 }
 
 /* ============================================================
@@ -2148,39 +2148,33 @@ document.addEventListener('keydown',e=>{
   const el=document.activeElement;
   if(!el||(el.tagName!=='INPUT'&&el.tagName!=='SELECT'))return;
   const inputs=[...document.querySelectorAll('tbody input:not([readonly]),tbody select:not([disabled])')];
-  const ci=inputs.indexOf(el); if(ci<0)return;
+  const ci=inputs.indexOf(el);if(ci<0)return;
   const row=el.closest('tr');
   const nc=row?[...row.querySelectorAll('input:not([readonly]),select:not([disabled])')].length:1;
   const mv={ArrowDown:nc,ArrowUp:-nc,Enter:nc};
   if(e.key in mv){const ni=ci+mv[e.key];if(ni>=0&&ni<inputs.length){e.preventDefault();inputs[ni].focus();}}
   if(e.key==='ArrowRight'&&(el.tagName==='SELECT'||el.selectionEnd===el.value.length)){if(ci+1<inputs.length)inputs[ci+1].focus();}
-  if(e.key==='ArrowLeft' &&(el.tagName==='SELECT'||el.selectionStart===0)){if(ci-1>=0)inputs[ci-1].focus();}
+  if(e.key==='ArrowLeft'&&(el.tagName==='SELECT'||el.selectionStart===0)){if(ci-1>=0)inputs[ci-1].focus();}
+  if(e.key==='Escape'){hideCtxMenu();}
 });
 
 /* ============================================================
-   RIGHT-CLICK — bottom nav only
+   CLICK/CONTEXT HANDLERS
 ============================================================ */
-document.addEventListener('contextmenu', e => {
-  // Allow default context menu everywhere except bottom nav
-  if (!e.target.closest('.bottom-nav')) {
-    // suppress or allow — we allow default (browser context menu) everywhere else
-    // Only intercept on bottom nav
-    return true;
-  }
-  e.preventDefault();
-  // On bottom nav right-click: small tip
-  showToast('Use the Settings gear to export','',2000);
+document.addEventListener('click',e=>{
+  // Close context menu when clicking outside
+  if(!e.target.closest('#ctx-menu')) hideCtxMenu();
 });
-
-/* ============================================================
-   CLOSE PANELS ON ESC
-============================================================ */
-document.addEventListener('keydown', e => {
+document.addEventListener('contextmenu',e=>{
+  // Only block right-click on blank/non-interactive areas
+  const allowed=e.target.closest('tbody tr')||e.target.closest('#ctx-menu')||
+    e.target.closest('.modal-box')||e.target.closest('.settings-drawer')||
+    e.target.closest('input')||e.target.closest('select')||e.target.closest('textarea');
+  if(!allowed) e.preventDefault();
+});
+document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    closeSettings();
-    closeApprovals();
-    cancelConfirm();
-    closeModal('receipt-modal');
+    closeSettings();closeApprovals();cancelConfirm();closeModal('receipt-modal');hideCtxMenu();
   }
 });
 
@@ -2189,9 +2183,17 @@ document.addEventListener('keydown', e => {
 ============================================================ */
 function init(){
   const reg=getRegistry();
-  if(!reg[ADMIN]){ reg[ADMIN]='admin'; saveRegistry(reg); }
+  if(!reg[ADMIN]){reg[ADMIN]='admin';saveRegistry(reg);}
+  // Hide page loader
+  setTimeout(()=>{
+    document.getElementById('page-loader').style.opacity='0';
+    document.getElementById('page-loader').style.transition='opacity .4s';
+    setTimeout(()=>document.getElementById('page-loader').style.display='none',400);
+  },900);
+  // Try to reconnect Firebase
+  autoReconnectFirebase();
   const saved=localStorage.getItem('ims_currentUser');
-  if(saved&&getRegistry()[saved]){ doLogin(saved); return; }
+  if(saved&&getRegistry()[saved]){doLogin(saved);return;}
   openModal('auth-modal');
 }
 init();

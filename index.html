@@ -5,13 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f1e">
-<title>POWER-IMS</title>
+<title>POWER-IMS v4</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -21,12 +19,15 @@
   --p:#3b82f6;--p2:#60a5fa;--p-glow:rgba(59,130,246,.25);--p-glass:rgba(59,130,246,.1);
   --accent:#06b6d4;--accent2:#8b5cf6;--accent3:#10b981;
   --success:#10b981;--warn:#f59e0b;--error:#ef4444;
+  --owner:#f59e0b;--owner-glow:rgba(245,158,11,.3);--owner-glass:rgba(245,158,11,.1);
   --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
   --shadow:0 8px 32px rgba(0,0,0,.4);--shadow-lg:0 24px 80px rgba(0,0,0,.6);
   --radius:14px;--radius-sm:9px;--radius-lg:20px;--radius-xl:28px;
   --font:'DM Sans',sans-serif;--display:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
   --nav-h:72px;--hdr-h:60px;
   --gradient:linear-gradient(135deg,#1e3a8a 0%,#1e40af 40%,#0284c7 100%);
+  --owner-gradient:linear-gradient(135deg,#92400e 0%,#b45309 40%,#d97706 100%);
+  --store-gradient:linear-gradient(135deg,#065f46 0%,#047857 40%,#059669 100%);
 }
 [data-theme="light"]{
   --bg:#f0f4ff;--bg2:#e8eeff;--surface:#fff;--surface2:#f8faff;--surface3:#eef2ff;
@@ -44,55 +45,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 ::selection{background:var(--p-glass);color:var(--p2)}
 
 /* ── HEADER ── */
-.app-header{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0 20px;height:var(--hdr-h);position:sticky;top:0;z-index:200;
-  backdrop-filter:blur(20px);gap:12px;
-  box-shadow:0 1px 0 var(--border),0 4px 20px rgba(0,0,0,.1)
-}
+.app-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:var(--hdr-h);position:sticky;top:0;z-index:200;backdrop-filter:blur(20px);gap:12px;box-shadow:0 1px 0 var(--border),0 4px 20px rgba(0,0,0,.1)}
+.app-header.owner-mode{background:linear-gradient(90deg,rgba(146,64,14,.15),var(--surface));border-bottom-color:rgba(245,158,11,.3)}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-.brand-logo{width:38px;height:38px;border-radius:10px;
-  background:var(--gradient);display:flex;align-items:center;justify-content:center;
-  font-size:18px;box-shadow:0 4px 14px var(--p-glow);flex-shrink:0}
+.brand-logo{width:38px;height:38px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px var(--p-glow);flex-shrink:0}
+.brand-logo.owner{background:var(--owner-gradient);box-shadow:0 4px 14px var(--owner-glow)}
+.brand-logo.store{background:var(--store-gradient)}
 .brand-text .t1{font-family:var(--display);font-size:.95rem;font-weight:800;color:var(--text);letter-spacing:.04em}
 .brand-text .t2{font-size:.58rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
 .hdr-right{display:flex;align-items:center;gap:8px}
-.hdr-chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:99px;
-  background:var(--surface2);border:1px solid var(--border)}
+.hdr-chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--border)}
+.hdr-chip.owner-chip{border-color:rgba(245,158,11,.4);background:var(--owner-glass)}
 .hdr-chip .name{font-size:.72rem;font-weight:600;color:var(--text)}
 .hdr-chip .role{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
-.hdr-avatar{width:30px;height:30px;border-radius:50%;background:var(--gradient);
-  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
-  color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer}
-.hdr-avatar img{width:100%;height:100%;object-fit:cover}
-.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
-  background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px;
-  display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
+.hdr-chip .role.owner-role{color:var(--owner)}
+.hdr-avatar{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer}
+.hdr-avatar.owner-avatar{background:var(--owner-gradient);box-shadow:0 0 0 2px var(--owner)}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
 .icon-btn:hover{background:var(--p-glass);color:var(--p);border-color:var(--p-glow)}
 .sync-ring{position:absolute;inset:-1px;border-radius:10px;border:2px solid transparent;pointer-events:none}
 .sync-ring.active{border-color:var(--accent);animation:ringPulse 1.5s ease infinite}
 @keyframes ringPulse{0%,100%{opacity:1}50%{opacity:.3}}
-.notif-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;
-  background:var(--error);border:2px solid var(--surface);font-size:6px;
-  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+.notif-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--error);border:2px solid var(--surface);font-size:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
 
 /* ── BOTTOM NAV ── */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:400;
-  padding:8px 12px calc(8px + env(safe-area-inset-bottom));
-  background:var(--surface);border-top:1px solid var(--border);
-  display:flex;gap:4px;backdrop-filter:blur(20px)
-}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:8px 4px;border-radius:12px;border:none;background:transparent;
-  color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .2s}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);display:flex;gap:4px;backdrop-filter:blur(20px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .2s}
 .nav-item .ni-icon{font-size:18px;line-height:1;transition:transform .2s}
 .nav-item .ni-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.nav-item:hover{color:var(--p);background:var(--p-glass)}
-.nav-item:hover .ni-icon{transform:translateY(-2px)}
-.nav-item.active{color:var(--p);background:var(--p-glass)}
-.nav-item.active .ni-icon{transform:translateY(-2px)}
+.nav-item:hover,.nav-item.active{color:var(--p);background:var(--p-glass)}
+.nav-item:hover .ni-icon,.nav-item.active .ni-icon{transform:translateY(-2px)}
+.nav-item.store-nav.active{color:var(--success);background:rgba(16,185,129,.1)}
 
 /* ── CONTENT ── */
 .content{padding:16px;max-width:1400px;margin:0 auto}
@@ -100,41 +83,62 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 /* ── PAGE CARD ── */
 .page-card{background:var(--surface);border-radius:var(--radius-xl);border:1px solid var(--border);overflow:hidden}
-.page-card-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:16px 20px;border-bottom:1px solid var(--border);
-  background:var(--surface2);gap:12px;flex-wrap:wrap
-}
+.page-card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);gap:12px;flex-wrap:wrap}
 .page-title-block{display:flex;align-items:center;gap:12px}
-.page-icon-wrap{width:38px;height:38px;border-radius:11px;background:var(--p-glass);
-  display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid rgba(59,130,246,.2)}
+.page-icon-wrap{width:38px;height:38px;border-radius:11px;background:var(--p-glass);display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid rgba(59,130,246,.2)}
+.page-icon-wrap.store-icon{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2)}
 .page-title{font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text)}
 .page-sub{font-size:.65rem;color:var(--text3);margin-top:1px}
 .head-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
+/* ── OWNER DASHBOARD ── */
+.owner-screen{min-height:100vh;padding:24px;max-width:1200px;margin:0 auto}
+.owner-hero{background:var(--owner-gradient);border-radius:var(--radius-xl);padding:32px;margin-bottom:24px;position:relative;overflow:hidden}
+.owner-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
+.owner-hero::after{content:'';position:absolute;bottom:-20px;left:100px;width:120px;height:120px;background:rgba(255,255,255,.05);border-radius:50%}
+.owner-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:4px}
+.owner-hero p{color:rgba(255,255,255,.7);font-size:.8rem}
+.owner-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.owner-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}
+.owner-stat::before{content:'';position:absolute;inset:0;background:var(--owner-glass);opacity:0}
+.owner-stat:hover::before{opacity:1}
+.stat-icon{font-size:28px;margin-bottom:10px}
+.stat-val{font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--owner)}
+.stat-lbl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.owner-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);margin-bottom:20px;overflow:hidden}
+.owner-section-hdr{padding:16px 20px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.owner-section-hdr h3{font-family:var(--display);font-size:.85rem;font-weight:700}
+.admin-card{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.admin-card:last-child{border-bottom:none}
+.admin-avatar{width:42px;height:42px;border-radius:12px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0}
+.admin-info{flex:1}
+.admin-name{font-weight:700;font-size:13px}
+.admin-meta{font-size:10.5px;color:var(--text3);margin-top:2px}
+.admin-status{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700}
+.status-active{background:rgba(16,185,129,.15);color:var(--success)}
+.status-pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.status-suspended{background:rgba(239,68,68,.15);color:var(--error)}
+.sub-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.sub-free{background:var(--surface3);color:var(--text3)}
+.sub-basic{background:rgba(59,130,246,.15);color:var(--p)}
+.sub-pro{background:rgba(139,92,246,.15);color:var(--accent2)}
+.sub-enterprise{background:var(--owner-glass);color:var(--owner)}
+
 /* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;
-  font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);
-  background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);
-  white-space:nowrap;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);white-space:nowrap;text-decoration:none}
 .btn:hover{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow)}
 .btn-primary{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow)}
 .btn-primary:hover{background:var(--p2);border-color:var(--p2)}
 .btn-success{background:var(--success);color:#fff;border-color:var(--success)}
 .btn-danger{background:var(--error);color:#fff;border-color:var(--error)}
+.btn-owner{background:var(--owner-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--owner-glow)}
 .btn-sm{padding:5px 10px;font-size:10.5px;border-radius:7px}
 .btn-icon{width:34px;height:34px;padding:0;justify-content:center;font-size:14px}
 
 /* ── TABLE ── */
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
-thead th{
-  background:var(--surface2);padding:10px 12px;text-align:left;
-  border-bottom:2px solid var(--border2);
-  font-family:var(--display);font-size:10px;font-weight:700;
-  color:var(--text3);letter-spacing:.08em;text-transform:uppercase;
-  white-space:nowrap;user-select:none;position:relative
-}
+thead th{background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:2px solid var(--border2);font-family:var(--display);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;user-select:none}
 thead th.num{text-align:right}
 tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text)}
 tbody td.num{text-align:right;font-family:var(--mono);font-size:12px}
@@ -146,18 +150,16 @@ tbody tr:last-child td{border-bottom:none}
 .badge-cash{background:rgba(16,185,129,.15);color:var(--success)}
 .badge-credit{background:rgba(245,158,11,.15);color:var(--warn)}
 .badge-other{background:var(--p-glass);color:var(--p)}
+.badge-store{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.badge-approved{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-rejected{background:rgba(239,68,68,.15);color:var(--error)}
 .num-pos{color:var(--success);font-weight:700}
 .num-neg{color:var(--error);font-weight:700}
 .num-zero{color:var(--text3)}
 .row-low td{background:rgba(239,68,68,.06)!important}
 .row-zero td{background:rgba(245,158,11,.04)!important}
 .summary-row td{background:linear-gradient(90deg,rgba(16,185,129,.08),var(--surface2))!important;font-weight:700!important;border-top:2px solid var(--border2)!important}
-
-/* ── VAT CHECKBOX ── */
-.vat-check-wrap{display:flex;align-items:center;gap:5px}
-.vat-check-wrap input[type="checkbox"]{width:13px;height:13px;accent-color:var(--p);cursor:pointer;flex-shrink:0;border-radius:3px}
-.vat-check-wrap .vat-label{font-size:10px;color:var(--text2);white-space:nowrap}
-.vat-val{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:60px;text-align:right}
 
 /* ── MODALS ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
@@ -167,6 +169,8 @@ tbody tr:last-child td{border-bottom:none}
 .modal-box.narrow{width:min(380px,100%)}
 @keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:none}}
 .modal-hdr{padding:22px 24px 18px;background:var(--gradient);color:#fff;border-radius:var(--radius-xl) var(--radius-xl) 0 0;display:flex;align-items:center;gap:14px}
+.modal-hdr.owner-hdr{background:var(--owner-gradient)}
+.modal-hdr.store-hdr{background:var(--store-gradient)}
 .modal-hdr-icon{font-size:24px}
 .modal-hdr h2{font-family:var(--display);font-size:1rem;font-weight:700}
 .modal-hdr p{font-size:.65rem;opacity:.7;margin-top:2px}
@@ -184,6 +188,8 @@ tbody tr:last-child td{border-bottom:none}
 .modal-btn.secondary{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border2);box-shadow:none}
 .modal-btn.secondary:hover{background:var(--surface3);transform:none}
 .modal-btn.danger{background:var(--error);box-shadow:0 4px 14px rgba(239,68,68,.3)}
+.modal-btn.owner-btn{background:var(--owner-gradient);box-shadow:0 4px 14px var(--owner-glow)}
+.modal-btn.store-btn{background:var(--store-gradient);box-shadow:0 4px 14px rgba(16,185,129,.3)}
 .modal-error{margin-top:8px;padding:9px 12px;border-radius:7px;background:rgba(239,68,68,.1);color:var(--error);font-size:12px;font-weight:500;display:none}
 .modal-error.show{display:block}
 .modal-success{margin-top:8px;padding:9px 12px;border-radius:7px;background:rgba(16,185,129,.1);color:var(--success);font-size:12px;font-weight:500;display:none}
@@ -195,6 +201,7 @@ tbody tr:last-child td{border-bottom:none}
 .settings-drawer{position:fixed;top:0;right:-380px;width:min(380px,95vw);height:100dvh;background:var(--surface);z-index:501;box-shadow:var(--shadow-lg);border-left:1px solid var(--border);transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
 .settings-drawer.open{right:0}
 .drawer-hdr{padding:20px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-hdr.owner-drawer-hdr{background:var(--owner-gradient)}
 .drawer-hdr h3{font-family:var(--display);font-size:.9rem;font-weight:700}
 .drawer-body{flex:1;overflow-y:auto;padding:8px 0 24px}
 .drawer-section{padding:14px 18px 6px;font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.14em;text-transform:uppercase}
@@ -297,13 +304,10 @@ tbody tr:last-child td{border-bottom:none}
 .date-bar input{padding:6px 9px;border:1.5px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:12px;outline:none}
 .date-bar input:focus{border-color:var(--p)}
 
-/* ── BALANCE ── */
-.stock-zero{color:var(--text3)}.stock-pos{color:var(--success);font-weight:700}.stock-neg{color:var(--error);font-weight:700}
-
 /* ── APPROVAL PANEL ── */
 .approval-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:flex-end;z-index:650;padding:70px 14px 14px}
 .approval-overlay.open{display:flex}
-.approval-panel{background:var(--surface);border-radius:var(--radius-xl);width:min(380px,100%);max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--border2);animation:slideLeft .25s ease}
+.approval-panel{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--border2);animation:slideLeft .25s ease}
 @keyframes slideLeft{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 .apv-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .apv-title{font-family:var(--display);font-size:.82rem;font-weight:700}
@@ -318,6 +322,12 @@ tbody tr:last-child td{border-bottom:none}
 .apv-btn.deny{background:var(--error);color:#fff}
 .apv-btn:hover{opacity:.82}
 
+/* ── STORE RECEIPT ── */
+.store-receipt-item{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:8px}
+.receipt-status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.receipt-detail{font-size:12px;color:var(--text2);line-height:1.6}
+.receipt-actions{display:flex;gap:8px;margin-top:10px}
+
 /* ── RECEIPT ── */
 .receipt-body{padding:0 24px 24px;font-family:var(--mono)}
 .rcpt-hdr{text-align:center;padding:20px 0 14px;border-bottom:2px dashed var(--border2);margin-bottom:14px}
@@ -330,7 +340,7 @@ tbody tr:last-child td{border-bottom:none}
 .rcpt-total-val{font-size:1.3rem;font-weight:800;color:var(--p);font-family:var(--mono)}
 .rcpt-footer{text-align:center;color:var(--text3);font-size:9.5px;margin-top:14px;border-top:2px dashed var(--border2);padding-top:12px}
 
-/* ── PERMISSIONS ── */
+/* ── PERM ── */
 .perm-user-card{padding:16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border)}
 .perm-username{font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px}
 .perm-avatar-sm{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
@@ -343,7 +353,7 @@ tbody tr:last-child td{border-bottom:none}
 /* ── PRINT ── */
 @media print{
   .app-header,.bottom-nav,.settings-drawer,.drawer-overlay,.approval-overlay,
-  .toast-wrap,.confirm-overlay,.modal-overlay:not(#receipt-modal),
+  .toast-wrap,.confirm-overlay,.modal-overlay:not(#receipt-modal):not(#store-receipt-print-modal),
   .ctx-menu,.head-actions,.no-print,.drawer-overlay{display:none!important}
   body{padding:0;background:white!important;color:black!important}
   .content{padding:0}
@@ -359,14 +369,16 @@ tbody tr:last-child td{border-bottom:none}
   .hdr-chip{padding:4px;background:transparent;border:none}
   table{min-width:600px}
   .field-row,.field-row-3{grid-template-columns:1fr}
+  .owner-stats{grid-template-columns:1fr 1fr}
 }
 @media(min-width:900px){
   .bottom-nav{justify-content:center;gap:8px}
   .nav-item{flex:none;min-width:88px}
 }
 
-/* ── RESET BANNER ── */
-.reset-banner{background:rgba(245,158,11,.12);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--warn);display:flex;align-items:center;gap:10px}
+/* ── STORE NOTIFICATION PULSE ── */
+.store-notif-pulse{animation:storePulse 2s ease infinite}
+@keyframes storePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
 </style>
 </head>
 <body>
@@ -374,8 +386,8 @@ tbody tr:last-child td{border-bottom:none}
 <!-- LOADER -->
 <div class="page-loader" id="page-loader">
   <div class="loader-logo">📦</div>
-  <div class="loader-text">POWER-IMS</div>
-  <div class="loader-sub">Loading inventory system…</div>
+  <div class="loader-text">POWER-IMS v4</div>
+  <div class="loader-sub">Initializing system…</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
 </div>
 
@@ -388,20 +400,17 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- AUTH -->
 <div class="auth-screen" id="auth-screen" style="display:none">
-  <div class="auth-bg">
-    <div class="auth-orb auth-orb1"></div>
-    <div class="auth-orb auth-orb2"></div>
-  </div>
+  <div class="auth-bg"><div class="auth-orb auth-orb1"></div><div class="auth-orb auth-orb2"></div></div>
   <div class="auth-card">
     <div class="auth-hdr">
       <div class="ah-icon">📦</div>
-      <h1>POWER-IMS</h1>
-      <p>Inventory Management System v3</p>
+      <h1>POWER-IMS v4</h1>
+      <p>Inventory Management System</p>
     </div>
     <div class="auth-body">
       <div class="auth-tabs">
         <button class="auth-tab active" id="tab-login-btn" onclick="setAuthMode('login')">Log In</button>
-        <button class="auth-tab" id="tab-signup-btn" onclick="setAuthMode('signup')">Sign Up</button>
+        <button class="auth-tab" id="tab-signup-btn" onclick="setAuthMode('signup')">Request Access</button>
       </div>
       <div id="auth-signup-avatar" style="display:none">
         <div class="avatar-ring" id="auth-avatar-preview" onclick="document.getElementById('auth-avatar-file').click()">👤</div>
@@ -410,13 +419,27 @@ tbody tr:last-child td{border-bottom:none}
       </div>
       <div class="field"><label>Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
       <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
-      <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+      <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
+      <div class="field" id="auth-admin-code-wrap" style="display:none">
+        <label>Admin Invite Code <span style="color:var(--text3);font-size:9px">(from owner)</span></label>
+        <input id="auth-admin-code" placeholder="Enter invite code from owner">
+      </div>
+      <div class="field" id="auth-request-type-wrap" style="display:none">
+        <label>Request Type</label>
+        <select id="auth-request-type" onchange="toggleAdminCode()">
+          <option value="user">👤 User Account (under an admin)</option>
+          <option value="admin">🔑 Admin Account (requires owner invite code)</option>
+        </select>
+      </div>
+      <div class="field" id="auth-admin-target-wrap" style="display:none">
+        <label>Admin Username <span style="color:var(--text3);font-size:9px">(for user accounts)</span></label>
+        <input id="auth-admin-target" placeholder="Which admin are you under?">
+      </div>
       <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
       <div class="modal-error" id="auth-error"></div>
       <div class="modal-success" id="auth-success"></div>
-      <!-- EMERGENCY RESET -->
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
-        <button onclick="emergencyReset()" style="width:100%;padding:8px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-family:var(--font);font-size:11px;cursor:pointer">🔄 Reset to defaults (if locked out)</button>
+        <button onclick="emergencyReset()" style="width:100%;padding:8px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-family:var(--font);font-size:11px;cursor:pointer">🔄 Reset defaults (emergency)</button>
       </div>
     </div>
   </div>
@@ -425,20 +448,17 @@ tbody tr:last-child td{border-bottom:none}
 <!-- HEADER -->
 <div class="app-header" id="app-header" style="display:none">
   <div class="brand">
-    <div class="brand-logo">📦</div>
+    <div class="brand-logo" id="brand-logo">📦</div>
     <div class="brand-text">
       <div class="t1">POWER-IMS</div>
-      <div class="t2">Inventory System</div>
+      <div class="t2" id="brand-sub">Inventory System</div>
     </div>
   </div>
   <div class="hdr-right">
-    <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">
-      ☁️<div class="sync-ring" id="sync-ring"></div>
-    </div>
-    <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">
-      🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div>
-    </div>
-    <div class="hdr-chip no-print">
+    <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">☁️<div class="sync-ring" id="sync-ring"></div></div>
+    <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div></div>
+    <div class="icon-btn no-print" id="store-notif-btn" onclick="openStoreReceipts()" style="display:none" title="Store Receipts">🏪<div class="notif-dot" id="store-notif-dot" style="display:none;background:var(--success)">0</div></div>
+    <div class="hdr-chip no-print" id="hdr-chip">
       <div class="hdr-avatar" id="hdr-avatar" onclick="openSettings()">👤</div>
       <div>
         <div class="name" id="user-label">—</div>
@@ -452,21 +472,18 @@ tbody tr:last-child td{border-bottom:none}
 <!-- SETTINGS DRAWER -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeSettings()"></div>
 <div class="settings-drawer" id="settings-drawer">
-  <div class="drawer-hdr">
-    <h3>⚙️ Settings</h3>
-    <button class="modal-hdr-close" onclick="closeSettings()">✕</button>
-  </div>
+  <div class="drawer-hdr" id="drawer-hdr"><h3>⚙️ Settings</h3><button class="modal-hdr-close" onclick="closeSettings()">✕</button></div>
   <div class="drawer-body">
     <div class="drawer-section">Navigation</div>
     <button class="drawer-item" onclick="switchTab('ITEMS');closeSettings()">
       <span class="di-icon" style="background:var(--p-glass);color:var(--p)">📋</span>
-      <div class="di-info"><div class="di-label">Add Items</div><div class="di-sub">Manage inventory items</div></div>
+      <div class="di-info"><div class="di-label">Add Items</div><div class="di-sub">Manage inventory catalog</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Export Data</div>
     <button class="drawer-item" onclick="openExportModal();closeSettings()">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📤</span>
-      <div class="di-info"><div class="di-label">Export (PDF & Excel)</div><div class="di-sub">Download reports in any format</div></div>
+      <div class="di-info"><div class="di-label">Export (PDF & Excel)</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Account</div>
@@ -485,6 +502,10 @@ tbody tr:last-child td{border-bottom:none}
     <button class="drawer-item" id="btn-admin-branches" onclick="openBranches();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">🏢</span>
       <div class="di-info"><div class="di-label">Manage Branches</div><div class="di-sub">Admin only</div></div>
+    </button>
+    <button class="drawer-item" id="btn-admin-users" onclick="openAddUserModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
+      <div class="di-info"><div class="di-label">Add User</div><div class="di-sub">Create user for a branch</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Preferences</div>
@@ -510,24 +531,14 @@ tbody tr:last-child td{border-bottom:none}
 <!-- EXPORT MODAL -->
 <div class="modal-overlay" id="export-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">📤</span>
-      <div><h2>Export Data</h2><p>Download PDF or Excel reports</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('export-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">📤</span><div><h2>Export Data</h2><p>Download PDF or Excel reports</p></div><button class="modal-hdr-close" onclick="closeModal('export-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Format</label>
-        <select id="exp-format" class="field input">
-          <option value="PDF">📄 PDF (Print)</option>
-          <option value="XL">📊 Excel (.xlsx)</option>
-        </select>
-      </div>
+      <div class="field"><label>Format</label><select id="exp-format"><option value="PDF">📄 PDF (Print)</option><option value="XL">📊 Excel (.xlsx)</option></select></div>
       <div class="field"><label>Sheet</label>
         <select id="exp-sheet">
-          <option value="PURCHASE">🛒 Purchase</option>
-          <option value="SALES">💰 Sales</option>
-          <option value="BALANCE">⚖️ Balance</option>
-          <option value="EXPENSE">💸 Expense</option>
+          <option value="PURCHASE">🛒 Purchase</option><option value="SALES">💰 Sales</option>
+          <option value="BALANCE">⚖️ Balance</option><option value="EXPENSE">💸 Expense</option>
+          <option value="STORE">🏪 Store</option>
         </select>
       </div>
       <button class="modal-btn" onclick="doExport()">📤 Export Now</button>
@@ -539,11 +550,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- ADD ROW FORM MODAL -->
 <div class="modal-overlay" id="add-row-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon" id="add-form-icon">➕</span>
-      <div><h2 id="add-form-title">Add Entry</h2><p id="add-form-sub">Fill in the form below</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button>
-    </div>
+    <div class="modal-hdr" id="add-form-hdr"><span class="modal-hdr-icon" id="add-form-icon">➕</span><div><h2 id="add-form-title">Add Entry</h2><p id="add-form-sub">Fill in the form below</p></div><button class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button></div>
     <div class="modal-body" id="add-form-body"></div>
   </div>
 </div>
@@ -551,11 +558,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- EDIT ROW MODAL -->
 <div class="modal-overlay" id="edit-row-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">✏️</span>
-      <div><h2>Edit Entry</h2><p>Update the fields below</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">✏️</span><div><h2>Edit Entry</h2><p>Update the fields below</p></div><button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
     <div class="modal-body" id="edit-form-body"></div>
   </div>
 </div>
@@ -563,15 +566,11 @@ tbody tr:last-child td{border-bottom:none}
 <!-- CHANGE PASSWORD -->
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">🔑</span>
-      <div><h2>Change Password</h2></div>
-      <button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">🔑</span><div><h2>Change Password</h2></div><button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Current Password</label><input id="cp-current" type="password"></div>
       <div class="field"><label>New Password</label><input id="cp-new" type="password"></div>
-      <div class="field"><label>Confirm New Password</label><input id="cp-confirm" type="password"></div>
+      <div class="field"><label>Confirm New</label><input id="cp-confirm" type="password"></div>
       <button class="modal-btn" onclick="submitChangePass()">💾 Save Password</button>
       <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px">Cancel</button>
       <div class="modal-error" id="cp-error"></div>
@@ -582,11 +581,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- AVATAR -->
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">🖼️</span>
-      <div><h2>Profile Photo</h2></div>
-      <button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">🖼️</span><div><h2>Profile Photo</h2></div><button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
     <div class="modal-body">
       <div class="avatar-ring" id="avatar-modal-preview" onclick="document.getElementById('avatar-modal-file').click()">👤</div>
       <div class="avatar-hint">Click to choose a photo</div>
@@ -600,27 +595,34 @@ tbody tr:last-child td{border-bottom:none}
 <!-- PERMISSIONS -->
 <div class="modal-overlay" id="perm-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">👥</span>
-      <div><h2>User Permissions</h2><p>Control access per user</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">👥</span><div><h2>User Permissions</h2><p>Control access per user</p></div><button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
     <div class="modal-body" id="perm-body"></div>
+  </div>
+</div>
+
+<!-- ADD USER (Admin creates user with branch) -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr"><span class="modal-hdr-icon">👤</span><div><h2>Add User</h2><p>Create a user under your admin</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Username *</label><input id="nu-username" placeholder="Enter username"></div>
+      <div class="field"><label>Password *</label><input id="nu-password" type="password" placeholder="Set password"></div>
+      <div class="field"><label>Assigned Branch *</label><select id="nu-branch"></select></div>
+      <button class="modal-btn" onclick="submitAddUser()">✅ Create User</button>
+      <button class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px">Cancel</button>
+      <div class="modal-error" id="nu-error"></div>
+    </div>
   </div>
 </div>
 
 <!-- BRANCHES -->
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">🏢</span>
-      <div><h2>Manage Branches</h2></div>
-      <button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">🏢</span><div><h2>Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
     <div class="modal-body">
       <div id="branch-list-ui"></div>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <input id="new-branch-input" class="field" style="flex:1;margin:0;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;outline:none" placeholder="New branch name…">
+        <input id="new-branch-input" style="flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;outline:none" placeholder="New branch name…">
         <button class="btn btn-primary" onclick="addBranch()">+ Add</button>
       </div>
       <button class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:12px">Close</button>
@@ -634,36 +636,115 @@ tbody tr:last-child td{border-bottom:none}
     <div class="confirm-icon" id="confirm-icon">🗑️</div>
     <div class="confirm-title" id="confirm-title">Delete?</div>
     <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
-    <div class="confirm-actions">
-      <button onclick="cancelConfirm()">Cancel</button>
-      <button id="confirm-ok-btn" onclick="doConfirm()">Delete</button>
-    </div>
+    <div class="confirm-actions"><button onclick="cancelConfirm()">Cancel</button><button id="confirm-ok-btn" onclick="doConfirm()">Delete</button></div>
   </div>
 </div>
 
-<!-- APPROVALS -->
+<!-- APPROVALS PANEL -->
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr">
-      <span class="apv-title">🔔 Pending Approvals</span>
-      <button class="apv-close" onclick="closeApprovals()">✕</button>
-    </div>
+    <div class="apv-hdr"><span class="apv-title">🔔 Pending Approvals</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
     <div id="approval-list"></div>
+  </div>
+</div>
+
+<!-- STORE RECEIPTS PANEL -->
+<div class="approval-overlay" id="store-receipt-overlay">
+  <div class="approval-panel">
+    <div class="apv-hdr"><span class="apv-title">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
+    <div id="store-receipt-list"></div>
   </div>
 </div>
 
 <!-- RECEIPT -->
 <div class="modal-overlay" id="receipt-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr">
-      <span class="modal-hdr-icon">🧾</span>
-      <div><h2>Receipt</h2></div>
-      <button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button>
-    </div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">🧾</span><div><h2>Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
     <div class="receipt-body" id="receipt-content"></div>
     <div style="padding:0 24px 22px;display:flex;gap:8px">
       <button class="modal-btn" onclick="printReceiptDirectly()">🖨️ Print</button>
       <button class="modal-btn secondary" onclick="closeModal('receipt-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- STORE DISPATCH RECEIPT PRINT MODAL -->
+<div class="modal-overlay" id="store-receipt-print-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr store-hdr"><span class="modal-hdr-icon">🏪</span><div><h2>Store Dispatch Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
+    <div class="receipt-body" id="store-receipt-print-content"></div>
+    <div style="padding:0 24px 22px;display:flex;gap:8px">
+      <button class="modal-btn store-btn" onclick="printStoreReceiptDirectly()">🖨️ Print</button>
+      <button class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER PANEL (full page overlay) -->
+<div id="owner-screen" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;">
+  <div class="owner-screen">
+    <div class="owner-hero">
+      <h1>👑 Owner Dashboard</h1>
+      <p>POWER-IMS Platform Control Center — Full visibility over all admins</p>
+    </div>
+    <div class="owner-stats" id="owner-stats"></div>
+    <div class="owner-section">
+      <div class="owner-section-hdr">
+        <h3>🔐 Admin Accounts</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-owner" onclick="openGenerateInvite()">🔑 Generate Invite Code</button>
+        </div>
+      </div>
+      <div id="admin-list-body"></div>
+    </div>
+    <div class="owner-section">
+      <div class="owner-section-hdr">
+        <h3>📋 Pending Admin Requests</h3>
+        <span id="pending-admin-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
+      </div>
+      <div id="pending-admin-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE INVITE CODE MODAL -->
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">🔑</span><div><h2>Generate Invite Code</h2><p>For new admin accounts</p></div><button class="modal-hdr-close" onclick="closeModal('invite-modal')">✕</button></div>
+    <div class="modal-body">
+      <div id="invite-code-display" style="text-align:center;padding:20px;background:var(--owner-glass);border-radius:var(--radius);border:1px solid rgba(245,158,11,.3);margin-bottom:16px">
+        <div style="font-size:11px;color:var(--owner);font-weight:700;margin-bottom:8px">INVITE CODE</div>
+        <div id="invite-code-val" style="font-family:var(--mono);font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:.15em">—</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:6px">Valid for one-time admin signup</div>
+      </div>
+      <button class="modal-btn owner-btn" onclick="generateInviteCode()">🔄 Generate New Code</button>
+      <button class="modal-btn secondary" onclick="closeModal('invite-modal')" style="margin-top:5px">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION MODAL -->
+<div class="modal-overlay" id="sub-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">💎</span><div><h2>Subscription</h2><p id="sub-modal-admin-name">Admin</p></div><button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Subscription Plan</label>
+        <select id="sub-plan-select">
+          <option value="free">🆓 Free</option>
+          <option value="basic">📦 Basic</option>
+          <option value="pro">⚡ Pro</option>
+          <option value="enterprise">💎 Enterprise</option>
+        </select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="sub-status-select">
+          <option value="active">✅ Active</option>
+          <option value="suspended">🚫 Suspended</option>
+        </select>
+      </div>
+      <div class="field"><label>Notes (optional)</label><input id="sub-notes" placeholder="e.g. Paid until Dec 2025"></div>
+      <button class="modal-btn owner-btn" onclick="saveSubscription()">💾 Save Subscription</button>
+      <button class="modal-btn secondary" onclick="closeModal('sub-modal')" style="margin-top:5px">Cancel</button>
     </div>
   </div>
 </div>
@@ -679,10 +760,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="page-card-head">
       <div class="page-title-block">
         <div class="page-icon-wrap" id="page-icon">📋</div>
-        <div>
-          <div class="page-title" id="page-title">Items</div>
-          <div class="page-sub" id="page-sub">Manage inventory items</div>
-        </div>
+        <div><div class="page-title" id="page-title">Items</div><div class="page-sub" id="page-sub">Manage inventory items</div></div>
       </div>
       <div class="head-actions" id="head-actions"></div>
     </div>
@@ -693,28 +771,19 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')">
-    <span class="ni-icon">🛒</span><span class="ni-label">Purchase</span>
-  </button>
-  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')">
-    <span class="ni-icon">💰</span><span class="ni-label">Sales</span>
-  </button>
-  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')">
-    <span class="ni-icon">⚖️</span><span class="ni-label">Balance</span>
-  </button>
-  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')">
-    <span class="ni-icon">💸</span><span class="ni-label">Expense</span>
-  </button>
-  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')">
-    <span class="ni-icon">📊</span><span class="ni-label">Report</span>
-  </button>
+  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')"><span class="ni-icon">🛒</span><span class="ni-label">Purchase</span></button>
+  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')"><span class="ni-icon">💰</span><span class="ni-label">Sales</span></button>
+  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')"><span class="ni-icon">⚖️</span><span class="ni-label">Balance</span></button>
+  <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
+  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
+  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   CONSTANTS & STATE
-═══════════════════════════════════════════════════════════ */
-const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','EXPENSE','REPORT'];
+/* ═══════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════ */
+const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPORT'];
 const PERM_OPTS = [{v:'full',l:'Full'},{v:'add_only',l:'Add Only'},{v:'read',l:'Read Only'},{v:'none',l:'No Access'}];
 const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
 const TAB_META = {
@@ -722,51 +791,47 @@ const TAB_META = {
   PURCHASE:{icon:'🛒',title:'Purchase',sub:'Purchase records'},
   SALES:{icon:'💰',title:'Sales',sub:'Sales records'},
   BALANCE:{icon:'⚖️',title:'Balance',sub:'Inventory stock levels'},
+  STORE:{icon:'🏪',title:'Store',sub:'Central store & dispatch to branches'},
   EXPENSE:{icon:'💸',title:'Expense',sub:'Expense tracking'},
   REPORT:{icon:'📊',title:'Report',sub:'Financial summary'}
 };
-const LANG = {
-  en:{date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',
-      itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',
-      payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',
-      wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',
-      cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount'},
-  am:{date:'ቀን',supplier:'አቅርቦት',customer:'ደንበኛ',branch:'ቅርንጫፍ',partNo:'ቁጥር',
-      itemName:'ስም',desc:'መግለጫ',qty:'ብዛት',unitPrice:'ዋጋ',total:'ድምር',
-      payment:'ክፍያ',status:'ሁኔታ',price:'ዋጋ',totals:'ድምሮች',vat:'ተ.እ.ታ (15%)',
-      wh3:'ምዝገባ 3%',vwh:'ተ.እ.ታ WH 7.5%',totalPrice:'ጠቅላላ ዋጋ',
-      cash:'ጥሬ ገንዘብ',credit:'ክሬዲት',reason:'ምክንያት',amount:'መጠን'}
+const LANG={
+  en:{date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount'},
+  am:{date:'ቀን',supplier:'አቅርቦት',customer:'ደንበኛ',branch:'ቅርንጫፍ',partNo:'ቁጥር',itemName:'ስም',desc:'መግለጫ',qty:'ብዛት',unitPrice:'ዋጋ',total:'ድምር',payment:'ክፍያ',status:'ሁኔታ',price:'ዋጋ',totals:'ድምሮች',vat:'ተ.እ.ታ (15%)',wh3:'ምዝገባ 3%',vwh:'ተ.እ.ታ WH 7.5%',totalPrice:'ጠቅላላ ዋጋ',cash:'ጥሬ ገንዘብ',credit:'ክሬዲት',reason:'ምክንያት',amount:'መጠን'}
 };
-const L = k => (LANG[S.lang]||LANG.en)[k]||k;
+const L=k=>(LANG[S.lang]||LANG.en)[k]||k;
 
-const FIREBASE_CONFIG = {
-  apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',
-  authDomain:'powerims.firebaseapp.com',
-  projectId:'powerims',
-  appId:'1:306983469410:web:d65eedf6eb78602a8e6c3b'
-};
+const FIREBASE_CONFIG={apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',authDomain:'powerims.firebaseapp.com',projectId:'powerims',appId:'1:306983469410:web:d65eedf6eb78602a8e6c3b'};
 
-const S = {
-  user:null, adminId:null,
-  tab:'ITEMS', theme:'dark', lang:'en',
-  items:[], purchase:[], sales:[], expense:[], beginBal:0,
-  reportRange:{from:'',to:''},
-  perms:{}, exportPerms:{}, pendingSignups:[],
+// OWNER credentials (hardcoded, never changeable via UI)
+const OWNER_USERNAME = 'Mb';
+const OWNER_PASSWORD = '1194';
+
+const S={
+  user:null,adminId:null,role:null, // role: 'owner'|'admin'|'user'
+  tab:'ITEMS',theme:'dark',lang:'en',
+  items:[],purchase:[],sales:[],expense:[],
+  storeItems:[],storeDispatches:[], // store inventory and dispatches
+  branchReceipts:[], // receipts received by a branch from store
+  beginBal:0,reportRange:{from:'',to:''},
+  perms:{},exportPerms:{},pendingSignups:[],
   avatarDataUrl:null,
-  branches:['Main'], currentBranch:'',
-  db:null, dbConnected:false,
-  _unsubscribe:null,
+  branches:['Main'],currentBranch:'',
+  adminMeta:{}, // owner sees this: {adminId: {sub:'free',status:'active',notes:''}}
+  db:null,dbConnected:false,_unsubscribe:null,
+  userBranch:null, // branch assigned to this user (non-admin users)
 };
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    HELPERS
-═══════════════════════════════════════════════════════════ */
-const fmt  = n => {const v=parseFloat(n)||0;return v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})};
-const fmtQ = n => (parseFloat(n)||0).toLocaleString();
-const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const nowDt = () => new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
-const sum  = (arr,fn) => arr.reduce((a,b)=>a+(parseFloat(fn(b))||0),0);
-const colorClass = n => parseFloat(n)<0?'num-neg':parseFloat(n)>0?'num-pos':'num-zero';
+═══════════════════════════════════════════════════════ */
+const fmt=n=>{const v=parseFloat(n)||0;return v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})};
+const fmtQ=n=>(parseFloat(n)||0).toLocaleString();
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const nowDt=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+const sum=(arr,fn)=>arr.reduce((a,b)=>a+(parseFloat(fn(b))||0),0);
+const colorClass=n=>parseFloat(n)<0?'num-neg':parseFloat(n)>0?'num-pos':'num-zero';
+const genCode=()=>Math.random().toString(36).substr(2,8).toUpperCase();
 
 function showToast(msg,type='',dur=2800){
   const w=document.getElementById('toast-wrap');
@@ -774,127 +839,82 @@ function showToast(msg,type='',dur=2800){
   setTimeout(()=>{d.style.opacity='0';d.style.transform='translateY(10px)';d.style.transition='all .3s';setTimeout(()=>d.remove(),300)},dur);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   REGISTRY — localStorage key: ims_reg
-   FIX: always ensure admin exists; never wipe existing entries
-═══════════════════════════════════════════════════════════ */
-const getRegistry  = () => JSON.parse(localStorage.getItem('ims_reg')||'{}');
-const saveRegistry = r  => localStorage.setItem('ims_reg',JSON.stringify(r));
+/* ═══════════════════════════════════════════════════════
+   REGISTRY  ims_reg = {username:{password,adminId,role,branch?}}
+   OWNER ADMIN META  ims_adminmeta = {adminId:{sub,status,notes}}
+═══════════════════════════════════════════════════════ */
+const getRegistry=()=>JSON.parse(localStorage.getItem('ims_reg')||'{}');
+const saveRegistry=r=>localStorage.setItem('ims_reg',JSON.stringify(r));
+const getAdminMeta=()=>JSON.parse(localStorage.getItem('ims_adminmeta')||'{}');
+const saveAdminMeta=m=>localStorage.setItem('ims_adminmeta',JSON.stringify(m));
+const getInviteCodes=()=>JSON.parse(localStorage.getItem('ims_invite_codes')||'[]');
+const saveInviteCodes=c=>localStorage.setItem('ims_invite_codes',JSON.stringify(c));
 
-/**
- * ✅ FIX: Ensure the default admin account always exists in the registry.
- * Called on every boot and after any cloud sync that touches the registry.
- * Never removes existing users — only adds 'admin' if missing.
- */
-function ensureAdminExists(){
-  const reg = getRegistry();
-  if(!reg['admin']){
-    reg['admin'] = {password:'admin', adminId:'admin'};
-    saveRegistry(reg);
-  }
-  return reg;
+function ensureDefaults(){
+  // Never modify owner — it's hardcoded, not in registry
+  const reg=getRegistry();
+  if(!reg['admin']){reg['admin']={password:'admin',adminId:'admin',role:'admin'};saveRegistry(reg);}
 }
 
-const adminNS = () => S.adminId || 'default';
-const lsKey   = k => `ims_${adminNS()}_${k}`;
+const adminNS=()=>S.adminId||'default';
+const lsKey=k=>`ims_${adminNS()}_${k}`;
 
 function loadUserData(){
-  const ns = adminNS();
-  S.items    = JSON.parse(localStorage.getItem(`ims_${ns}_items`)   ||JSON.stringify([blankItem()]));
-  S.purchase = JSON.parse(localStorage.getItem(`ims_${ns}_purchase`)||JSON.stringify([blankPurchase()]));
-  S.sales    = JSON.parse(localStorage.getItem(`ims_${ns}_sales`)   ||JSON.stringify([blankSales()]));
-  S.expense  = JSON.parse(localStorage.getItem(`ims_${ns}_expense`) ||JSON.stringify([blankExpense()]));
-  S.beginBal = parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
-  S.perms    = JSON.parse(localStorage.getItem(`ims_${ns}_perms`)   ||'{}');
-  S.exportPerms = JSON.parse(localStorage.getItem(`ims_${ns}_exportperms`)||'{}');
-  S.pendingSignups = JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-  S.branches = JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
-  S.avatarDataUrl = localStorage.getItem(`ims_${S.user}_avatar`)||null;
+  const ns=adminNS();
+  S.items=JSON.parse(localStorage.getItem(`ims_${ns}_items`)||'[]');
+  S.purchase=JSON.parse(localStorage.getItem(`ims_${ns}_purchase`)||'[]');
+  S.sales=JSON.parse(localStorage.getItem(`ims_${ns}_sales`)||'[]');
+  S.expense=JSON.parse(localStorage.getItem(`ims_${ns}_expense`)||'[]');
+  S.storeItems=JSON.parse(localStorage.getItem(`ims_${ns}_storeItems`)||'[]');
+  S.storeDispatches=JSON.parse(localStorage.getItem(`ims_${ns}_storeDispatches`)||'[]');
+  S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
+  S.perms=JSON.parse(localStorage.getItem(`ims_${ns}_perms`)||'{}');
+  S.exportPerms=JSON.parse(localStorage.getItem(`ims_${ns}_exportperms`)||'{}');
+  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
+  S.branches=JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
+  S.avatarDataUrl=localStorage.getItem(`ims_${S.user}_avatar`)||null;
+  // Load branch receipts for this user's branch
+  if(S.userBranch){
+    S.branchReceipts=JSON.parse(localStorage.getItem(`ims_${ns}_branchreceipts_${S.userBranch}`)||'[]');
+  }
 }
 
 function saveUserData(){
-  const ns = adminNS();
-  localStorage.setItem(`ims_${ns}_items`,    JSON.stringify(S.items));
-  localStorage.setItem(`ims_${ns}_purchase`, JSON.stringify(S.purchase));
-  localStorage.setItem(`ims_${ns}_sales`,    JSON.stringify(S.sales));
-  localStorage.setItem(`ims_${ns}_expense`,  JSON.stringify(S.expense));
-  localStorage.setItem(`ims_${ns}_beginBal`, S.beginBal);
-  localStorage.setItem(`ims_${ns}_perms`,    JSON.stringify(S.perms));
-  localStorage.setItem(`ims_${ns}_exportperms`, JSON.stringify(S.exportPerms));
-  localStorage.setItem(`ims_${ns}_pending`,  JSON.stringify(S.pendingSignups));
-  localStorage.setItem(`ims_${ns}_branches`, JSON.stringify(S.branches));
+  const ns=adminNS();
+  localStorage.setItem(`ims_${ns}_items`,JSON.stringify(S.items));
+  localStorage.setItem(`ims_${ns}_purchase`,JSON.stringify(S.purchase));
+  localStorage.setItem(`ims_${ns}_sales`,JSON.stringify(S.sales));
+  localStorage.setItem(`ims_${ns}_expense`,JSON.stringify(S.expense));
+  localStorage.setItem(`ims_${ns}_storeItems`,JSON.stringify(S.storeItems));
+  localStorage.setItem(`ims_${ns}_storeDispatches`,JSON.stringify(S.storeDispatches));
+  localStorage.setItem(`ims_${ns}_beginBal`,S.beginBal);
+  localStorage.setItem(`ims_${ns}_perms`,JSON.stringify(S.perms));
+  localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
+  localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
+  localStorage.setItem(`ims_${ns}_branches`,JSON.stringify(S.branches));
+  if(S.userBranch){
+    localStorage.setItem(`ims_${ns}_branchreceipts_${S.userBranch}`,JSON.stringify(S.branchReceipts));
+  }
   syncToCloud();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   FIREBASE
-═══════════════════════════════════════════════════════════ */
-function initFirebase(){
-  try{
-    let app;
-    try{app=firebase.app('power-ims');}catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'power-ims');}
-    S.db=firebase.firestore(app);
-    S.dbConnected=true;
-    setSyncRing(true);
-    return true;
-  }catch(e){
-    console.warn('Firebase init failed:',e);
-    setSyncRing(false);
-    return false;
-  }
+function saveBranchReceipts(branch,receipts){
+  const ns=adminNS();
+  localStorage.setItem(`ims_${ns}_branchreceipts_${branch}`,JSON.stringify(receipts));
+}
+function loadBranchReceipts(branch){
+  const ns=adminNS();
+  return JSON.parse(localStorage.getItem(`ims_${ns}_branchreceipts_${branch}`)||'[]');
 }
 
-function subscribeFirestore(){
-  if(!S.db||S.dbConnected===false)return;
-  if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
-  S._unsubscribe = S.db.collection('power_ims3').doc(adminNS())
-    .onSnapshot(doc=>{
-      if(!doc.exists)return;
-      const d=doc.data();
-      const p=v=>{try{return JSON.parse(v)}catch{return null}};
-      if(d.items)    S.items    = p(d.items)   ||S.items;
-      if(d.purchase) S.purchase = p(d.purchase)||S.purchase;
-      if(d.sales)    S.sales    = p(d.sales)   ||S.sales;
-      if(d.expense)  S.expense  = p(d.expense) ||S.expense;
-      if(d.beginBal!==undefined) S.beginBal=parseFloat(d.beginBal)||0;
-      if(d.perms)    S.perms    = p(d.perms)   ||S.perms;
-      if(d.exportPerms) S.exportPerms=p(d.exportPerms)||S.exportPerms;
-      if(d.pendingSignups) S.pendingSignups=p(d.pendingSignups)||S.pendingSignups;
-      if(d.branches) S.branches = p(d.branches)||S.branches;
-
-      // ✅ FIX: Merge cloud registry WITH local — never overwrite admin entry
-      if(d.registry){
-        const cloudReg=p(d.registry);
-        if(cloudReg){
-          const localReg=getRegistry();
-          // Merge: cloud wins for non-admin keys, but always keep admin
-          const merged={...cloudReg,...localReg};
-          // If cloud has more users not in local, include them too
-          Object.keys(cloudReg).forEach(k=>{if(!merged[k])merged[k]=cloudReg[k];});
-          saveRegistry(merged);
-          ensureAdminExists(); // Always ensure admin survives
-        }
-      }
-
-      // Mirror to localStorage
-      const ns=adminNS();
-      localStorage.setItem(`ims_${ns}_items`,    JSON.stringify(S.items));
-      localStorage.setItem(`ims_${ns}_purchase`, JSON.stringify(S.purchase));
-      localStorage.setItem(`ims_${ns}_sales`,    JSON.stringify(S.sales));
-      localStorage.setItem(`ims_${ns}_expense`,  JSON.stringify(S.expense));
-      localStorage.setItem(`ims_${ns}_beginBal`, S.beginBal);
-      localStorage.setItem(`ims_${ns}_perms`,    JSON.stringify(S.perms));
-      localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
-      localStorage.setItem(`ims_${ns}_pending`,  JSON.stringify(S.pendingSignups));
-      localStorage.setItem(`ims_${ns}_branches`, JSON.stringify(S.branches));
-
-      if(S.tab) renderTab();
-      if(isAdmin()) updateNotifBadge();
-      setSyncRing(true);
-    },err=>{
-      setSyncRing(false);
-      showToast('⚠️ Sync error: '+err.message.slice(0,30),'error');
-    });
+/* ═══════════════════════════════════════════════════════
+   FIREBASE
+═══════════════════════════════════════════════════════ */
+function initFirebase(){
+  try{
+    let app;try{app=firebase.app('pims4');}catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims4');}
+    S.db=firebase.firestore(app);S.dbConnected=true;setSyncRing(true);return true;
+  }catch(e){setSyncRing(false);return false;}
 }
 
 let _syncT=null;
@@ -902,108 +922,45 @@ function syncToCloud(){
   if(!S.dbConnected||!S.db)return;
   clearTimeout(_syncT);
   _syncT=setTimeout(()=>{
-    S.db.collection('power_ims3').doc(adminNS()).set({
-      items:JSON.stringify(S.items),
-      purchase:JSON.stringify(S.purchase),
-      sales:JSON.stringify(S.sales),
-      expense:JSON.stringify(S.expense),
-      beginBal:S.beginBal,
-      perms:JSON.stringify(S.perms),
-      exportPerms:JSON.stringify(S.exportPerms),
-      pendingSignups:JSON.stringify(S.pendingSignups),
-      branches:JSON.stringify(S.branches),
+    const ns=adminNS();
+    const payload={
+      items:JSON.stringify(S.items),purchase:JSON.stringify(S.purchase),
+      sales:JSON.stringify(S.sales),expense:JSON.stringify(S.expense),
+      storeItems:JSON.stringify(S.storeItems),storeDispatches:JSON.stringify(S.storeDispatches),
+      beginBal:S.beginBal,perms:JSON.stringify(S.perms),
+      exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
-      updatedAt:new Date().toISOString(),
-    },{merge:true})
-    .then(()=>setSyncRing(true))
-    .catch(()=>{setSyncRing(false);showToast('Sync failed','error')});
-  },1000);
+      adminMeta:JSON.stringify(getAdminMeta()),
+      updatedAt:new Date().toISOString()
+    };
+    // Save branch receipts
+    S.branches.forEach(b=>{
+      payload[`br_${b}`]=JSON.stringify(loadBranchReceipts(b));
+    });
+    S.db.collection('power_ims4').doc(ns).set(payload,{merge:true})
+      .then(()=>setSyncRing(true)).catch(()=>setSyncRing(false));
+  },1200);
 }
-
-function setSyncRing(ok){
-  const r=document.getElementById('sync-ring');
-  if(r) r.className='sync-ring'+(ok?' active':'');
-}
+function setSyncRing(ok){const r=document.getElementById('sync-ring');if(r)r.className='sync-ring'+(ok?' active':'');}
 function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
 
-/* ═══════════════════════════════════════════════════════════
-   EMERGENCY RESET — visible on login screen
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   EMERGENCY RESET
+═══════════════════════════════════════════════════════ */
 function emergencyReset(){
-  if(!confirm('This will reset the admin password to "admin" and clear any login session. Your inventory data will NOT be deleted. Continue?')) return;
-  // Rebuild registry with admin, keeping any other users
-  const reg = getRegistry();
-  reg['admin'] = {password:'admin', adminId:'admin'};
+  if(!confirm('Reset admin to defaults? Inventory data will NOT be deleted.'))return;
+  const reg=getRegistry();
+  reg['admin']={password:'admin',adminId:'admin',role:'admin'};
   saveRegistry(reg);
-  // Clear session
-  localStorage.removeItem('ims_currentUser');
-  localStorage.removeItem('ims_currentAdmin');
-  showMsg('auth-success','✅ Admin reset! Login with username "admin" and password "admin"','success');
+  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentAdmin');localStorage.removeItem('ims_currentRole');
+  showMsg('auth-success','✅ Reset done! Login: admin / admin','success');
   document.getElementById('auth-user').value='admin';
   document.getElementById('auth-pass').value='admin';
 }
 
-/* ═══════════════════════════════════════════════════════════
-   BLANK FACTORIES
-═══════════════════════════════════════════════════════════ */
-const blankItem     = ()=>({id:'',name:'',desc:'',_by:''});
-const blankPurchase = ()=>({date:nowDt(),party:'',branch:S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',uPrice:'',payment:'CASH',_by:''});
-const blankSales    = ()=>({date:nowDt(),party:'',branch:S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',sPrice:'',vatOn:true,wh3On:false,vwhOn:false,payment:'CASH',_by:''});
-const blankExpense  = ()=>({date:nowDt(),reason:'',amt:'',payment:'CASH',_by:''});
-
-/* ═══════════════════════════════════════════════════════════
-   PERMISSIONS
-═══════════════════════════════════════════════════════════ */
-const isAdmin   = ()=>S.user===S.adminId;
-const getPerm   = tab=>isAdmin()?'full':(S.perms[S.user]?.[tab]??'full');
-const canWrite  = tab=>['full','add_only'].includes(getPerm(tab));
-const canRead   = tab=>getPerm(tab)!=='none';
-const canExport = ()=>isAdmin()||(S.exportPerms[S.user]??true);
-const canEditRow= row=>isAdmin()||(!row._by)||(row._by===S.user);
-
-/* ═══════════════════════════════════════════════════════════
-   FIFO
-═══════════════════════════════════════════════════════════ */
-function getStock(itemId){
-  const inQ=S.purchase.filter(p=>p.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  const outQ=S.sales.filter(s=>s.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-  return inQ-outQ;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   THEME & LANG
-═══════════════════════════════════════════════════════════ */
-function setTheme(th){
-  S.theme=th;
-  document.documentElement.setAttribute('data-theme',th==='light'?'light':'dark');
-  const tog=document.getElementById('dark-toggle');
-  if(tog)tog.checked=(th==='light');
-  if(S.user)localStorage.setItem(`ims_${S.user}_theme`,th);
-}
-function setLang(l){
-  S.lang=l;
-  if(S.user)localStorage.setItem(`ims_${S.user}_lang`,l);
-  if(document.getElementById('lang-select'))document.getElementById('lang-select').value=l;
-  renderTab();
-}
-function loadPrefs(){
-  setTheme(localStorage.getItem(`ims_${S.user}_theme`)||'dark');
-  setLang(localStorage.getItem(`ims_${S.user}_lang`)||'en');
-}
-
-/* ═══════════════════════════════════════════════════════════
-   AVATAR
-═══════════════════════════════════════════════════════════ */
-let _authAvatar=null,_modalAvatar=null;
-function previewAuthAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_authAvatar=e.target.result;document.getElementById('auth-avatar-preview').innerHTML=`<img src="${e.target.result}">`};r.readAsDataURL(f);}
-function previewModalAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_modalAvatar=e.target.result;document.getElementById('avatar-modal-preview').innerHTML=`<img src="${e.target.result}">`};r.readAsDataURL(f);}
-function saveAvatar(){if(!_modalAvatar){showToast('Select a photo','error');return;}S.avatarDataUrl=_modalAvatar;localStorage.setItem(`ims_${S.user}_avatar`,_modalAvatar);updateHdrAvatar();closeModal('avatar-modal');showToast('Photo updated!','success');}
-function openAvatarChange(){_modalAvatar=null;document.getElementById('avatar-modal-preview').innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}">`:'👤';openModal('avatar-modal');}
-function updateHdrAvatar(){const el=document.getElementById('hdr-avatar');if(!el)return;el.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.user?S.user[0].toUpperCase():'👤');}
-
-/* ═══════════════════════════════════════════════════════════
-   AUTH
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   AUTH MODES
+═══════════════════════════════════════════════════════ */
 let authMode='login';
 function setAuthMode(m){
   authMode=m;
@@ -1011,8 +968,16 @@ function setAuthMode(m){
   document.getElementById('tab-signup-btn').classList.toggle('active',m==='signup');
   document.getElementById('auth-confirm-wrap').style.display=m==='signup'?'':'none';
   document.getElementById('auth-signup-avatar').style.display=m==='signup'?'':'none';
-  document.getElementById('auth-btn').innerHTML=m==='signup'?'📝 Request Sign Up':'🔐 Log In';
+  document.getElementById('auth-request-type-wrap').style.display=m==='signup'?'':'none';
+  document.getElementById('auth-admin-target-wrap').style.display=m==='signup'?'':'none';
+  document.getElementById('auth-admin-code-wrap').style.display='none';
+  document.getElementById('auth-btn').innerHTML=m==='signup'?'📝 Request Access':'🔐 Log In';
   hideMsg('auth-error');hideMsg('auth-success');
+}
+function toggleAdminCode(){
+  const t=document.getElementById('auth-request-type').value;
+  document.getElementById('auth-admin-code-wrap').style.display=t==='admin'?'':'none';
+  document.getElementById('auth-admin-target-wrap').style.display=t==='user'?'':'none';
 }
 
 function submitAuth(){
@@ -1020,88 +985,311 @@ function submitAuth(){
   const p=document.getElementById('auth-pass').value;
   if(!u||!p){showMsg('auth-error','Please enter username and password');return;}
 
-  // ✅ FIX: Always ensure admin exists before checking credentials
-  ensureAdminExists();
+  // OWNER CHECK — hardcoded, not in registry
+  if(u===OWNER_USERNAME&&p===OWNER_PASSWORD){
+    doLogin(u,'_owner_','owner');return;
+  }
+
+  ensureDefaults();
   const reg=getRegistry();
 
   if(authMode==='login'){
-    const allPending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
-    if(allPending.find(x=>x.username===u)){showMsg('auth-error','Your account is awaiting admin approval.');return;}
     const entry=reg[u];
-    if(!entry){showMsg('auth-error','Username not found. Check spelling or use the reset button below.');return;}
-    if(entry.password!==p){showMsg('auth-error','Incorrect password. Try again.');return;}
-    doLogin(u,entry.adminId||u);
+    if(!entry){showMsg('auth-error','Username not found.');return;}
+    if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
+    // Check if admin account is suspended
+    if(entry.role==='admin'){
+      const meta=getAdminMeta();
+      if(meta[u]?.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact the owner.');return;}
+    }
+    doLogin(u,entry.adminId||u,entry.role||'user');
   }else{
     const c=document.getElementById('auth-confirm').value;
+    const reqType=document.getElementById('auth-request-type').value;
     if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
     if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
-    if(reg[u]){showMsg('auth-error','Username already exists.');return;}
-    const pending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
-    pending.push({username:u,password:p,avatar:_authAvatar||null,requestedAt:new Date().toISOString()});
-    localStorage.setItem('ims_all_pending',JSON.stringify(pending));
-    if(S.dbConnected){
-      S.db.collection('power_ims3').doc('global_pending').set({pending:JSON.stringify(pending)},{merge:true});
+    if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already exists.');return;}
+
+    if(reqType==='admin'){
+      // Validate invite code
+      const code=document.getElementById('auth-admin-code').value.trim();
+      const codes=getInviteCodes();
+      const codeIdx=codes.findIndex(c=>c.code===code&&!c.used);
+      if(codeIdx===-1){showMsg('auth-error','Invalid or already used invite code.');return;}
+      // Mark code as used
+      codes[codeIdx].used=true;codes[codeIdx].usedBy=u;
+      saveInviteCodes(codes);
+      // Add as pending admin request for owner
+      const allPendingAdmins=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+      allPendingAdmins.push({username:u,password:p,role:'admin',requestedAt:new Date().toISOString(),code});
+      localStorage.setItem('ims_pending_admins',JSON.stringify(allPendingAdmins));
+      showMsg('auth-success','✅ Admin request sent! Owner will approve your account.','success');
+    }else{
+      // User under an admin
+      const adminTarget=document.getElementById('auth-admin-target').value.trim();
+      if(!adminTarget){showMsg('auth-error','Please enter the admin username you are under.');return;}
+      if(!reg[adminTarget]||reg[adminTarget].role!=='admin'){showMsg('auth-error','Admin not found. Check spelling.');return;}
+      // Add as pending user signup for that admin
+      const ns=adminTarget;
+      const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
+      const avatar=document.getElementById('auth-avatar-preview')?.querySelector('img')?.src||null;
+      pending.push({username:u,password:p,role:'user',adminId:adminTarget,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
+      localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
+      showMsg('auth-success','✅ Request sent to admin! Wait for approval.','success');
     }
-    showMsg('auth-success','✅ Signup request sent! Wait for admin approval.','success');
   }
 }
 
-function doLogin(u,adminId){
-  S.user=u;S.adminId=adminId;
+function doLogin(u,adminId,role){
+  S.user=u;S.adminId=adminId;S.role=role;
   localStorage.setItem('ims_currentUser',u);
   localStorage.setItem('ims_currentAdmin',adminId);
+  localStorage.setItem('ims_currentRole',role);
+  // Get branch for non-admin users
+  if(role==='user'){
+    const reg=getRegistry();
+    S.userBranch=reg[u]?.branch||null;
+  }
+  if(role==='owner'){
+    doLoginOwner();return;
+  }
   loadUserData();loadPrefs();
   S.avatarDataUrl=localStorage.getItem(`ims_${u}_avatar`)||null;
   document.getElementById('user-label').textContent=u;
-  document.getElementById('user-role-label').textContent=isAdmin()?'Administrator':'User';
+  document.getElementById('user-role-label').textContent=role==='admin'?'Administrator':'User'+(S.userBranch?` — ${S.userBranch}`:'');
+  const chip=document.getElementById('hdr-chip');
+  if(chip){chip.className='hdr-chip no-print';}
+  const av=document.getElementById('hdr-avatar');
+  if(av&&role==='admin'){av.className='hdr-avatar';}
+  const logo=document.getElementById('brand-logo');
+  if(logo){logo.className='brand-logo';}
+  document.getElementById('brand-sub').textContent='Inventory System';
   document.getElementById('btn-admin-perms').style.display=isAdmin()?'flex':'none';
   document.getElementById('btn-admin-branches').style.display=isAdmin()?'flex':'none';
+  document.getElementById('btn-admin-users').style.display=isAdmin()?'flex':'none';
   document.getElementById('notif-btn').style.display=isAdmin()?'flex':'none';
+  document.getElementById('store-nav-btn').style.display=isAdmin()?'':'none';
   updateHdrAvatar();
   showUI();
-  subscribeFirestore();
-  if(isAdmin())updateNotifBadge();
+  if(isAdmin())loadAdminPendingApprovals();
+  updateStoreNotifBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
   switchTab(canRead(lastTab)?lastTab:'ITEMS');
+  initFirebase();
 }
 
-function logout(){
-  if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
-  S.user=null;S.adminId=null;
-  localStorage.removeItem('ims_currentUser');
-  localStorage.removeItem('ims_currentAdmin');
-  closeSettings();hideUI();
-  document.getElementById('auth-user').value='';
-  document.getElementById('auth-pass').value='';
-  document.getElementById('auth-confirm').value='';
-  setAuthMode('login');
-  _authAvatar=null;
-  document.getElementById('auth-avatar-preview').innerHTML='👤';
-  document.getElementById('auth-screen').style.display='flex';
+/* ═══════════════════════════════════════════════════════
+   OWNER LOGIN
+═══════════════════════════════════════════════════════ */
+function doLoginOwner(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-header').style.display='flex';
+  document.getElementById('bottom-nav').style.display='none';
+  document.getElementById('content').style.display='none';
+  document.getElementById('owner-screen').style.display='block';
+  const hdr=document.getElementById('app-header');hdr.className='app-header owner-mode';
+  document.getElementById('brand-logo').className='brand-logo owner';
+  document.getElementById('brand-logo').textContent='👑';
+  document.getElementById('brand-sub').textContent='Owner Dashboard';
+  document.getElementById('user-label').textContent=OWNER_USERNAME;
+  document.getElementById('user-role-label').textContent='OWNER';
+  document.getElementById('user-role-label').className='role owner-role';
+  document.getElementById('hdr-chip').className='hdr-chip owner-chip no-print';
+  document.getElementById('hdr-avatar').className='hdr-avatar owner-avatar';
+  document.getElementById('hdr-avatar').textContent='👑';
+  document.getElementById('notif-btn').style.display='none';
+  document.getElementById('store-notif-btn').style.display='none';
+  document.getElementById('store-nav-btn').style.display='none';
+  document.getElementById('drawer-hdr').className='drawer-hdr owner-drawer-hdr';
+  initFirebase();
+  renderOwnerDashboard();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   APPROVAL SYSTEM
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   OWNER DASHBOARD
+═══════════════════════════════════════════════════════ */
+function renderOwnerDashboard(){
+  const reg=getRegistry();
+  const meta=getAdminMeta();
+  const admins=Object.keys(reg).filter(u=>reg[u].role==='admin');
+  const pendingAdmins=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+
+  // Stats
+  document.getElementById('owner-stats').innerHTML=`
+    <div class="owner-stat"><div class="stat-icon">🔑</div><div class="stat-val">${admins.length}</div><div class="stat-lbl">Active Admins</div></div>
+    <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${pendingAdmins.length}</div><div class="stat-lbl">Pending Requests</div></div>
+    <div class="owner-stat"><div class="stat-icon">💎</div><div class="stat-val">${admins.filter(a=>meta[a]?.sub==='pro'||meta[a]?.sub==='enterprise').length}</div><div class="stat-lbl">Premium Admins</div></div>
+    <div class="owner-stat"><div class="stat-icon">🚫</div><div class="stat-val">${admins.filter(a=>meta[a]?.status==='suspended').length}</div><div class="stat-lbl">Suspended</div></div>`;
+
+  // Admin list
+  document.getElementById('admin-list-body').innerHTML=admins.length?admins.map(a=>{
+    const m=meta[a]||{sub:'free',status:'active'};
+    const subClass={free:'sub-free',basic:'sub-basic',pro:'sub-pro',enterprise:'sub-enterprise'}[m.sub]||'sub-free';
+    const statusClass={active:'status-active',suspended:'status-suspended'}[m.status]||'status-active';
+    return`<div class="admin-card">
+      <div class="admin-avatar">${a[0].toUpperCase()}</div>
+      <div class="admin-info">
+        <div class="admin-name">${esc(a)}</div>
+        <div class="admin-meta">
+          <span class="sub-badge ${subClass}">💎 ${m.sub||'free'}</span>
+          ${m.notes?`<span style="margin-left:8px;font-size:10px;color:var(--text3)">${esc(m.notes)}</span>`:''}
+        </div>
+      </div>
+      <span class="admin-status ${statusClass}">${m.status==='suspended'?'🚫 Suspended':'✅ Active'}</span>
+      <button class="btn btn-sm" onclick="openSubModal('${a}')" style="margin-left:8px">💎 Sub</button>
+      ${m.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendAdmin('${a}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendAdmin('${a}')" style="margin-left:4px">✅</button>`}
+    </div>`;
+  }).join(''):`<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No admins yet. Generate an invite code to onboard admins.</div>`;
+
+  // Pending admin requests
+  document.getElementById('pending-admin-count').textContent=pendingAdmins.length;
+  document.getElementById('pending-admin-list').innerHTML=pendingAdmins.length?pendingAdmins.map((p,i)=>`
+    <div class="admin-card">
+      <div class="admin-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
+      <div class="admin-info">
+        <div class="admin-name">${esc(p.username)}</div>
+        <div class="admin-meta">Requested: ${new Date(p.requestedAt).toLocaleString()} | Code: ${esc(p.code)}</div>
+      </div>
+      <button class="apv-btn approve" style="width:auto;padding:6px 12px;margin-left:8px" onclick="approveAdmin(${i})">✅ Approve</button>
+      <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:4px" onclick="denyAdmin(${i})">❌ Deny</button>
+    </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No pending requests 🎉</div>`;
+}
+
+function approveAdmin(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+  const p=pending[i];const reg=getRegistry();
+  reg[p.username]={password:p.password,adminId:p.username,role:'admin'};
+  saveRegistry(reg);
+  // Set default free subscription
+  const meta=getAdminMeta();
+  meta[p.username]={sub:'free',status:'active',approvedAt:new Date().toISOString()};
+  saveAdminMeta(meta);
+  pending.splice(i,1);
+  localStorage.setItem('ims_pending_admins',JSON.stringify(pending));
+  showToast(`✅ ${p.username} approved as admin!`,'success');
+  renderOwnerDashboard();
+}
+function denyAdmin(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+  const name=pending[i].username;pending.splice(i,1);
+  localStorage.setItem('ims_pending_admins',JSON.stringify(pending));
+  showToast(`❌ ${name} denied`,'error');renderOwnerDashboard();
+}
+function suspendAdmin(adminId){
+  customConfirm('Suspend Admin?',`${adminId} will lose access.`,'🚫','Suspend',()=>{
+    const meta=getAdminMeta();if(!meta[adminId])meta[adminId]={};
+    meta[adminId].status='suspended';saveAdminMeta(meta);
+    showToast(`${adminId} suspended`,'warn');renderOwnerDashboard();
+  });
+}
+function unsuspendAdmin(adminId){
+  const meta=getAdminMeta();if(!meta[adminId])meta[adminId]={};
+  meta[adminId].status='active';saveAdminMeta(meta);
+  showToast(`${adminId} reactivated`,'success');renderOwnerDashboard();
+}
+
+let _subAdminTarget='';
+function openSubModal(adminId){
+  _subAdminTarget=adminId;
+  const meta=getAdminMeta();const m=meta[adminId]||{sub:'free',status:'active'};
+  document.getElementById('sub-modal-admin-name').textContent=adminId;
+  document.getElementById('sub-plan-select').value=m.sub||'free';
+  document.getElementById('sub-status-select').value=m.status||'active';
+  document.getElementById('sub-notes').value=m.notes||'';
+  openModal('sub-modal');
+}
+function saveSubscription(){
+  const meta=getAdminMeta();
+  if(!meta[_subAdminTarget])meta[_subAdminTarget]={};
+  meta[_subAdminTarget].sub=document.getElementById('sub-plan-select').value;
+  meta[_subAdminTarget].status=document.getElementById('sub-status-select').value;
+  meta[_subAdminTarget].notes=document.getElementById('sub-notes').value;
+  saveAdminMeta(meta);syncToCloud();
+  closeModal('sub-modal');showToast('Subscription updated!','success');renderOwnerDashboard();
+}
+
+function openGenerateInvite(){openModal('invite-modal');generateInviteCode();}
+function generateInviteCode(){
+  const code=genCode();
+  const codes=getInviteCodes();
+  codes.push({code,created:new Date().toISOString(),used:false});
+  saveInviteCodes(codes);
+  document.getElementById('invite-code-val').textContent=code;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PERMISSIONS
+═══════════════════════════════════════════════════════ */
+const isOwner=()=>S.role==='owner';
+const isAdmin=()=>S.role==='admin';
+const isUser=()=>S.role==='user';
+const getPerm=tab=>{
+  if(isAdmin()||isOwner())return'full';
+  return S.perms[S.user]?.[tab]??'full';
+};
+const canWrite=tab=>['full','add_only'].includes(getPerm(tab));
+const canRead=tab=>getPerm(tab)!=='none';
+const canExport=()=>isAdmin()||isOwner()||(S.exportPerms[S.user]??true);
+const canEditRow=row=>isAdmin()||isOwner()||(!row._by)||(row._by===S.user);
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN — MANAGE USERS
+═══════════════════════════════════════════════════════ */
+function openAddUserModal(){
+  document.getElementById('nu-username').value='';
+  document.getElementById('nu-password').value='';
+  const sel=document.getElementById('nu-branch');
+  sel.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  hideMsg('nu-error');openModal('add-user-modal');
+}
+function submitAddUser(){
+  const u=document.getElementById('nu-username').value.trim();
+  const p=document.getElementById('nu-password').value;
+  const branch=document.getElementById('nu-branch').value;
+  if(!u||!p){showMsg('nu-error','Username and password required');return;}
+  if(p.length<4){showMsg('nu-error','Password min 4 characters');return;}
+  const reg=getRegistry();
+  if(reg[u]||u===OWNER_USERNAME){showMsg('nu-error','Username already exists');return;}
+  reg[u]={password:p,adminId:S.adminId,role:'user',branch};
+  saveRegistry(reg);
+  // Also set branch perm
+  if(!S.perms[u])S.perms[u]={};
+  S.perms[u].branches=[branch];
+  saveUserData();
+  closeModal('add-user-modal');
+  showToast(`✅ User "${u}" created for branch "${branch}"!`,'success');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN — APPROVAL (for users requesting signup)
+═══════════════════════════════════════════════════════ */
+function loadAdminPendingApprovals(){
+  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${adminNS()}_pending`)||'[]');
+  updateNotifBadge();
+}
 function updateNotifBadge(){
   if(!isAdmin())return;
-  const pending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
   const dot=document.getElementById('notif-dot');
-  if(pending.length){dot.style.display='flex';dot.textContent=pending.length;}
+  if(S.pendingSignups.length){dot.style.display='flex';dot.textContent=S.pendingSignups.length;}
   else dot.style.display='none';
 }
 function openApprovals(){
-  const pending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
   const list=document.getElementById('approval-list');
-  if(!pending.length){
+  if(!S.pendingSignups.length){
     list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No pending approvals 🎉</div>';
   }else{
-    list.innerHTML=pending.map((p,i)=>`
+    list.innerHTML=S.pendingSignups.map((p,i)=>`
       <div class="apv-item">
-        <div class="apv-type">🧑 New User Request</div>
-        <div class="apv-msg">${p.avatar?`<img src="${esc(p.avatar)}" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;margin-right:8px;object-fit:cover">`:''}
+        <div class="apv-type">🧑 User Request</div>
+        <div class="apv-msg">${p.avatar?`<img src="${esc(p.avatar)}" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover">`:''}
           <strong>${esc(p.username)}</strong> wants to join</div>
         <div class="apv-time">${new Date(p.requestedAt).toLocaleString()}</div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:11px;font-weight:600;color:var(--text3)">Assign Branch:</label>
+          <select id="approve-branch-${i}" style="margin-left:8px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
+            ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
+          </select>
+        </div>
         <div class="apv-actions">
           <button class="apv-btn approve" onclick="approveSignup(${i})">✅ Approve</button>
           <button class="apv-btn deny" onclick="denySignup(${i})">❌ Deny</button>
@@ -1110,118 +1298,243 @@ function openApprovals(){
   }
   document.getElementById('approval-overlay').classList.add('open');
 }
-function closeApprovals(){document.getElementById('approval-overlay').classList.remove('open')}
+function closeApprovals(){document.getElementById('approval-overlay').classList.remove('open');}
 function approveSignup(i){
-  const pending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
-  const p=pending[i];const reg=getRegistry();
-  reg[p.username]={password:p.password,adminId:S.adminId};
+  const p=S.pendingSignups[i];
+  const branch=document.getElementById(`approve-branch-${i}`)?.value||S.branches[0];
+  const reg=getRegistry();
+  reg[p.username]={password:p.password,adminId:S.adminId,role:'user',branch};
   saveRegistry(reg);
   if(p.avatar)localStorage.setItem(`ims_${p.username}_avatar`,p.avatar);
-  pending.splice(i,1);
-  localStorage.setItem('ims_all_pending',JSON.stringify(pending));
-  if(S.dbConnected){S.db.collection('power_ims3').doc('global_pending').set({pending:JSON.stringify(pending)},{merge:true});}
-  syncToCloud();showToast(`✅ ${p.username} approved!`,'success');
+  if(!S.perms[p.username])S.perms[p.username]={};
+  S.perms[p.username].branches=[branch];
+  S.pendingSignups.splice(i,1);
+  saveUserData();
+  localStorage.setItem(`ims_${adminNS()}_pending`,JSON.stringify(S.pendingSignups));
+  showToast(`✅ ${p.username} approved for branch "${branch}"!`,'success');
   updateNotifBadge();openApprovals();
 }
 function denySignup(i){
-  const pending=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
-  const name=pending[i].username;pending.splice(i,1);
-  localStorage.setItem('ims_all_pending',JSON.stringify(pending));
-  if(S.dbConnected){S.db.collection('power_ims3').doc('global_pending').set({pending:JSON.stringify(pending)},{merge:true});}
+  const name=S.pendingSignups[i].username;S.pendingSignups.splice(i,1);
+  localStorage.setItem(`ims_${adminNS()}_pending`,JSON.stringify(S.pendingSignups));
   showToast(`❌ ${name} denied`,'error');updateNotifBadge();openApprovals();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   PERMISSIONS MODAL
-═══════════════════════════════════════════════════════════ */
-function openPermissions(){
-  const reg=getRegistry();
-  const users=Object.keys(reg).filter(u=>u!==S.adminId&&reg[u].adminId===S.adminId);
-  const body=document.getElementById('perm-body');
-  if(!users.length){
-    body.innerHTML='<p style="color:var(--text3)">No other users under your admin account yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
+/* ═══════════════════════════════════════════════════════
+   STORE — DISPATCH & RECEIPTS
+═══════════════════════════════════════════════════════ */
+function dispatchTooBranch(storeItemIdx,toBranch,qty,price){
+  const si=S.storeItems[storeItemIdx];
+  if(!si){showToast('Item not found','error');return;}
+  if(qty>si.qty){showToast('Insufficient store stock','error');return;}
+  const dispatch={
+    id:genCode(),date:nowDt(),
+    itemId:si.id,itemName:si.name,itemDesc:si.desc,
+    qty,price,total:qty*price,
+    fromStore:S.adminId,toBranch,
+    status:'pending', // pending|approved|rejected
+    _by:S.user,createdAt:new Date().toISOString()
+  };
+  S.storeDispatches.push(dispatch);
+  // Deduct from store
+  S.storeItems[storeItemIdx].qty-=qty;
+  // Add receipt to branch
+  const branchReceipts=loadBranchReceipts(toBranch);
+  branchReceipts.push({...dispatch,receiptId:'RCP-'+genCode()});
+  saveBranchReceipts(toBranch,branchReceipts);
+  // If this user is on that branch, update their view
+  if(S.userBranch===toBranch)S.branchReceipts=loadBranchReceipts(toBranch);
+  saveUserData();
+  showToast(`📦 Dispatched to "${toBranch}"!`,'success');
+  renderTab();
+  updateStoreNotifBadge();
+}
+
+function updateStoreNotifBadge(){
+  // For non-admin branch users — show pending receipts
+  const btn=document.getElementById('store-notif-btn');
+  const dot=document.getElementById('store-notif-dot');
+  if(!btn||!dot)return;
+  if(isUser()&&S.userBranch){
+    const receipts=loadBranchReceipts(S.userBranch);
+    const pending=receipts.filter(r=>r.status==='pending').length;
+    btn.style.display='flex';
+    if(pending>0){dot.style.display='flex';dot.textContent=pending;btn.classList.add('store-notif-pulse');}
+    else{dot.style.display='none';btn.classList.remove('store-notif-pulse');}
   }else{
-    body.innerHTML=users.map(u=>{
-      const up=S.perms[u]||{};const ep=S.exportPerms[u]??true;
-      const bp=S.perms[u]?.branches||[];
-      return`<div class="perm-user-card">
-        <div class="perm-username"><div class="perm-avatar-sm">${u[0].toUpperCase()}</div>${esc(u)}</div>
-        <div class="perm-grid">
-          ${PERM_TABS.map(t=>`<div class="perm-field"><label>${t}</label>
-            <select class="perm-select" onchange="setUserPerm('${u}','${t}',this.value)">
-              ${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}
-            </select></div>`).join('')}
+    btn.style.display='none';
+  }
+}
+
+function openStoreReceipts(){
+  const branch=S.userBranch||'';
+  const receipts=loadBranchReceipts(branch);
+  const list=document.getElementById('store-receipt-list');
+  if(!receipts.length){
+    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No store receipts for your branch yet.</div>';
+  }else{
+    list.innerHTML=[...receipts].reverse().map((r,ri)=>{
+      const origIdx=receipts.length-1-ri;
+      const statusBadge=r.status==='pending'?`<span class="td-badge badge-pending">⏳ Pending</span>`:r.status==='approved'?`<span class="td-badge badge-approved">✅ Approved</span>`:`<span class="td-badge badge-rejected">❌ Rejected</span>`;
+      return`<div class="apv-item store-receipt-item">
+        <div class="receipt-status-bar">
+          <div class="apv-type">🏪 FROM STORE — ${esc(r.receiptId||r.id)}</div>
+          ${statusBadge}
         </div>
-        <div class="perm-perm-row">
-          <label>Export Permission (PDF/Excel)</label>
-          <label class="toggle-sw"><input type="checkbox" ${ep?'checked':''} onchange="setExportPerm('${u}',this.checked)"><span></span></label>
+        <div class="receipt-detail">
+          📦 <strong>${esc(r.itemName)}</strong> (${esc(r.itemId)})<br>
+          Qty: ${fmtQ(r.qty)} × ${fmt(r.price)} = <strong>${fmt(r.total)}</strong><br>
+          Date: ${(r.date||'').replace('T',' ')} | Branch: ${esc(r.toBranch)}<br>
+          Dispatched by: ${esc(r.fromStore)}
         </div>
-        <div style="margin-top:10px">
-          <div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:6px">BRANCH ACCESS</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px">
-            ${S.branches.map(b=>`<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer">
-              <input type="checkbox" style="accent-color:var(--p)" ${!bp.length||bp.includes(b)?'checked':''} onchange="setBranchPerm('${u}','${b}',this.checked)">
-              ${esc(b)}</label>`).join('')}
-          </div>
-        </div>
+        ${r.status==='pending'?`<div class="receipt-actions">
+          <button class="apv-btn approve" onclick="approveStoreReceipt('${branch}',${origIdx})">✅ Approve & Receive</button>
+          <button class="apv-btn deny" onclick="rejectStoreReceipt('${branch}',${origIdx})">❌ Reject</button>
+          <button class="btn btn-sm" style="margin-left:4px" onclick="viewStoreReceiptPrint(${JSON.stringify(r).replace(/"/g,'&quot;')})">🖨️</button>
+        </div>`:`<div style="margin-top:8px">
+          <button class="btn btn-sm" onclick="viewStoreReceiptPrint(${JSON.stringify(r).replace(/"/g,'&quot;')})">🖨️ Print Receipt</button>
+        </div>`}
       </div>`;
     }).join('');
-    body.innerHTML+=`<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
   }
-  openModal('perm-modal');
+  document.getElementById('store-receipt-overlay').classList.add('open');
 }
-function setUserPerm(u,tab,v){if(!S.perms[u])S.perms[u]={};S.perms[u][tab]=v;saveUserData();showToast(`Perm updated for ${u}`,'success');}
-function setExportPerm(u,v){S.exportPerms[u]=v;saveUserData();showToast(`Export ${v?'enabled':'disabled'} for ${u}`,'success');}
-function setBranchPerm(u,b,v){
-  if(!S.perms[u])S.perms[u]={};
-  if(!S.perms[u].branches)S.perms[u].branches=[];
-  if(v){if(!S.perms[u].branches.includes(b))S.perms[u].branches.push(b);}
-  else{S.perms[u].branches=S.perms[u].branches.filter(x=>x!==b);}
-  saveUserData();
-}
-const canAccessBranch=b=>isAdmin()||(!(S.perms[S.user]?.branches?.length)||S.perms[S.user].branches.includes(b));
+function closeStoreReceipts(){document.getElementById('store-receipt-overlay').classList.remove('open');}
 
-/* ═══════════════════════════════════════════════════════════
-   BRANCHES
-═══════════════════════════════════════════════════════════ */
-function openBranches(){renderBranchList();openModal('branch-modal');}
-function renderBranchList(){
-  document.getElementById('branch-list-ui').innerHTML=S.branches.map((b,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
-      background:var(--surface2);border-radius:9px;margin-bottom:7px;border:1px solid var(--border)">
-      <span style="font-weight:600">🏢 ${esc(b)}</span>
-      ${i>0?`<button onclick="deleteBranch(${i})" class="btn btn-danger btn-sm">✕</button>`:'<span style="font-size:10px;color:var(--text3)">Default</span>'}
-    </div>`).join('');
-}
-function addBranch(){
-  const inp=document.getElementById('new-branch-input');const name=inp.value.trim();
-  if(!name){showToast('Enter a branch name','error');return;}
-  if(S.branches.includes(name)){showToast('Already exists','error');return;}
-  S.branches.push(name);inp.value='';saveUserData();renderBranchList();updateBranchDL();showToast(`Branch "${name}" added`,'success');
-}
-function deleteBranch(i){
-  customConfirm('Delete Branch?',`Remove "${S.branches[i]}"?`,'🏢','Delete',()=>{
-    S.branches.splice(i,1);saveUserData();renderBranchList();updateBranchDL();showToast('Branch removed','success');
+function approveStoreReceipt(branch,idx){
+  const receipts=loadBranchReceipts(branch);
+  if(!receipts[idx])return;
+  receipts[idx].status='approved';
+  receipts[idx].approvedBy=S.user;
+  receipts[idx].approvedAt=new Date().toISOString();
+  saveBranchReceipts(branch,receipts);
+  // Add to branch purchase records
+  const r=receipts[idx];
+  S.purchase.push({
+    date:r.date,party:'[STORE DISPATCH]',branch,
+    id:r.itemId,name:r.itemName,desc:r.itemDesc||'',
+    qty:r.qty,uPrice:r.price,payment:'STORE TRANSFER',_by:S.user
   });
+  S.branchReceipts=loadBranchReceipts(branch);
+  saveUserData();
+  showToast('✅ Receipt approved! Added to purchase records.','success');
+  updateStoreNotifBadge();
+  openStoreReceipts();
 }
-function updateBranchDL(){
-  const dl=document.getElementById('branch-dl');
-  if(dl)dl.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">`).join('');
+function rejectStoreReceipt(branch,idx){
+  const receipts=loadBranchReceipts(branch);
+  if(!receipts[idx])return;
+  // Return qty to store
+  const r=receipts[idx];
+  const si=S.storeItems.findIndex(x=>x.id===r.itemId);
+  if(si>=0)S.storeItems[si].qty+=r.qty;
+  receipts[idx].status='rejected';
+  receipts[idx].rejectedBy=S.user;
+  saveBranchReceipts(branch,receipts);
+  S.branchReceipts=loadBranchReceipts(branch);
+  saveUserData();
+  showToast('❌ Receipt rejected. Qty returned to store.','warn');
+  updateStoreNotifBadge();
+  openStoreReceipts();
 }
 
-/* ═══════════════════════════════════════════════════════════
+function viewStoreReceiptPrint(r){
+  if(typeof r==='string')r=JSON.parse(r);
+  const statusLabel=r.status==='approved'?'✅ APPROVED':r.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
+  document.getElementById('store-receipt-print-content').innerHTML=`
+    <div class="rcpt-hdr">
+      <div class="rcpt-biz">📦 POWER-IMS — STORE</div>
+      <div class="rcpt-sub">Dispatch Receipt</div>
+      <div class="rcpt-sub">${new Date().toLocaleString()}</div>
+    </div>
+    <div class="rcpt-line"><span>Receipt ID</span><span>${esc(r.receiptId||r.id)}</span></div>
+    <div class="rcpt-line"><span>Date</span><span>${(r.date||'').replace('T',' ')}</span></div>
+    <div class="rcpt-line"><span>From</span><span>Central Store</span></div>
+    <div class="rcpt-line"><span>To Branch</span><span>${esc(r.toBranch)}</span></div>
+    <div class="rcpt-line"><span>Part No.</span><span>${esc(r.itemId)}</span></div>
+    <div class="rcpt-line"><span>Item</span><span>${esc(r.itemName)}</span></div>
+    <div class="rcpt-line"><span>Qty</span><span>${fmtQ(r.qty)}</span></div>
+    <div class="rcpt-line"><span>Unit Price</span><span>${fmt(r.price)}</span></div>
+    <div class="rcpt-line bold"><span>TOTAL</span><span>${fmt(r.total)}</span></div>
+    <div class="rcpt-total">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">STATUS</div>
+      <div style="font-size:1rem;font-weight:800;color:var(--p)">${statusLabel}</div>
+    </div>
+    <div class="rcpt-footer">POWER-IMS Store Dispatch<br>Dispatched by: ${esc(r._by||r.fromStore)}<br>Printed: ${new Date().toLocaleString()}</div>`;
+  openModal('store-receipt-print-modal');
+}
+
+function printStoreReceiptDirectly(){
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=`<style>
+    @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+    #print-area{position:fixed;top:0;left:0;width:88mm;background:white;padding:16px;font-family:monospace}
+    .rcpt-hdr{text-align:center;padding:14px 0;border-bottom:2px dashed #ccc;margin-bottom:12px}
+    .rcpt-biz{font-size:16px;font-weight:800;color:#065f46}
+    .rcpt-sub{font-size:10px;color:#64748b;margin-top:2px}
+    .rcpt-line{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+    .rcpt-line.bold{font-weight:700;border-top:1px solid #e2e8f0;padding-top:7px;margin-top:4px}
+    .rcpt-total{background:#f0fdf4;border-radius:6px;padding:10px;text-align:center;margin:10px 0}
+    .rcpt-footer{text-align:center;color:#64748b;font-size:9px;margin-top:10px;border-top:2px dashed #ccc;padding-top:10px}
+  </style>${document.getElementById('store-receipt-print-content').innerHTML}`;
+  window.print();setTimeout(()=>pa.innerHTML='',1200);
+}
+
+/* ═══════════════════════════════════════════════════════
+   FIFO / STOCK
+═══════════════════════════════════════════════════════ */
+function getStock(itemId){
+  const inQ=S.purchase.filter(p=>p.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  const outQ=S.sales.filter(s=>s.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+  return inQ-outQ;
+}
+function getStoreStock(itemId){
+  return(S.storeItems.find(s=>s.id===itemId)?.qty)||0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME & LANG
+═══════════════════════════════════════════════════════ */
+function setTheme(th){
+  S.theme=th;document.documentElement.setAttribute('data-theme',th==='light'?'light':'dark');
+  const tog=document.getElementById('dark-toggle');if(tog)tog.checked=(th==='light');
+  if(S.user)localStorage.setItem(`ims_${S.user}_theme`,th);
+}
+function setLang(l){
+  S.lang=l;if(S.user)localStorage.setItem(`ims_${S.user}_lang`,l);
+  if(document.getElementById('lang-select'))document.getElementById('lang-select').value=l;
+  if(S.tab)renderTab();
+}
+function loadPrefs(){
+  setTheme(localStorage.getItem(`ims_${S.user}_theme`)||'dark');
+  setLang(localStorage.getItem(`ims_${S.user}_lang`)||'en');
+}
+
+/* ═══════════════════════════════════════════════════════
+   AVATAR
+═══════════════════════════════════════════════════════ */
+let _authAvatar=null,_modalAvatar=null;
+function previewAuthAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_authAvatar=e.target.result;document.getElementById('auth-avatar-preview').innerHTML=`<img src="${e.target.result}">`};r.readAsDataURL(f);}
+function previewModalAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_modalAvatar=e.target.result;document.getElementById('avatar-modal-preview').innerHTML=`<img src="${e.target.result}">`};r.readAsDataURL(f);}
+function saveAvatar(){if(!_modalAvatar){showToast('Select a photo','error');return;}S.avatarDataUrl=_modalAvatar;localStorage.setItem(`ims_${S.user}_avatar`,_modalAvatar);updateHdrAvatar();closeModal('avatar-modal');showToast('Photo updated!','success');}
+function openAvatarChange(){_modalAvatar=null;document.getElementById('avatar-modal-preview').innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}">`:'👤';openModal('avatar-modal');}
+function updateHdrAvatar(){const el=document.getElementById('hdr-avatar');if(!el||isOwner())return;el.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.user?S.user[0].toUpperCase():'👤');}
+
+/* ═══════════════════════════════════════════════════════
    UI
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function showUI(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-header').style.display='flex';
   document.getElementById('content').style.display='block';
   document.getElementById('bottom-nav').style.display='flex';
+  document.getElementById('owner-screen').style.display='none';
 }
 function hideUI(){
   document.getElementById('app-header').style.display='none';
   document.getElementById('content').style.display='none';
   document.getElementById('bottom-nav').style.display='none';
+  document.getElementById('owner-screen').style.display='none';
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -1230,9 +1543,25 @@ function closeSettings(){document.getElementById('settings-drawer').classList.re
 function showMsg(id,msg,type='error'){const el=document.getElementById(id);el.textContent=msg;el.className=(type==='success'?'modal-success':'modal-error')+' show';}
 function hideMsg(id){const el=document.getElementById(id);el.className=el.className.replace(' show','');}
 
-/* ═══════════════════════════════════════════════════════════
+function logout(){
+  S.user=null;S.adminId=null;S.role=null;
+  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentAdmin');localStorage.removeItem('ims_currentRole');
+  closeSettings();hideUI();
+  document.getElementById('auth-user').value='';document.getElementById('auth-pass').value='';
+  document.getElementById('auth-confirm').value='';setAuthMode('login');_authAvatar=null;
+  document.getElementById('auth-avatar-preview').innerHTML='👤';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app-header').className='app-header';
+  document.getElementById('brand-logo').className='brand-logo';document.getElementById('brand-logo').textContent='📦';
+  document.getElementById('brand-sub').textContent='Inventory System';
+  document.getElementById('user-role-label').className='role';
+  document.getElementById('hdr-chip').className='hdr-chip no-print';
+  document.getElementById('hdr-avatar').className='hdr-avatar';
+}
+
+/* ═══════════════════════════════════════════════════════
    CONFIRM
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 let _confirmCb=null;
 function customConfirm(title,msg,icon,ok,cb){
   document.getElementById('confirm-title').textContent=title;
@@ -1244,9 +1573,9 @@ function customConfirm(title,msg,icon,ok,cb){
 function cancelConfirm(){document.getElementById('confirm-modal').classList.remove('open');_confirmCb=null;}
 function doConfirm(){document.getElementById('confirm-modal').classList.remove('open');if(_confirmCb){_confirmCb();_confirmCb=null;}}
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    CONTEXT MENU
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 let _ctxRow={};
 function showCtxMenu(e,idx,listType){
   e.preventDefault();_ctxRow={idx,listType};
@@ -1258,56 +1587,50 @@ function showCtxMenu(e,idx,listType){
   if(rw&&editable){
     html+=`<div class="ctx-item" onclick="openEditModal(${idx},'${listType}')"><span class="ctx-icon">✏️</span>Edit Row</div>`;
     html+=`<div class="ctx-item danger" onclick="deleteRow(${idx},'${listType}')"><span class="ctx-icon">🗑️</span>Delete Row</div>`;
-  }else{
-    html+=`<div class="ctx-item" style="opacity:.4;cursor:not-allowed"><span class="ctx-icon">✏️</span>Edit (no permission)</div>`;
   }
   if((S.tab==='PURCHASE'||S.tab==='SALES')&&row){
     html+=`<div class="ctx-divider"></div>`;
     html+=`<div class="ctx-item" onclick="openRowReceipt(${idx},'${listType}')"><span class="ctx-icon">🧾</span>Print Receipt</div>`;
   }
-  if(isAdmin()&&row?._by){
-    html+=`<div class="ctx-divider"></div>`;
-    html+=`<div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>By: <strong>${esc(row._by)}</strong></div>`;
-  }
-  menu.innerHTML=html;
+  if(isAdmin()&&row?._by){html+=`<div class="ctx-divider"></div><div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>By: <strong>${esc(row._by)}</strong></div>`;}
+  menu.innerHTML=html||'<div class="ctx-item" style="color:var(--text3)">No actions available</div>';
   const x=Math.min(e.clientX,window.innerWidth-200);
   const y=Math.min(e.clientY,window.innerHeight-160);
   menu.style.left=x+'px';menu.style.top=y+'px';menu.style.display='block';
 }
 function hideCtxMenu(){document.getElementById('ctx-menu').style.display='none';_ctxRow={};}
-function getList(type){return type==='items'?S.items:type==='purchase'?S.purchase:type==='sales'?S.sales:S.expense;}
-
+function getList(type){
+  if(type==='items')return S.items;
+  if(type==='purchase')return S.purchase;
+  if(type==='sales')return S.sales;
+  if(type==='expense')return S.expense;
+  if(type==='storeItems')return S.storeItems;
+  return S.expense;
+}
 function deleteRow(idx,listType){
   hideCtxMenu();
   const list=getList(listType);const row=list[idx];
   const label=row.id||row.reason||row.name||'this row';
   customConfirm('Delete Row?',`"${label}" will be removed.`,'🗑️','Delete',()=>{
-    list.splice(idx,1);
-    if(!list.length){
-      if(listType==='items')S.items.push(blankItem());
-      else if(listType==='purchase')S.purchase.push(blankPurchase());
-      else if(listType==='sales')S.sales.push(blankSales());
-      else S.expense.push(blankExpense());
-    }
-    saveUserData();renderTab();showToast('Row deleted','success');
+    list.splice(idx,1);saveUserData();renderTab();showToast('Row deleted','success');
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    TAB SWITCHING
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function switchTab(tab){
   if(!canRead(tab)&&tab!=='ITEMS'){showToast('No permission for this tab','error');return;}
   S.tab=tab;
   const meta=TAB_META[tab];
   document.getElementById('page-icon').textContent=meta.icon;
+  document.getElementById('page-icon').className='page-icon-wrap'+(tab==='STORE'?' store-icon':'');
   document.getElementById('page-title').textContent=meta.title;
   document.getElementById('page-sub').textContent=meta.sub;
-  document.querySelectorAll('.nav-item').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);});
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(S.user)localStorage.setItem(`ims_${S.user}_lastTab`,tab);
   updateSuggestions();renderTab();
 }
-
 function updateSuggestions(){
   const parties=S.tab==='PURCHASE'?[...new Set(S.purchase.map(r=>r.party))]:[...new Set(S.sales.map(r=>r.party))];
   document.getElementById('party-list').innerHTML=parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
@@ -1315,98 +1638,198 @@ function updateSuggestions(){
   updateBranchDL();
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RENDER TAB
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function renderTab(){
   document.getElementById('tab-content').innerHTML='';
   document.getElementById('extras').innerHTML='';
   renderHeadActions();
-  if(S.tab==='ITEMS')    renderItems();
-  else if(S.tab==='PURCHASE'||S.tab==='SALES') renderTx();
-  else if(S.tab==='BALANCE') renderBalance();
-  else if(S.tab==='EXPENSE') renderExpense();
-  else if(S.tab==='REPORT')  renderReport();
+  if(S.tab==='ITEMS')renderItems();
+  else if(S.tab==='PURCHASE'||S.tab==='SALES')renderTx();
+  else if(S.tab==='BALANCE')renderBalance();
+  else if(S.tab==='STORE')renderStore();
+  else if(S.tab==='EXPENSE')renderExpense();
+  else if(S.tab==='REPORT')renderReport();
 }
-
 function renderHeadActions(){
   const ha=document.getElementById('head-actions');if(!ha)return;
   const rw=canWrite(S.tab);
   let html='';
   if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'){
-    html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ Add ${TAB_META[S.tab]?.title?.replace('Add ','')||'Entry'}</button>`;
+    const label=S.tab==='STORE'?'Add Store Item':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
+    html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
+  }
+  if(S.tab==='STORE'&&isAdmin()){
+    html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
   }
   if(S.tab==='PURCHASE'||S.tab==='SALES'){
     html+=`<select id="branch-filter" onchange="renderTab()" style="padding:7px 11px;border:1.5px solid var(--border2);border-radius:9px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11.5px;cursor:pointer;font-weight:600">
       <option value="">🏢 All Branches</option>
       ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
     </select>`;
+    if(S.userBranch){
+      setTimeout(()=>{const bf=document.getElementById('branch-filter');if(bf)bf.value=S.userBranch;},50);
+    }
   }
   ha.innerHTML=html;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    ADD / EDIT MODALS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function openAddModal(){
-  if(S.tab==='ITEMS') buildItemForm(null,'add');
-  else if(S.tab==='PURCHASE') buildTxForm(null,'add',true);
-  else if(S.tab==='SALES') buildTxForm(null,'add',false);
-  else if(S.tab==='EXPENSE') buildExpenseForm(null,'add');
+  if(S.tab==='ITEMS')buildItemForm(null,'add');
+  else if(S.tab==='PURCHASE')buildTxForm(null,'add',true);
+  else if(S.tab==='SALES')buildTxForm(null,'add',false);
+  else if(S.tab==='STORE')buildStoreItemForm(null,'add');
+  else if(S.tab==='EXPENSE')buildExpenseForm(null,'add');
+  const hdr=document.getElementById('add-form-hdr');
+  if(S.tab==='STORE')hdr.className='modal-hdr store-hdr';else hdr.className='modal-hdr';
   openModal('add-row-modal');
 }
 function openEditModal(idx,listType){
   hideCtxMenu();
   const list=getList(listType);const row=list[idx];
-  if(listType==='items') buildItemForm(row,'edit',idx);
-  else if(listType==='purchase') buildTxForm(row,'edit',true,idx);
-  else if(listType==='sales') buildTxForm(row,'edit',false,idx);
+  if(listType==='items')buildItemForm(row,'edit',idx);
+  else if(listType==='purchase')buildTxForm(row,'edit',true,idx);
+  else if(listType==='sales')buildTxForm(row,'edit',false,idx);
+  else if(listType==='storeItems')buildStoreItemForm(row,'edit',idx);
   else buildExpenseForm(row,'edit',idx);
   openModal('edit-row-modal');
 }
 
+/* ── STORE ITEM FORM ── */
+function buildStoreItemForm(row,mode,idx){
+  document.getElementById('add-form-icon').textContent='🏪';
+  document.getElementById('add-form-title').textContent=mode==='add'?'Add Store Item':'Edit Store Item';
+  document.getElementById('add-form-sub').textContent='Register item in central store';
+  const d=row||{id:'',name:'',desc:'',qty:0,cost:0};
+  const body=document.getElementById(mode==='add'?'add-form-body':'edit-form-body');
+  body.innerHTML=`
+    <div class="field-row">
+      <div class="field"><label>Part Number *</label><input id="f-id" value="${esc(d.id)}" placeholder="e.g. P001"></div>
+      <div class="field"><label>Item Name *</label><input id="f-name" value="${esc(d.name)}" placeholder="Product name"></div>
+    </div>
+    <div class="field"><label>Description</label><input id="f-desc" value="${esc(d.desc||'')}" placeholder="Optional"></div>
+    <div class="field-row">
+      <div class="field"><label>Quantity *</label><input type="number" id="f-qty" value="${d.qty||''}" placeholder="0" min="0" step="any"></div>
+      <div class="field"><label>Unit Cost</label><input type="number" id="f-cost" value="${d.cost||''}" placeholder="0.00" step="any"></div>
+    </div>
+    <button class="modal-btn store-btn" onclick="submitStoreItemForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
+    <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
+    <div class="modal-error" id="f-error"></div>`;
+}
+function submitStoreItemForm(mode,idx){
+  const id=document.getElementById('f-id').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const desc=document.getElementById('f-desc').value.trim();
+  const qty=parseFloat(document.getElementById('f-qty').value)||0;
+  const cost=parseFloat(document.getElementById('f-cost').value)||0;
+  if(!id||!name){showMsg('f-error','Part Number and Name required');return;}
+  const row={id,name,desc,qty,cost,_by:S.user};
+  if(mode==='add'){
+    const existing=S.storeItems.findIndex(x=>x.id===id);
+    if(existing>=0){S.storeItems[existing].qty+=qty;}
+    else S.storeItems.push(row);
+  }else{
+    S.storeItems[idx]={...S.storeItems[idx],...row};
+  }
+  saveUserData();renderTab();
+  closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
+  showToast(mode==='add'?'Store item added!':'Updated!','success');
+}
+
+/* ── DISPATCH MODAL ── */
+let _dispatchModal_open=false;
+function openDispatchModal(){
+  const storeItemOpts=S.storeItems.filter(s=>s.qty>0).map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.name)} (Stock: ${fmtQ(s.qty)})</option>`).join('');
+  const branchOpts=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  document.getElementById('add-form-icon').textContent='📤';
+  document.getElementById('add-form-title').textContent='Dispatch to Branch';
+  document.getElementById('add-form-sub').textContent='Send items from store to a branch';
+  document.getElementById('add-form-hdr').className='modal-hdr store-hdr';
+  document.getElementById('add-form-body').innerHTML=`
+    <div class="field"><label>Store Item *</label>
+      <select id="disp-item">${storeItemOpts||'<option>No items in store</option>'}</select>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Quantity *</label><input type="number" id="disp-qty" placeholder="0" min="1" step="any" oninput="calcDispatchTotal()"></div>
+      <div class="field"><label>Dispatch Price (per unit) *</label><input type="number" id="disp-price" placeholder="0.00" step="any" oninput="calcDispatchTotal()"></div>
+    </div>
+    <div class="field"><label>To Branch *</label><select id="disp-branch">${branchOpts}</select></div>
+    <div style="padding:12px;background:rgba(16,185,129,.08);border-radius:var(--radius-sm);margin-bottom:14px;border:1px solid rgba(16,185,129,.2)">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:11px;font-weight:700;color:var(--text3)">DISPATCH TOTAL</span>
+        <span id="disp-total" style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">0.00</span>
+      </div>
+    </div>
+    <button class="modal-btn store-btn" onclick="submitDispatch()">📤 Dispatch to Branch</button>
+    <button class="modal-btn secondary" onclick="closeModal('add-row-modal')" style="margin-top:5px">Cancel</button>
+    <div class="modal-error" id="f-error"></div>`;
+  openModal('add-row-modal');
+}
+function calcDispatchTotal(){
+  const q=parseFloat(document.getElementById('disp-qty')?.value)||0;
+  const p=parseFloat(document.getElementById('disp-price')?.value)||0;
+  const td=document.getElementById('disp-total');if(td)td.textContent=fmt(q*p);
+}
+function submitDispatch(){
+  const itemId=document.getElementById('disp-item')?.value;
+  const qty=parseFloat(document.getElementById('disp-qty')?.value)||0;
+  const price=parseFloat(document.getElementById('disp-price')?.value)||0;
+  const branch=document.getElementById('disp-branch')?.value;
+  if(!itemId){showMsg('f-error','Select an item');return;}
+  if(!qty){showMsg('f-error','Quantity required');return;}
+  if(!price){showMsg('f-error','Price required');return;}
+  if(!branch){showMsg('f-error','Select a branch');return;}
+  const idx=S.storeItems.findIndex(s=>s.id===itemId);
+  if(idx<0){showMsg('f-error','Item not found');return;}
+  if(S.storeItems[idx].qty<qty){showMsg('f-error',`Only ${S.storeItems[idx].qty} in stock`);return;}
+  closeModal('add-row-modal');
+  dispatchTooBranch(idx,branch,qty,price);
+}
+
+/* ── ITEM FORM ── */
 function buildItemForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='📋';
   document.getElementById('add-form-title').textContent=mode==='add'?'Add Item':'Edit Item';
   document.getElementById('add-form-sub').textContent='Fill in the item details below';
-  const d=row||blankItem();
+  const d=row||{id:'',name:'',desc:''};
   const body=document.getElementById(mode==='add'?'add-form-body':'edit-form-body');
   body.innerHTML=`
     <div class="field-row">
-      <div class="field"><label>Part Number *</label><input id="f-id" value="${esc(d.id)}" placeholder="Unique code (e.g. P001)"></div>
+      <div class="field"><label>Part Number *</label><input id="f-id" value="${esc(d.id)}" placeholder="e.g. P001"></div>
       <div class="field"><label>Item Name *</label><input id="f-name" value="${esc(d.name)}" placeholder="Product name"></div>
     </div>
-    <div class="field"><label>Description</label><input id="f-desc" value="${esc(d.desc)}" placeholder="Optional description"></div>
+    <div class="field"><label>Description</label><input id="f-desc" value="${esc(d.desc||'')}" placeholder="Optional"></div>
     <button class="modal-btn" onclick="submitItemForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add Item':'💾 Save Changes'}</button>
     <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
 }
-
 function submitItemForm(mode,idx){
   const id=document.getElementById('f-id').value.trim();
   const name=document.getElementById('f-name').value.trim();
   const desc=document.getElementById('f-desc').value.trim();
   if(!id||!name){showMsg('f-error','Part Number and Name are required');return;}
-  const dupCheck=S.items.filter((_,i)=>i!==(mode==='edit'?idx:-999)&&S.items[i].id===id);
-  if(dupCheck.length){showMsg('f-error',`Part Number "${id}" already exists`);return;}
   if(mode==='add'){S.items.push({id,name,desc,_by:S.user});}
   else{S.items[idx]={...S.items[idx],id,name,desc,_by:S.user};}
-  saveUserData();renderTab();
-  closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Item added!':'Item updated!','success');
-  updateSuggestions();
+  saveUserData();renderTab();closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
+  showToast(mode==='add'?'Item added!':'Item updated!','success');updateSuggestions();
 }
 
+/* ── TX FORM ── */
 function buildTxForm(row,mode,isP,idx){
   const icon=isP?'🛒':'💰';const t=isP?'Purchase':'Sales';
   document.getElementById('add-form-icon').textContent=icon;
   document.getElementById('add-form-title').textContent=mode==='add'?`Add ${t} Record`:`Edit ${t} Record`;
   document.getElementById('add-form-sub').textContent='Fill in the transaction details';
-  const d=row||(isP?blankPurchase():blankSales());
+  const d=row||(isP?{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',uPrice:'',payment:'CASH'}:{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',sPrice:'',vatOn:true,wh3On:false,vwhOn:false,payment:'CASH'});
   const vatChk=d.vatOn===undefined?true:d.vatOn;
   const wh3Chk=d.wh3On||false;const vwhChk=d.vwhOn||false;
   const itemOpts=S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}" ${m.id===d.id?'selected':''}>${esc(m.id)} — ${esc(m.name)}</option>`).join('');
-  const branchOpts=S.branches.map(b=>`<option value="${esc(b)}" ${b===(d.branch||S.branches[0])?'selected':''}>${esc(b)}</option>`).join('');
+  const availBranches=S.userBranch?[S.userBranch]:S.branches;
+  const branchOpts=availBranches.map(b=>`<option value="${esc(b)}" ${b===(d.branch||availBranches[0])?'selected':''}>${esc(b)}</option>`).join('');
   const pmOpts=PAYMENT_METHODS.map(m=>`<option value="${m}" ${(d.payment||'CASH')===m?'selected':''}>${m}</option>`).join('');
   const qty=d.qty||'';const price=isP?(d.uPrice||''):(d.sPrice||'');
   const body=document.getElementById(mode==='add'?'add-form-body':'edit-form-body');
@@ -1416,33 +1839,22 @@ function buildTxForm(row,mode,isP,idx){
       <div class="field"><label>${isP?L('supplier'):L('customer')} *</label><input id="f-party" list="party-list" value="${esc(d.party||'')}" placeholder="${isP?'Supplier name':'Customer name'}"></div>
     </div>
     <div class="field"><label>Branch</label><select id="f-branch">${branchOpts}</select></div>
-    <div class="field"><label>Part Number *</label>
-      <select id="f-id" onchange="autoFillItem()">
-        <option value="">— Select item —</option>${itemOpts}
-      </select>
-    </div>
+    <div class="field"><label>Part Number *</label><select id="f-id" onchange="autoFillItem()"><option value="">— Select item —</option>${itemOpts}</select></div>
     <div class="field-row">
-      <div class="field"><label>Item Name (auto)</label><input id="f-name" readonly placeholder="Auto-filled" style="background:var(--surface3);cursor:not-allowed"></div>
-      <div class="field"><label>Description (auto)</label><input id="f-desc" readonly placeholder="Auto-filled" style="background:var(--surface3);cursor:not-allowed"></div>
+      <div class="field"><label>Item Name (auto)</label><input id="f-name" readonly style="background:var(--surface3);cursor:not-allowed"></div>
+      <div class="field"><label>Description (auto)</label><input id="f-desc" readonly style="background:var(--surface3);cursor:not-allowed"></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Qty *</label><input type="number" id="f-qty" value="${qty}" placeholder="0" min="0" step="any" oninput="recalcFormTotals(${isP})"></div>
       <div class="field"><label>${isP?'Unit Purchase Price *':'Unit Selling Price *'}</label><input type="number" id="f-price" value="${price}" placeholder="0.00" step="any" oninput="recalcFormTotals(${isP})"></div>
     </div>
     <div class="field"><label>Payment Method</label><select id="f-payment">${pmOpts}</select></div>
-    ${!isP?`
-    <div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
-      <div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.06em">TAX OPTIONS</div>
+    ${!isP?`<div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
+      <div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:10px">TAX OPTIONS</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600">
-          <input type="checkbox" id="f-vat" ${vatChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vat')}
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600">
-          <input type="checkbox" id="f-wh3" ${wh3Chk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('wh3')}
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600">
-          <input type="checkbox" id="f-vwh" ${vwhChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vwh')}
-        </label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vat" ${vatChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vat')}</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-wh3" ${wh3Chk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('wh3')}</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vwh" ${vwhChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vwh')}</label>
       </div>
       <div id="f-tax-display" style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--text3)"></div>
     </div>`:''}
@@ -1455,14 +1867,9 @@ function buildTxForm(row,mode,isP,idx){
     <button class="modal-btn" onclick="submitTxForm('${mode}',${idx??-1},${isP})">${mode==='add'?`➕ Add ${t} Record`:'💾 Save Changes'}</button>
     <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
-  if(d.id){
-    const item=S.items.find(m=>m.id===d.id);
-    if(item){document.getElementById('f-name').value=item.name;document.getElementById('f-desc').value=item.desc;}
-    else{document.getElementById('f-name').value=d.name||'';document.getElementById('f-desc').value=d.desc||'';}
-  }
+  if(d.id){const item=S.items.find(m=>m.id===d.id);if(item){document.getElementById('f-name').value=item.name;document.getElementById('f-desc').value=item.desc;}}
   recalcFormTotals(isP);
 }
-
 function autoFillItem(){
   const sel=document.getElementById('f-id');if(!sel)return;
   const item=S.items.find(m=>m.id===sel.value);
@@ -1470,26 +1877,20 @@ function autoFillItem(){
   document.getElementById('f-desc').value=item?item.desc:'';
   recalcFormTotals(S.tab==='PURCHASE');
 }
-
 function recalcFormTotals(isP){
   const qty=parseFloat(document.getElementById('f-qty')?.value)||0;
   const price=parseFloat(document.getElementById('f-price')?.value)||0;
   const base=qty*price;let total=base;
   if(!isP){
     let taxHtml='';
-    const vatEl=document.getElementById('f-vat');
-    const wh3El=document.getElementById('f-wh3');
-    const vwhEl=document.getElementById('f-vwh');
+    const vatEl=document.getElementById('f-vat');const wh3El=document.getElementById('f-wh3');const vwhEl=document.getElementById('f-vwh');
     if(vatEl?.checked){const v=base*0.15;total+=v;taxHtml+=`<span style="margin-right:12px">VAT: +${fmt(v)}</span>`;}
     if(wh3El?.checked){const v=base*0.03;taxHtml+=`<span style="margin-right:12px">WH 3%: -${fmt(v)}</span>`;}
     if(vwhEl?.checked){const v=base*0.075;taxHtml+=`<span>VAT WH 7.5%: -${fmt(v)}</span>`;}
-    const td=document.getElementById('f-tax-display');
-    if(td)td.innerHTML=taxHtml||'<span style="color:var(--text3)">No tax selected</span>';
+    const td=document.getElementById('f-tax-display');if(td)td.innerHTML=taxHtml||'<span>No tax</span>';
   }
-  const td=document.getElementById('f-total-display');
-  if(td)td.textContent=fmt(total);
+  const td=document.getElementById('f-total-display');if(td)td.textContent=fmt(total);
 }
-
 function submitTxForm(mode,idx,isP){
   const date=document.getElementById('f-date').value;
   const party=document.getElementById('f-party').value.trim();
@@ -1499,10 +1900,10 @@ function submitTxForm(mode,idx,isP){
   const price=parseFloat(document.getElementById('f-price').value)||0;
   const payment=document.getElementById('f-payment')?.value||'CASH';
   if(!date){showMsg('f-error','Date is required');return;}
-  if(!party){showMsg('f-error',isP?'Supplier is required':'Customer is required');return;}
+  if(!party){showMsg('f-error',isP?'Supplier required':'Customer required');return;}
   if(!itemId){showMsg('f-error','Please select an item');return;}
-  if(!qty){showMsg('f-error','Quantity is required');return;}
-  if(!price){showMsg('f-error','Price is required');return;}
+  if(!qty){showMsg('f-error','Quantity required');return;}
+  if(!price){showMsg('f-error','Price required');return;}
   const item=S.items.find(m=>m.id===itemId)||{name:'',desc:''};
   if(isP){
     const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,uPrice:price,payment,_by:S.user};
@@ -1516,14 +1917,15 @@ function submitTxForm(mode,idx,isP){
   }
   saveUserData();renderTab();updateSuggestions();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Record added!':'Record updated!','success');
+  showToast(mode==='add'?'Record added!':'Updated!','success');
 }
 
+/* ── EXPENSE FORM ── */
 function buildExpenseForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='💸';
   document.getElementById('add-form-title').textContent=mode==='add'?'Add Expense':'Edit Expense';
   document.getElementById('add-form-sub').textContent='Record an expense entry';
-  const d=row||blankExpense();
+  const d=row||{date:nowDt(),reason:'',amt:'',payment:'CASH'};
   const pmOpts=PAYMENT_METHODS.map(m=>`<option value="${m}" ${(d.payment||'CASH')===m?'selected':''}>${m}</option>`).join('');
   const body=document.getElementById(mode==='add'?'add-form-body':'edit-form-body');
   body.innerHTML=`
@@ -1537,25 +1939,22 @@ function buildExpenseForm(row,mode,idx){
     <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
 }
-
 function submitExpenseForm(mode,idx){
   const date=document.getElementById('f-date').value;
   const reason=document.getElementById('f-reason').value.trim();
   const amt=parseFloat(document.getElementById('f-amt').value)||0;
   const payment=document.getElementById('f-payment').value;
-  if(!date){showMsg('f-error','Date required');return;}
-  if(!reason){showMsg('f-error','Reason required');return;}
-  if(!amt){showMsg('f-error','Amount required');return;}
+  if(!date||!reason||!amt){showMsg('f-error','All fields required');return;}
   const row={date,reason,amt,payment,_by:S.user};
   if(mode==='add')S.expense.push(row);else S.expense[idx]={...S.expense[idx],...row};
   saveUserData();renderTab();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Expense added!':'Expense updated!','success');
+  showToast(mode==='add'?'Expense added!':'Updated!','success');
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RENDER ITEMS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function renderItems(){
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
@@ -1567,45 +1966,37 @@ function renderItems(){
             <td style="font-weight:600">${esc(row.name)}</td>
             <td style="color:var(--text3)">${esc(row.desc)}</td>
           </tr>`).join('')}
-        ${!S.items.filter(r=>r.id||r.name).length?
-          `<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Item" to get started.</td></tr>`:''}
+        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Item" to get started.</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RENDER PURCHASE / SALES
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   RENDER TX
+═══════════════════════════════════════════════════════ */
 function renderTx(){
   const isP=S.tab==='PURCHASE';
   const list=isP?S.purchase:S.sales;
   const branchF=document.getElementById('branch-filter')?.value||'';
-  const visible=list.filter(r=>r.id||r.party||r.qty).filter(r=>!branchF||r.branch===branchF).filter(r=>canAccessBranch(r.branch||'Main'));
+  const effectiveBranchF=S.userBranch||branchF;
+  const visible=list.filter(r=>r.id||r.party||r.qty).filter(r=>!effectiveBranchF||r.branch===effectiveBranchF);
   let totQty=0,totVal=0;
-  const rows=visible.map((row)=>{
+  const rows=visible.map(row=>{
     const i=list.indexOf(row);
     const qty=parseFloat(row.qty)||0;
     const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
     const base=qty*price;let total=base;
     if(!isP&&row.vatOn)total+=base*0.15;
     totQty+=qty;totVal+=total;
-    const pmBadge=m=>`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':'badge-other'}">${m||'CASH'}</span>`;
+    const pmBadge=m=>`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
     let taxCells='';
     if(!isP){
-      const vatAmt=row.vatOn?base*0.15:0;
-      const wh3Amt=row.wh3On?base*0.03:0;
-      const vwhAmt=row.vwhOn?base*0.075:0;
-      taxCells=`
-        <td class="num td-mono">${fmt(price)}</td>
-        <td class="num">
-          ${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT +${fmt(vatAmt)}</span>`:''}
-          ${row.wh3On?`<span class="td-badge badge-credit" style="font-size:9px;margin-left:2px">WH3 -${fmt(wh3Amt)}</span>`:''}
-          ${row.vwhOn?`<span class="td-badge badge-other" style="font-size:9px;margin-left:2px">VWH -${fmt(vwhAmt)}</span>`:''}
-        </td>
+      taxCells=`<td class="num td-mono">${fmt(price)}</td>
+        <td class="num">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>
         <td class="num td-mono" style="font-weight:700">${fmt(total)}</td>`;
     }
-    return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit, delete or print">
+    return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit/delete/print">
       <td class="td-mono" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
       <td style="font-weight:500">${esc(row.party||'—')}</td>
       <td><span class="td-badge badge-other" style="font-size:10px">${esc(row.branch||'Main')}</span></td>
@@ -1625,27 +2016,29 @@ function renderTx(){
       <tbody>
         ${rows||`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:32px">No records yet.</td></tr>`}
         ${visible.length?`<tr class="summary-row">
-          <td colspan="7" style="color:var(--text3);font-size:11px;letter-spacing:.04em">TOTALS</td>
+          <td colspan="${isP?'6':'6'}">TOTALS</td>
           <td class="num td-mono">${fmtQ(totQty)}</td>
           ${isP?'<td></td>':'<td></td><td></td>'}
-          <td class="num td-mono ${colorClass(totVal)}">${fmt(totVal)}</td>
-          <td></td>
+          <td class="num td-mono ${colorClass(totVal)}">${fmt(totVal)}</td><td></td>
         </tr>`:''}
       </tbody>
     </table>
   </div>`;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RENDER BALANCE
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function renderBalance(){
+  const filterBranch=S.userBranch||'';
   let totalV=0;
   const rows=S.items.filter(m=>m.id).map(item=>{
-    const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-    const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const purFilter=filterBranch?S.purchase.filter(p=>p.id===item.id&&p.branch===filterBranch):S.purchase.filter(p=>p.id===item.id);
+    const salFilter=filterBranch?S.sales.filter(s=>s.id===item.id&&s.branch===filterBranch):S.sales.filter(s=>s.id===item.id);
+    const inQ=purFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const outQ=salFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
     const stock=inQ-outQ;
-    const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+    const cost=purFilter.reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
     const avg=inQ>0?cost/inQ:0;const val=stock*avg;totalV+=val;
     const sc=stock>0?'stock-pos':stock===0?'stock-zero':'stock-neg';
     return`<tr class="${stock<0?'row-low':stock===0?'row-zero':''}">
@@ -1658,25 +2051,72 @@ function renderBalance(){
   }).join('');
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
-      <thead><tr>
-        <th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th>
-        <th class="num">Purchase Qty</th><th class="num">Sales Qty</th>
-        <th class="num">Balance</th><th class="num">Inv. Value</th>
-      </tr></thead>
+      <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">Purchase Qty</th><th class="num">Sales Qty</th><th class="num">Balance</th><th class="num">Inv. Value</th></tr></thead>
       <tbody>${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No items tracked yet.</td></tr>`}</tbody>
     </table>
   </div>`;
-  document.getElementById('extras').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;
-      background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
-      <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.06em">TOTAL INVENTORY VALUE</span>
-      <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalV)}</span>
-    </div>`;
+  document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
+    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL INVENTORY VALUE${filterBranch?` — ${filterBranch}`:''}</span>
+    <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalV)}</span>
+  </div>`;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
+   RENDER STORE
+═══════════════════════════════════════════════════════ */
+function renderStore(){
+  const items=S.storeItems;
+  const dispatches=S.storeDispatches;
+  let totalStoreVal=sum(items,s=>s.qty*(s.cost||0));
+  const storeRows=items.map((s,i)=>`
+    <tr oncontextmenu="showCtxMenu(event,${i},'storeItems')" title="Right-click for options">
+      <td class="td-mono">${esc(s.id)}</td>
+      <td style="font-weight:600">${esc(s.name)}</td>
+      <td style="color:var(--text3)">${esc(s.desc||'')}</td>
+      <td class="num td-mono ${s.qty>0?'num-pos':s.qty===0?'num-zero':'num-neg'}">${fmtQ(s.qty)}</td>
+      <td class="num td-mono">${fmt(s.cost||0)}</td>
+      <td class="num td-mono">${fmt(s.qty*(s.cost||0))}</td>
+    </tr>`).join('');
+  const dispatchRows=[...dispatches].reverse().slice(0,20).map(d=>{
+    const statusBadge=d.status==='pending'?`<span class="td-badge badge-pending">⏳ Pending</span>`:d.status==='approved'?`<span class="td-badge badge-approved">✅ Approved</span>`:`<span class="td-badge badge-rejected">❌ Rejected</span>`;
+    return`<tr>
+      <td class="td-mono" style="font-size:11px">${(d.date||'').replace('T',' ')}</td>
+      <td class="td-mono">${esc(d.itemId)}</td>
+      <td>${esc(d.itemName)}</td>
+      <td class="num td-mono">${fmtQ(d.qty)}</td>
+      <td class="num td-mono">${fmt(d.price)}</td>
+      <td class="num td-mono">${fmt(d.total)}</td>
+      <td><span class="td-badge badge-other" style="font-size:10px">${esc(d.toBranch)}</span></td>
+      <td>${statusBadge}</td>
+      <td><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tab-content').innerHTML=`
+    <div style="padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">CENTRAL STORE INVENTORY</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--success)">Total Value: ${fmt(totalStoreVal)}</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Part No.</th><th>Item Name</th><th>Desc</th><th class="num">Stock Qty</th><th class="num">Unit Cost</th><th class="num">Total Value</th></tr></thead>
+        <tbody>${storeRows||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">No store items yet.</td></tr>'}</tbody>
+      </table>
+    </div>
+    ${dispatches.length?`
+    <div style="padding:12px 16px;background:var(--surface2);border-top:2px solid var(--border);margin-top:0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">RECENT DISPATCHES (last 20)</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Part No.</th><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th><th>To Branch</th><th>Status</th><th></th></tr></thead>
+        <tbody>${dispatchRows}</tbody>
+      </table>
+    </div>`:''}`;
+}
+
+/* ═══════════════════════════════════════════════════════
    RENDER EXPENSE
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function renderExpense(){
   const rows=S.expense.filter(r=>r.reason||r.amt);
   const total=rows.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
@@ -1684,28 +2124,26 @@ function renderExpense(){
     <table>
       <thead><tr><th>${L('date')}</th><th>${L('reason')}</th><th class="num">${L('amount')}</th><th>${L('payment')}</th></tr></thead>
       <tbody>
-        ${rows.map((row)=>{const amt=parseFloat(row.amt)||0;
+        ${rows.map(row=>{const amt=parseFloat(row.amt)||0;
           return`<tr oncontextmenu="showCtxMenu(event,${S.expense.indexOf(row)},'expense')" title="Right-click for options">
             <td class="td-mono" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
             <td style="font-weight:500">${esc(row.reason||'—')}</td>
             <td class="num td-mono ${colorClass(-amt)}">${fmt(amt)}</td>
             <td><span class="td-badge ${row.payment==='CASH'?'badge-cash':row.payment==='CREDIT'?'badge-credit':'badge-other'}">${row.payment||'CASH'}</span></td>
           </tr>`;}).join('')}
-        ${rows.length?`<tr class="summary-row">
-          <td colspan="2" style="color:var(--text3);font-size:11px">TOTAL EXPENSES</td>
-          <td class="num td-mono ${colorClass(-total)}">${fmt(total)}</td><td></td>
-        </tr>`:''}
-        ${!rows.length?`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:32px">No expenses recorded yet.</td></tr>`:''}
+        ${rows.length?`<tr class="summary-row"><td colspan="2">TOTAL</td><td class="num td-mono ${colorClass(-total)}">${fmt(total)}</td><td></td></tr>`:''}
+        ${!rows.length?`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:32px">No expenses yet.</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RENDER REPORT
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 let _reportChart=null;
 function renderReport(){
+  const filterBranch=S.userBranch||'';
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
     const d=r.date.slice(0,10);
@@ -1713,30 +2151,31 @@ function renderReport(){
     if(S.reportRange.to&&d>S.reportRange.to)return false;
     return true;
   });
-  const PR=inRange(S.purchase),SR=inRange(S.sales),ER=inRange(S.expense);
+  const PR=inRange(filterBranch?S.purchase.filter(p=>p.branch===filterBranch):S.purchase);
+  const SR=inRange(filterBranch?S.sales.filter(s=>s.branch===filterBranch):S.sales);
+  const ER=inRange(S.expense);
   const tPC=PR.filter(p=>p.payment==='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
   const tPCr=PR.filter(p=>p.payment!=='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
-  const calcSaleTotal=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0);};
-  const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcSaleTotal(b),0);
-  const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcSaleTotal(b),0);
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0);};
+  const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcST(b),0);
+  const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcST(b),0);
   const tE=ER.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
   const net=tSC+tSCr-tPC-tPCr-tE;
   const coh=S.beginBal+tSC-tPC-tE;
-  const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
-    <div class="report-label">${r.l}${r.edit&&isAdmin()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
-    <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isAdmin()?'':fmt(r.v)}</div>
-  </div>`).join('');
   const reportData=[
     {l:'Initial Cash Balance',v:S.beginBal,edit:true},
-    {l:'Total Purchases — Cash',v:tPC},{l:'Total Purchases — Credit',v:tPCr},
-    {l:'Total Sales — Cash',v:tSC},{l:'Total Sales — Credit',v:tSCr},
+    {l:`Total Purchases — Cash${filterBranch?' ('+filterBranch+')':''}`,v:tPC},
+    {l:`Total Purchases — Credit${filterBranch?' ('+filterBranch+')':''}`,v:tPCr},
+    {l:`Total Sales — Cash${filterBranch?' ('+filterBranch+')':''}`,v:tSC},
+    {l:`Total Sales — Credit${filterBranch?' ('+filterBranch+')':''}`,v:tSCr},
     {l:'Total Expenses',v:tE},
     {l:'Net Profit / Loss',v:net,total:true},
     {l:'Cash on Hand',v:coh,total:true},
   ];
-  const gBy=(arr,kf,vf)=>arr.reduce((a,r)=>{const k=kf(r);a[k]=(a[k]||0)+vf(r);return a},{});
-  const cpG=gBy(PR.filter(p=>p.payment!=='CASH'&&p.party),p=>p.party,p=>(p.qty||0)*(p.uPrice||0));
-  const csG=gBy(SR.filter(s=>s.payment!=='CASH'&&s.party),s=>s.party,s=>calcSaleTotal(s));
+  const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
+    <div class="report-label">${r.l}${r.edit&&isAdmin()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
+    <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isAdmin()?'':fmt(r.v)}</div>
+  </div>`).join('');
   document.getElementById('tab-content').innerHTML=`
     <div class="date-bar no-print">
       <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
@@ -1744,14 +2183,8 @@ function renderReport(){
       <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">Clear</button>
       <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">🖨️ Print</button>
     </div>
-    ${rr(reportData)}
-    ${Object.keys(cpG).length?`<div class="credit-section"><h4>PURCHASE CREDITS — BY SUPPLIER</h4>${Object.entries(cpG).map(([k,v])=>`<div class="credit-line"><span style="color:var(--text2)">${esc(k)}</span><span class="td-mono ${colorClass(-v)}">${fmt(v)}</span></div>`).join('')}</div>`:''}
-    ${Object.keys(csG).length?`<div class="credit-section"><h4>SALES CREDITS — BY CUSTOMER</h4>${Object.entries(csG).map(([k,v])=>`<div class="credit-line"><span style="color:var(--text2)">${esc(k)}</span><span class="td-mono ${colorClass(v)}">${fmt(v)}</span></div>`).join('')}</div>`:''}`;
-  document.getElementById('extras').innerHTML=`
-    <div class="chart-wrap">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW</div>
-      <canvas id="report-chart" class="chart-canvas"></canvas>
-    </div>`;
+    ${rr(reportData)}`;
+  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
   setTimeout(()=>buildChart(PR,SR,ER),50);
 }
 
@@ -1773,40 +2206,31 @@ function buildChart(PR,SR,ER){
       {label:'Sales',data:labels.map(m=>months[m].s),backgroundColor:'rgba(16,185,129,.7)',borderRadius:6},
       {label:'Expense',data:labels.map(m=>months[m].e),backgroundColor:'rgba(239,68,68,.6)',borderRadius:6},
     ]},
-    options:{responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},
-      scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>fmt(v)}}}}
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>fmt(v)}}}}
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    PRINT REPORT
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function printReport(){
   const content=document.getElementById('tab-content').innerHTML;
   const pa=document.getElementById('print-area');
-  pa.innerHTML=`<style>
-    @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
     #print-area{position:fixed;top:0;left:0;width:100%;background:white;padding:24px;font-family:sans-serif}
     h2{color:#1e40af;margin-bottom:6px}p{color:#64748b;font-size:12px;margin-bottom:18px}
     .report-row{display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e2e8f0}
     .report-label{font-size:13px;color:#475569}.report-val{font-family:monospace;font-weight:700}
     .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}
     .report-total-row .report-label{font-weight:700;color:#0f172a}.report-total-row .report-val{color:#10b981}
-    .num-pos{color:#10b981}.num-neg{color:#ef4444}
-    .credit-section{padding:12px 14px;background:#f8faff;border-radius:8px;margin:10px 0}
-    .credit-section h4{font-size:11px;color:#3b82f6;margin-bottom:8px}
-    .credit-line{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
-    .date-bar,.no-print{display:none!important}input{border:none;background:transparent}
-  </style>
-  <h2>📊 POWER-IMS — Financial Report</h2>
-  <p>Generated: ${new Date().toLocaleString()} | User: ${S.user}</p>${content}`;
+    .num-pos{color:#10b981}.num-neg{color:#ef4444}.date-bar,.no-print{display:none!important}input{border:none;background:transparent}
+  </style><h2>📊 POWER-IMS — Financial Report</h2><p>Generated: ${new Date().toLocaleString()} | User: ${S.user}${S.userBranch?' | Branch: '+S.userBranch:''}</p>${content}`;
   window.print();setTimeout(()=>pa.innerHTML='',1200);
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    RECEIPT
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function openRowReceipt(idx,listType){
   hideCtxMenu();
   const isP=listType==='purchase';
@@ -1820,15 +2244,12 @@ function openRowReceipt(idx,listType){
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
   const grandTotal=base+vatAmt;
   document.getElementById('receipt-content').innerHTML=`
-    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS</div>
-      <div class="rcpt-sub">${isP?'Purchase':'Sales'} Receipt</div>
-      <div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
+    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS</div><div class="rcpt-sub">${isP?'Purchase':'Sales'} Receipt</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
     <div class="rcpt-line"><span>${L('date')}</span><span>${(row.date||'').replace('T',' ')}</span></div>
     <div class="rcpt-line"><span>${isP?L('supplier'):L('customer')}</span><span>${esc(row.party||'—')}</span></div>
     <div class="rcpt-line"><span>${L('branch')}</span><span>${esc(row.branch||'—')}</span></div>
     <div class="rcpt-line"><span>Part No.</span><span>${esc(row.id||'—')}</span></div>
     <div class="rcpt-line"><span>Item</span><span>${esc(row.name||'—')}</span></div>
-    <div class="rcpt-line sub"><span>Description</span><span>${esc(row.desc||'—')}</span></div>
     <div class="rcpt-line"><span>Qty</span><span>${fmtQ(qty)}</span></div>
     <div class="rcpt-line"><span>Unit Price</span><span>${fmt(price)}</span></div>
     <div class="rcpt-line"><span>Subtotal</span><span>${fmt(base)}</span></div>
@@ -1837,20 +2258,16 @@ function openRowReceipt(idx,listType){
     ${vwhAmt?`<div class="rcpt-line sub"><span>VAT WH 7.5%</span><span>-${fmt(vwhAmt)}</span></div>`:''}
     <div class="rcpt-line bold"><span>TOTAL</span><span>${fmt(grandTotal)}</span></div>
     <div class="rcpt-line"><span>${L('payment')}</span><span>${esc(row.payment||'CASH')}</span></div>
-    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">AMOUNT DUE</div>
-      <div class="rcpt-total-val">${fmt(grandTotal)}</div></div>
+    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">AMOUNT DUE</div><div class="rcpt-total-val">${fmt(grandTotal)}</div></div>
     <div class="rcpt-footer">POWER-IMS — Thank you!<br>Printed: ${new Date().toLocaleString()}</div>`;
   openModal('receipt-modal');
 }
-
 function printReceiptDirectly(){
   const pa=document.getElementById('print-area');
-  pa.innerHTML=`<style>
-    @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
     #print-area{position:fixed;top:0;left:0;width:88mm;background:white;padding:16px;font-family:monospace}
     .rcpt-hdr{text-align:center;padding:14px 0;border-bottom:2px dashed #ccc;margin-bottom:12px}
-    .rcpt-biz{font-size:16px;font-weight:800;letter-spacing:.04em;color:#1e40af}
-    .rcpt-sub{font-size:10px;color:#64748b;margin-top:2px}
+    .rcpt-biz{font-size:16px;font-weight:800;color:#1e40af}.rcpt-sub{font-size:10px;color:#64748b;margin-top:2px}
     .rcpt-line{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
     .rcpt-line.bold{font-weight:700;border-top:1px solid #e2e8f0;padding-top:7px;margin-top:4px}
     .rcpt-line.sub{color:#64748b;font-size:10px}
@@ -1861,69 +2278,108 @@ function printReceiptDirectly(){
   window.print();setTimeout(()=>pa.innerHTML='',1200);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   EXPORT
-═══════════════════════════════════════════════════════════ */
-function openExportModal(){
-  if(!canExport()){showToast('⛔ No export permission','error');return;}
-  openModal('export-modal');
+/* ═══════════════════════════════════════════════════════
+   PERMISSIONS MODAL
+═══════════════════════════════════════════════════════ */
+function openPermissions(){
+  const reg=getRegistry();
+  const users=Object.keys(reg).filter(u=>u!==S.adminId&&reg[u].adminId===S.adminId&&reg[u].role==='user');
+  const body=document.getElementById('perm-body');
+  if(!users.length){
+    body.innerHTML='<p style="color:var(--text3)">No users under your admin yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
+  }else{
+    body.innerHTML=users.map(u=>{
+      const up=S.perms[u]||{};const ep=S.exportPerms[u]??true;const bp=up.branches||[];
+      return`<div class="perm-user-card">
+        <div class="perm-username"><div class="perm-avatar-sm">${u[0].toUpperCase()}</div>${esc(u)} <span style="font-size:10px;color:var(--text3)">(Branch: ${esc(reg[u]?.branch||'None')})</span></div>
+        <div class="perm-grid">${PERM_TABS.map(t=>`<div class="perm-field"><label>${t}</label><select class="perm-select" onchange="setUserPerm('${u}','${t}',this.value)">${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}</select></div>`).join('')}</div>
+        <div class="perm-perm-row"><label>Export Permission</label><label class="toggle-sw"><input type="checkbox" ${ep?'checked':''} onchange="setExportPerm('${u}',this.checked)"><span></span></label></div>
+        <div style="margin-top:10px"><div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:6px">BRANCH ACCESS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">${S.branches.map(b=>`<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" style="accent-color:var(--p)" ${!bp.length||bp.includes(b)?'checked':''} onchange="setBranchPerm('${u}','${b}',this.checked)">${esc(b)}</label>`).join('')}</div>
+        </div>
+      </div>`;
+    }).join('')+`<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
+  }
+  openModal('perm-modal');
 }
+function setUserPerm(u,tab,v){if(!S.perms[u])S.perms[u]={};S.perms[u][tab]=v;saveUserData();showToast(`Perm updated for ${u}`,'success');}
+function setExportPerm(u,v){S.exportPerms[u]=v;saveUserData();showToast(`Export ${v?'enabled':'disabled'} for ${u}`,'success');}
+function setBranchPerm(u,b,v){if(!S.perms[u])S.perms[u]={};if(!S.perms[u].branches)S.perms[u].branches=[];if(v){if(!S.perms[u].branches.includes(b))S.perms[u].branches.push(b);}else{S.perms[u].branches=S.perms[u].branches.filter(x=>x!==b);}saveUserData();}
+
+/* ═══════════════════════════════════════════════════════
+   BRANCHES
+═══════════════════════════════════════════════════════ */
+function openBranches(){renderBranchList();openModal('branch-modal');}
+function renderBranchList(){
+  document.getElementById('branch-list-ui').innerHTML=S.branches.map((b,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:9px;margin-bottom:7px;border:1px solid var(--border)">
+      <span style="font-weight:600">🏢 ${esc(b)}</span>
+      ${i>0?`<button onclick="deleteBranch(${i})" class="btn btn-danger btn-sm">✕</button>`:'<span style="font-size:10px;color:var(--text3)">Default</span>'}
+    </div>`).join('');
+}
+function addBranch(){
+  const inp=document.getElementById('new-branch-input');const name=inp.value.trim();
+  if(!name){showToast('Enter a branch name','error');return;}
+  if(S.branches.includes(name)){showToast('Already exists','error');return;}
+  S.branches.push(name);inp.value='';saveUserData();renderBranchList();updateBranchDL();showToast(`Branch "${name}" added`,'success');
+}
+function deleteBranch(i){
+  customConfirm('Delete Branch?',`Remove "${S.branches[i]}"?`,'🏢','Delete',()=>{
+    S.branches.splice(i,1);saveUserData();renderBranchList();updateBranchDL();showToast('Branch removed','success');
+  });
+}
+function updateBranchDL(){
+  const dl=document.getElementById('branch-dl');
+  if(dl)dl.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════════════════ */
+function openExportModal(){if(!canExport()){showToast('⛔ No export permission','error');return;}openModal('export-modal');}
 function doExport(){
   const fmt2=document.getElementById('exp-format').value;
   const sheet=document.getElementById('exp-sheet').value;
   closeModal('export-modal');
   if(fmt2==='PDF')exportPDF(sheet);else exportXL(sheet);
 }
-
 function exportPDF(tab){
-  const prevTab=S.tab;S.tab=tab;
-  renderTab();
+  const prevTab=S.tab;S.tab=tab;renderTab();
   const content=document.getElementById('tab-content').innerHTML;
   const pa=document.getElementById('print-area');
-  pa.innerHTML=`<style>
-    @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
     #print-area{position:fixed;top:0;left:0;width:100%;background:white;padding:22px;font-family:sans-serif}
-    .print-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1e40af}
+    .print-top{display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1e40af}
     .print-biz{font-size:20px;font-weight:800;color:#1e40af}.print-sub{font-size:11px;color:#64748b}
     .print-meta{font-size:11px;color:#64748b;text-align:right}
     .table-wrap{overflow:visible}
     table{width:100%;border-collapse:collapse;font-size:11px}
     thead th{background:#1e40af;color:#fff;padding:7px 10px;text-align:left;font-size:10px}
-    thead th.num{text-align:right}
-    td{border-bottom:1px solid #e2e8f0;padding:7px 10px;font-size:11px}
+    thead th.num{text-align:right}td{border-bottom:1px solid #e2e8f0;padding:7px 10px;font-size:11px}
     td.num,td.td-mono{text-align:right;font-family:monospace}
-    td.num-pos{color:#10b981;font-weight:700}td.num-neg{color:#ef4444;font-weight:700}
+    .num-pos{color:#10b981;font-weight:700}.num-neg{color:#ef4444;font-weight:700}
     tr.summary-row td{background:#f0fdf4;font-weight:700;border-top:2px solid #10b981}
-    tr.row-low td{background:#fef2f2}
     .td-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px}
-    .badge-cash{background:#d1fae5;color:#065f46}.badge-credit{background:#fef3c7;color:#92400e}.badge-other{background:#dbeafe;color:#1e40af}
+    .badge-cash{background:#d1fae5;color:#065f46}.badge-credit{background:#fef3c7;color:#92400e}.badge-other{background:#dbeafe;color:#1e40af}.badge-store{background:#d1fae5;color:#065f46}
     .head-actions,.no-print,.date-bar{display:none!important}
     .report-row{display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #e2e8f0}
-    .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}
-    .report-val{font-family:monospace;font-weight:700}
-    .num-pos{color:#10b981}.num-neg{color:#ef4444}
+    .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}.report-val{font-family:monospace;font-weight:700}
     input{border:none;background:transparent}
-  </style>
-  <div class="print-top">
-    <div><div class="print-biz">📦 POWER-IMS</div><div class="print-sub">${tab} Report</div></div>
-    <div class="print-meta">Printed: ${new Date().toLocaleString()}<br>User: ${S.user}</div>
-  </div>${content}`;
+  </style><div class="print-top"><div><div class="print-biz">📦 POWER-IMS</div><div class="print-sub">${tab} Report</div></div>
+  <div class="print-meta">Printed: ${new Date().toLocaleString()}<br>User: ${S.user}</div></div>${content}`;
   window.print();
   setTimeout(()=>{pa.innerHTML='';S.tab=prevTab;renderTab();},1200);
 }
-
 function exportXL(tab){
   if(typeof XLSX==='undefined'){showToast('XLSX not loaded','error');return;}
   let headers=[],data=[];
   if(tab==='PURCHASE'){
     headers=['Date','Supplier','Branch','Part No.','Name','Desc','Qty','Unit Price','Total','Payment'];
-    const r=S.purchase.filter(r=>r.id||r.party);
-    data=r.map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.payment||'CASH']);
+    data=S.purchase.filter(r=>r.id||r.party).map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.payment||'CASH']);
     const t=data.reduce((a,b)=>a+b[8],0);data.push(['','','','','','','TOTAL','',t,'']);
   }else if(tab==='SALES'){
-    headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Total','WH3%','VWH7.5%','Payment'];
-    const r=S.sales.filter(r=>r.id||r.party);
-    data=r.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,b+v,s.wh3On?b*0.03:0,s.vwhOn?b*0.075:0,s.payment||'CASH'];});
+    headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Total','Payment'];
+    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,b+v,s.payment||'CASH'];});
   }else if(tab==='BALANCE'){
     headers=['Part No.','Name','Desc','Purchase Qty','Sales Qty','Balance','Inv. Value'];
     S.items.filter(m=>m.id).forEach(item=>{
@@ -1934,20 +2390,21 @@ function exportXL(tab){
     });
   }else if(tab==='EXPENSE'){
     headers=['Date','Reason','Amount','Payment'];
-    const r=S.expense.filter(r=>r.reason||r.amt);
-    data=r.map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r.payment||'CASH']);
-    const t=data.reduce((a,b)=>a+b[2],0);data.push(['','TOTAL',t,'']);
+    data=S.expense.filter(r=>r.reason||r.amt).map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r.payment||'CASH']);
+  }else if(tab==='STORE'){
+    headers=['Part No.','Name','Desc','Stock Qty','Unit Cost','Total Value'];
+    data=S.storeItems.map(s=>[s.id,s.name,s.desc||'',s.qty,s.cost||0,s.qty*(s.cost||0)]);
   }
   const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
-  ws['!cols']=headers.map(h=>({wch:Math.max(h.length+4,14)}));
+  ws['!cols']=headers.map(()=>({wch:16}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,tab);
   XLSX.writeFile(wb,`POWER-IMS_${tab}_${new Date().toISOString().slice(0,10)}.xlsx`);
   showToast(`${tab} exported ✓`,'success');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   PASSWORD CHANGE
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   CHANGE PASSWORD
+═══════════════════════════════════════════════════════ */
 function openChangePass(){['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');hideMsg('cp-error');openModal('pass-modal');}
 function submitChangePass(){
   const cur=document.getElementById('cp-current').value;
@@ -1957,56 +2414,43 @@ function submitChangePass(){
   if(!reg[S.user]||reg[S.user].password!==cur){showMsg('cp-error','Current password incorrect');return;}
   if(nw.length<4){showMsg('cp-error','Min 4 characters');return;}
   if(nw!==con){showMsg('cp-error','Passwords do not match');return;}
-  reg[S.user].password=nw;saveRegistry(reg);
-  syncToCloud();closeModal('pass-modal');showToast('Password updated!','success');
+  reg[S.user].password=nw;saveRegistry(reg);syncToCloud();
+  closeModal('pass-modal');showToast('Password updated!','success');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   KEYBOARD
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   KEYBOARD & CLICK
+═══════════════════════════════════════════════════════ */
 document.addEventListener('click',e=>{if(!e.target.closest('#ctx-menu'))hideCtxMenu();});
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeSettings();closeApprovals();cancelConfirm();closeModal('receipt-modal');closeModal('add-row-modal');closeModal('edit-row-modal');hideCtxMenu();}
+  if(e.key==='Escape'){closeSettings();closeApprovals();closeStoreReceipts();cancelConfirm();closeModal('receipt-modal');closeModal('add-row-modal');closeModal('edit-row-modal');closeModal('store-receipt-print-modal');hideCtxMenu();}
 });
 
-/* ═══════════════════════════════════════════════════════════
-   BOOT — ✅ FIXED init()
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════ */
 function init(){
-  // ✅ FIX 1: Ensure admin exists FIRST, before anything else touches the registry
-  ensureAdminExists();
-
-  // Init Firebase
+  ensureDefaults();
   initFirebase();
-
-  // Migrate old pending format
-  const oldPending=localStorage.getItem('ims_pending_signups');
-  if(oldPending){
-    const op=JSON.parse(oldPending);
-    const current=JSON.parse(localStorage.getItem('ims_all_pending')||'[]');
-    const merged=[...current,...op.filter(x=>!current.find(c=>c.username===x.username))];
-    localStorage.setItem('ims_all_pending',JSON.stringify(merged));
-    localStorage.removeItem('ims_pending_signups');
-  }
-
-  // Hide loader
   setTimeout(()=>{
     const l=document.getElementById('page-loader');
     l.style.opacity='0';l.style.transition='opacity .4s';
     setTimeout(()=>l.style.display='none',400);
   },1000);
-
-  // ✅ FIX 2: Auto-login check also calls ensureAdminExists so cloud sync can't break it
   const savedUser=localStorage.getItem('ims_currentUser');
   const savedAdmin=localStorage.getItem('ims_currentAdmin');
-  if(savedUser&&savedAdmin){
-    ensureAdminExists(); // protect against cloud wipe
+  const savedRole=localStorage.getItem('ims_currentRole');
+  if(savedUser&&savedAdmin&&savedRole){
+    if(savedUser===OWNER_USERNAME&&savedRole==='owner'){
+      S.user=savedUser;S.adminId=savedAdmin;S.role=savedRole;
+      doLoginOwner();return;
+    }
+    ensureDefaults();
     const reg=getRegistry();
-    if(reg[savedUser]){doLogin(savedUser,savedAdmin);return;}
+    if(reg[savedUser]){doLogin(savedUser,savedAdmin,savedRole);return;}
   }
   document.getElementById('auth-screen').style.display='flex';
 }
-
 init();
 </script>
 </body>

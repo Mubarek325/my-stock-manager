@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0f1e">
 <title>POWER-IMS v5</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/gebuk" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -931,6 +931,28 @@ function loadBranchReceipts(branch){
   return JSON.parse(localStorage.getItem(`ims_${ownerNS()}_branchreceipts_${branch}`)||'[]');
 }
 
+async function loadFromCloud(ns){
+  if(!S.db)return;
+  try{
+    const doc=await S.db.collection('power_ims5').doc(ns).get();
+    if(!doc.exists)return;
+    const d=doc.data();
+    if(d.items!==undefined) localStorage.setItem(`ims_${ns}_items`,d.items);
+    if(d.purchase!==undefined) localStorage.setItem(`ims_${ns}_purchase`,d.purchase);
+    if(d.sales!==undefined) localStorage.setItem(`ims_${ns}_sales`,d.sales);
+    if(d.expense!==undefined) localStorage.setItem(`ims_${ns}_expense`,d.expense);
+    if(d.storeItems!==undefined) localStorage.setItem(`ims_${ns}_storeItems`,d.storeItems);
+    if(d.storeDispatches!==undefined) localStorage.setItem(`ims_${ns}_storeDispatches`,d.storeDispatches);
+    if(d.beginBal!==undefined) localStorage.setItem(`ims_${ns}_beginBal`,d.beginBal);
+    if(d.perms!==undefined) localStorage.setItem(`ims_${ns}_perms`,d.perms);
+    if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
+    if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
+    if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
+    const branches=d.branches?JSON.parse(d.branches):['Main'];
+    branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
+  }catch(e){}
+}
+
 /* ═══════════════════════════════════════════════════════
    FIREBASE
 ═══════════════════════════════════════════════════════ */
@@ -1048,13 +1070,15 @@ async function submitAuth(){
   }
 }
 
-function doLogin(u,ownerId,role){
+async function doLogin(u,ownerId,role){
   S.user=u;S.ownerId=ownerId;S.role=role;
   localStorage.setItem('ims_currentUser',u);
   localStorage.setItem('ims_currentOwner',ownerId);
   localStorage.setItem('ims_currentRole',role);
   const reg=getRegistry();
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
+  initFirebase();
+  await loadFromCloud(ownerId);
   loadUserData();loadPrefs();
   S.avatarDataUrl=localStorage.getItem(`ims_${u}_avatar`)||null;
   // UI setup
@@ -1092,7 +1116,6 @@ function doLogin(u,ownerId,role){
     startTab=canRead(lastTab)?lastTab:'ITEMS';
   }
   switchTab(startTab);
-  initFirebase();
 }
 
 /* ═══════════════════════════════════════════════════════

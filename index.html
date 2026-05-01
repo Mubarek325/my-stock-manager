@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0f1e">
-<title>POWER-IMS v4</title>
+<title>POWER-IMS v5</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -20,6 +20,7 @@
   --accent:#06b6d4;--accent2:#8b5cf6;--accent3:#10b981;
   --success:#10b981;--warn:#f59e0b;--error:#ef4444;
   --owner:#f59e0b;--owner-glow:rgba(245,158,11,.3);--owner-glass:rgba(245,158,11,.1);
+  --store:#10b981;--store-glow:rgba(16,185,129,.3);--store-glass:rgba(16,185,129,.1);
   --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
   --shadow:0 8px 32px rgba(0,0,0,.4);--shadow-lg:0 24px 80px rgba(0,0,0,.6);
   --radius:14px;--radius-sm:9px;--radius-lg:20px;--radius-xl:28px;
@@ -42,39 +43,74 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-::selection{background:var(--p-glass);color:var(--p2)}
+
+/* ── FLY-IN ANIMATIONS ── */
+@keyframes flyInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes flyInLeft{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes flyInRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes flyInScale{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes staggerIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.fly-in{animation:flyInUp .42s cubic-bezier(.22,1,.36,1) both}
+.fly-in-left{animation:flyInLeft .38s cubic-bezier(.22,1,.36,1) both}
+.fly-in-scale{animation:flyInScale .38s cubic-bezier(.22,1,.36,1) both}
+
+/* Staggered rows */
+tbody tr{opacity:0;animation:staggerIn .35s cubic-bezier(.22,1,.36,1) both}
+tbody tr:nth-child(1){animation-delay:.03s}
+tbody tr:nth-child(2){animation-delay:.06s}
+tbody tr:nth-child(3){animation-delay:.09s}
+tbody tr:nth-child(4){animation-delay:.12s}
+tbody tr:nth-child(5){animation-delay:.15s}
+tbody tr:nth-child(6){animation-delay:.18s}
+tbody tr:nth-child(7){animation-delay:.21s}
+tbody tr:nth-child(8){animation-delay:.24s}
+tbody tr:nth-child(9){animation-delay:.27s}
+tbody tr:nth-child(10){animation-delay:.30s}
+tbody tr:nth-child(n+11){animation-delay:.33s}
 
 /* ── HEADER ── */
-.app-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:var(--hdr-h);position:sticky;top:0;z-index:200;backdrop-filter:blur(20px);gap:12px;box-shadow:0 1px 0 var(--border),0 4px 20px rgba(0,0,0,.1)}
+.app-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:var(--hdr-h);position:sticky;top:0;z-index:200;backdrop-filter:blur(20px);gap:12px;box-shadow:0 1px 0 var(--border),0 4px 20px rgba(0,0,0,.1);animation:flyInUp .4s cubic-bezier(.22,1,.36,1)}
 .app-header.owner-mode{background:linear-gradient(90deg,rgba(146,64,14,.15),var(--surface));border-bottom-color:rgba(245,158,11,.3)}
-.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-.brand-logo{width:38px;height:38px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px var(--p-glow);flex-shrink:0}
+.app-header.store-mode{background:linear-gradient(90deg,rgba(6,95,70,.15),var(--surface));border-bottom-color:rgba(16,185,129,.3)}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.brand-logo{width:38px;height:38px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px var(--p-glow);flex-shrink:0;transition:transform .2s}
+.brand:hover .brand-logo{transform:scale(1.08)}
 .brand-logo.owner{background:var(--owner-gradient);box-shadow:0 4px 14px var(--owner-glow)}
-.brand-logo.store{background:var(--store-gradient)}
+.brand-logo.store-logo{background:var(--store-gradient);box-shadow:0 4px 14px var(--store-glow)}
 .brand-text .t1{font-family:var(--display);font-size:.95rem;font-weight:800;color:var(--text);letter-spacing:.04em}
 .brand-text .t2{font-size:.58rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
 .hdr-right{display:flex;align-items:center;gap:8px}
 .hdr-chip{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:99px;background:var(--surface2);border:1px solid var(--border)}
 .hdr-chip.owner-chip{border-color:rgba(245,158,11,.4);background:var(--owner-glass)}
+.hdr-chip.store-chip{border-color:rgba(16,185,129,.4);background:var(--store-glass)}
 .hdr-chip .name{font-size:.72rem;font-weight:600;color:var(--text)}
 .hdr-chip .role{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
 .hdr-chip .role.owner-role{color:var(--owner)}
-.hdr-avatar{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer}
+.hdr-chip .role.store-role{color:var(--store)}
+.hdr-avatar{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer;transition:transform .18s}
+.hdr-avatar:hover{transform:scale(1.1)}
 .hdr-avatar.owner-avatar{background:var(--owner-gradient);box-shadow:0 0 0 2px var(--owner)}
+.hdr-avatar.store-avatar{background:var(--store-gradient);box-shadow:0 0 0 2px var(--store)}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
-.icon-btn:hover{background:var(--p-glass);color:var(--p);border-color:var(--p-glow)}
+.icon-btn:hover{background:var(--p-glass);color:var(--p);border-color:var(--p-glow);transform:translateY(-1px)}
 .sync-ring{position:absolute;inset:-1px;border-radius:10px;border:2px solid transparent;pointer-events:none}
 .sync-ring.active{border-color:var(--accent);animation:ringPulse 1.5s ease infinite}
 @keyframes ringPulse{0%,100%{opacity:1}50%{opacity:.3}}
 .notif-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--error);border:2px solid var(--surface);font-size:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
 
+/* Back button */
+.back-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;font-family:var(--font)}
+.back-btn:hover{background:var(--owner-glass);color:var(--owner);border-color:rgba(245,158,11,.4);transform:translateX(-2px)}
+
 /* ── BOTTOM NAV ── */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);display:flex;gap:4px;backdrop-filter:blur(20px)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .2s}
-.nav-item .ni-icon{font-size:18px;line-height:1;transition:transform .2s}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);display:flex;gap:4px;backdrop-filter:blur(20px);animation:flyInUp .45s cubic-bezier(.22,1,.36,1)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .22s}
+.nav-item .ni-icon{font-size:18px;line-height:1;transition:transform .22s}
 .nav-item .ni-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .nav-item:hover,.nav-item.active{color:var(--p);background:var(--p-glass)}
-.nav-item:hover .ni-icon,.nav-item.active .ni-icon{transform:translateY(-2px)}
+.nav-item:hover .ni-icon,.nav-item.active .ni-icon{transform:translateY(-3px) scale(1.1)}
 .nav-item.store-nav.active{color:var(--success);background:rgba(16,185,129,.1)}
 
 /* ── CONTENT ── */
@@ -82,7 +118,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 @media(min-width:768px){.content{padding:24px 28px}}
 
 /* ── PAGE CARD ── */
-.page-card{background:var(--surface);border-radius:var(--radius-xl);border:1px solid var(--border);overflow:hidden}
+.page-card{background:var(--surface);border-radius:var(--radius-xl);border:1px solid var(--border);overflow:hidden;animation:flyInScale .42s cubic-bezier(.22,1,.36,1)}
 .page-card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);gap:12px;flex-wrap:wrap}
 .page-title-block{display:flex;align-items:center;gap:12px}
 .page-icon-wrap{width:38px;height:38px;border-radius:11px;background:var(--p-glass);display:flex;align-items:center;justify-content:center;font-size:17px;border:1px solid rgba(59,130,246,.2)}
@@ -93,28 +129,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 /* ── OWNER DASHBOARD ── */
 .owner-screen{min-height:100vh;padding:24px;max-width:1200px;margin:0 auto}
-.owner-hero{background:var(--owner-gradient);border-radius:var(--radius-xl);padding:32px;margin-bottom:24px;position:relative;overflow:hidden}
+.owner-hero{background:var(--owner-gradient);border-radius:var(--radius-xl);padding:32px;margin-bottom:24px;position:relative;overflow:hidden;animation:flyInUp .4s cubic-bezier(.22,1,.36,1)}
 .owner-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
 .owner-hero::after{content:'';position:absolute;bottom:-20px;left:100px;width:120px;height:120px;background:rgba(255,255,255,.05);border-radius:50%}
 .owner-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:4px}
 .owner-hero p{color:rgba(255,255,255,.7);font-size:.8rem}
 .owner-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
-.owner-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}
-.owner-stat::before{content:'';position:absolute;inset:0;background:var(--owner-glass);opacity:0}
-.owner-stat:hover::before{opacity:1}
+.owner-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;animation:flyInUp .42s cubic-bezier(.22,1,.36,1) both;transition:transform .2s,box-shadow .2s}
+.owner-stat:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.owner-stat:nth-child(1){animation-delay:.05s}
+.owner-stat:nth-child(2){animation-delay:.10s}
+.owner-stat:nth-child(3){animation-delay:.15s}
+.owner-stat:nth-child(4){animation-delay:.20s}
 .stat-icon{font-size:28px;margin-bottom:10px}
 .stat-val{font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--owner)}
 .stat-lbl{font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
-.owner-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);margin-bottom:20px;overflow:hidden}
+.owner-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);margin-bottom:20px;overflow:hidden;animation:flyInUp .48s cubic-bezier(.22,1,.36,1) both}
+.owner-section:nth-child(1){animation-delay:.12s}
+.owner-section:nth-child(2){animation-delay:.18s}
 .owner-section-hdr{padding:16px 20px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .owner-section-hdr h3{font-family:var(--display);font-size:.85rem;font-weight:700}
-.admin-card{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
-.admin-card:last-child{border-bottom:none}
-.admin-avatar{width:42px;height:42px;border-radius:12px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0}
-.admin-info{flex:1}
-.admin-name{font-weight:700;font-size:13px}
-.admin-meta{font-size:10.5px;color:var(--text3);margin-top:2px}
-.admin-status{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700}
+.user-card{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;animation:flyInLeft .35s cubic-bezier(.22,1,.36,1) both;transition:background .15s}
+.user-card:hover{background:var(--surface2)}
+.user-card:last-child{border-bottom:none}
+.user-avatar{width:42px;height:42px;border-radius:12px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-weight:700;font-size:13px}
+.user-meta{font-size:10.5px;color:var(--text3);margin-top:2px}
+.user-status{padding:4px 10px;border-radius:99px;font-size:10px;font-weight:700}
 .status-active{background:rgba(16,185,129,.15);color:var(--success)}
 .status-pending{background:rgba(245,158,11,.15);color:var(--warn)}
 .status-suspended{background:rgba(239,68,68,.15);color:var(--error)}
@@ -126,12 +168,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);white-space:nowrap;text-decoration:none}
-.btn:hover{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow)}
+.btn:hover{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow);transform:translateY(-1px)}
 .btn-primary{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow)}
 .btn-primary:hover{background:var(--p2);border-color:var(--p2)}
 .btn-success{background:var(--success);color:#fff;border-color:var(--success)}
 .btn-danger{background:var(--error);color:#fff;border-color:var(--error)}
 .btn-owner{background:var(--owner-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--owner-glow)}
+.btn-store{background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)}
 .btn-sm{padding:5px 10px;font-size:10.5px;border-radius:7px}
 .btn-icon{width:34px;height:34px;padding:0;justify-content:center;font-size:14px}
 
@@ -164,10 +207,9 @@ tbody tr:last-child td{border-bottom:none}
 /* ── MODALS ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
 .modal-overlay.open{display:flex}
-.modal-box{background:var(--surface);border-radius:var(--radius-xl);width:min(500px,100%);box-shadow:var(--shadow-lg);animation:modalIn .28s cubic-bezier(.34,1.4,.64,1);max-height:92dvh;overflow-y:auto;border:1px solid var(--border2)}
+.modal-box{background:var(--surface);border-radius:var(--radius-xl);width:min(500px,100%);box-shadow:var(--shadow-lg);animation:flyInScale .3s cubic-bezier(.22,1,.36,1);max-height:92dvh;overflow-y:auto;border:1px solid var(--border2)}
 .modal-box.wide{width:min(700px,100%)}
 .modal-box.narrow{width:min(380px,100%)}
-@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:none}}
 .modal-hdr{padding:22px 24px 18px;background:var(--gradient);color:#fff;border-radius:var(--radius-xl) var(--radius-xl) 0 0;display:flex;align-items:center;gap:14px}
 .modal-hdr.owner-hdr{background:var(--owner-gradient)}
 .modal-hdr.store-hdr{background:var(--store-gradient)}
@@ -189,7 +231,7 @@ tbody tr:last-child td{border-bottom:none}
 .modal-btn.secondary:hover{background:var(--surface3);transform:none}
 .modal-btn.danger{background:var(--error);box-shadow:0 4px 14px rgba(239,68,68,.3)}
 .modal-btn.owner-btn{background:var(--owner-gradient);box-shadow:0 4px 14px var(--owner-glow)}
-.modal-btn.store-btn{background:var(--store-gradient);box-shadow:0 4px 14px rgba(16,185,129,.3)}
+.modal-btn.store-btn{background:var(--store-gradient);box-shadow:0 4px 14px var(--store-glow)}
 .modal-error{margin-top:8px;padding:9px 12px;border-radius:7px;background:rgba(239,68,68,.1);color:var(--error);font-size:12px;font-weight:500;display:none}
 .modal-error.show{display:block}
 .modal-success{margin-top:8px;padding:9px 12px;border-radius:7px;background:rgba(16,185,129,.1);color:var(--success);font-size:12px;font-weight:500;display:none}
@@ -202,6 +244,7 @@ tbody tr:last-child td{border-bottom:none}
 .settings-drawer.open{right:0}
 .drawer-hdr{padding:20px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .drawer-hdr.owner-drawer-hdr{background:var(--owner-gradient)}
+.drawer-hdr.store-drawer-hdr{background:var(--store-gradient)}
 .drawer-hdr h3{font-family:var(--display);font-size:.9rem;font-weight:700}
 .drawer-body{flex:1;overflow-y:auto;padding:8px 0 24px}
 .drawer-section{padding:14px 18px 6px;font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.14em;text-transform:uppercase}
@@ -224,15 +267,13 @@ tbody tr:last-child td{border-bottom:none}
 
 /* ── TOAST ── */
 .toast-wrap{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;align-items:center}
-.toast{background:var(--surface2);color:var(--text);padding:10px 18px;border-radius:99px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);animation:toastIn .3s ease;border:1px solid var(--border2);display:flex;align-items:center;gap:8px;pointer-events:auto}
-@keyframes toastIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.toast{background:var(--surface2);color:var(--text);padding:10px 18px;border-radius:99px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);animation:flyInUp .3s cubic-bezier(.22,1,.36,1);border:1px solid var(--border2);display:flex;align-items:center;gap:8px;pointer-events:auto}
 .toast.success{background:var(--success);color:#fff;border-color:var(--success)}
 .toast.error{background:var(--error);color:#fff;border-color:var(--error)}
 .toast.warn{background:var(--warn);color:#fff;border-color:var(--warn)}
 
 /* ── CONTEXT MENU ── */
-.ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:700;min-width:190px;overflow:hidden;animation:ctxIn .14s ease}
-@keyframes ctxIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:700;min-width:190px;overflow:hidden;animation:flyInScale .14s ease}
 .ctx-item{display:flex;align-items:center;gap:10px;padding:10px 15px;cursor:pointer;font-size:12.5px;font-weight:500;transition:background .1s;color:var(--text)}
 .ctx-item:hover{background:var(--p-glass);color:var(--p)}
 .ctx-item.danger:hover{background:rgba(239,68,68,.1);color:var(--error)}
@@ -242,7 +283,7 @@ tbody tr:last-child td{border-bottom:none}
 /* ── CONFIRM ── */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:950;padding:16px}
 .confirm-overlay.open{display:flex}
-.confirm-box{background:var(--surface);border-radius:var(--radius-xl);width:min(340px,100%);box-shadow:var(--shadow-lg);animation:modalIn .22s ease;overflow:hidden;border:1px solid var(--border2)}
+.confirm-box{background:var(--surface);border-radius:var(--radius-xl);width:min(340px,100%);box-shadow:var(--shadow-lg);animation:flyInScale .25s cubic-bezier(.22,1,.36,1);overflow:hidden;border:1px solid var(--border2)}
 .confirm-icon{text-align:center;padding:28px 20px 10px;font-size:42px}
 .confirm-title{text-align:center;font-family:var(--display);font-size:.95rem;font-weight:700;padding:0 20px 6px}
 .confirm-msg{text-align:center;font-size:.78rem;color:var(--text3);padding:0 20px 20px;line-height:1.6}
@@ -268,11 +309,12 @@ tbody tr:last-child td{border-bottom:none}
 .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .auth-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3}
-.auth-orb1{width:400px;height:400px;background:var(--p);top:-100px;right:-100px}
-.auth-orb2{width:300px;height:300px;background:var(--accent2);bottom:-80px;left:-80px}
-.auth-card{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);border:1px solid var(--border2);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;z-index:1}
+.auth-orb1{width:400px;height:400px;background:var(--p);top:-100px;right:-100px;animation:orbFloat 8s ease-in-out infinite}
+.auth-orb2{width:300px;height:300px;background:var(--accent2);bottom:-80px;left:-80px;animation:orbFloat 6s ease-in-out infinite reverse}
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-20px)}}
+.auth-card{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);border:1px solid var(--border2);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;z-index:1;animation:flyInScale .5s cubic-bezier(.22,1,.36,1)}
 .auth-hdr{padding:28px;background:var(--gradient);color:#fff;text-align:center}
-.auth-hdr .ah-icon{font-size:40px;margin-bottom:12px}
+.auth-hdr .ah-icon{font-size:40px;margin-bottom:12px;animation:float 3s ease-in-out infinite}
 .auth-hdr h1{font-family:var(--display);font-size:1.3rem;font-weight:800}
 .auth-hdr p{font-size:.72rem;opacity:.7;margin-top:4px;letter-spacing:.04em}
 .auth-body{padding:26px}
@@ -281,22 +323,27 @@ tbody tr:last-child td{border-bottom:none}
 .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.15)}
 
 /* ── AVATAR ── */
-.avatar-ring{width:80px;height:80px;border-radius:50%;margin:0 auto 12px;background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;cursor:pointer;transition:border-color .2s}
-.avatar-ring:hover{border-color:var(--p)}
+.avatar-ring{width:80px;height:80px;border-radius:50%;margin:0 auto 12px;background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s}
+.avatar-ring:hover{border-color:var(--p);transform:scale(1.05)}
 .avatar-ring img{width:100%;height:100%;object-fit:cover}
 .avatar-hint{text-align:center;font-size:10.5px;color:var(--text3);margin-bottom:14px}
 
 /* ── REPORT ── */
-.report-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);animation:flyInLeft .35s cubic-bezier(.22,1,.36,1) both}
+.report-row:nth-child(1){animation-delay:.04s}
+.report-row:nth-child(2){animation-delay:.08s}
+.report-row:nth-child(3){animation-delay:.12s}
+.report-row:nth-child(4){animation-delay:.16s}
+.report-row:nth-child(5){animation-delay:.20s}
+.report-row:nth-child(6){animation-delay:.24s}
+.report-row:nth-child(7){animation-delay:.28s}
+.report-row:nth-child(8){animation-delay:.32s}
 .report-row:last-child{border-bottom:none}
 .report-label{font-size:12.5px;color:var(--text2);font-weight:500}
 .report-val{font-family:var(--mono);font-size:13px;font-weight:700}
 .report-total-row{background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)!important}
 .report-total-row .report-label{font-weight:700;color:var(--text)}
 .report-total-row .report-val{color:var(--success)}
-.credit-section{padding:14px 16px;background:var(--surface2);border-radius:var(--radius-sm);margin:12px 16px}
-.credit-section h4{font-size:11px;font-weight:700;color:var(--p);margin-bottom:8px;letter-spacing:.04em}
-.credit-line{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
 .chart-wrap{padding:18px;background:var(--surface2);border-top:1px solid var(--border)}
 .chart-canvas{max-height:260px}
 .date-bar{display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);align-items:center}
@@ -307,23 +354,22 @@ tbody tr:last-child td{border-bottom:none}
 /* ── APPROVAL PANEL ── */
 .approval-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:flex-end;z-index:650;padding:70px 14px 14px}
 .approval-overlay.open{display:flex}
-.approval-panel{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--border2);animation:slideLeft .25s ease}
-@keyframes slideLeft{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.approval-panel{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--border2);animation:flyInRight .28s cubic-bezier(.22,1,.36,1)}
 .apv-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .apv-title{font-family:var(--display);font-size:.82rem;font-weight:700}
 .apv-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)}
-.apv-item{padding:14px 18px;border-bottom:1px solid var(--border)}
+.apv-item{padding:14px 18px;border-bottom:1px solid var(--border);animation:flyInLeft .3s cubic-bezier(.22,1,.36,1) both}
 .apv-type{font-size:9.5px;font-weight:800;color:var(--p);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
 .apv-msg{font-size:12.5px;font-weight:500;margin-bottom:5px}
 .apv-time{font-size:10px;color:var(--text3);margin-bottom:10px}
 .apv-actions{display:flex;gap:8px}
-.apv-btn{flex:1;padding:8px;border-radius:8px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:opacity .15s}
+.apv-btn{flex:1;padding:8px;border-radius:8px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
 .apv-btn.approve{background:var(--success);color:#fff}
 .apv-btn.deny{background:var(--error);color:#fff}
-.apv-btn:hover{opacity:.82}
+.apv-btn:hover{opacity:.82;transform:scale(.97)}
 
 /* ── STORE RECEIPT ── */
-.store-receipt-item{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:8px}
+.store-receipt-item{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:8px;animation:flyInLeft .3s cubic-bezier(.22,1,.36,1) both}
 .receipt-status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .receipt-detail{font-size:12px;color:var(--text2);line-height:1.6}
 .receipt-actions{display:flex;gap:8px;margin-top:10px}
@@ -340,15 +386,9 @@ tbody tr:last-child td{border-bottom:none}
 .rcpt-total-val{font-size:1.3rem;font-weight:800;color:var(--p);font-family:var(--mono)}
 .rcpt-footer{text-align:center;color:var(--text3);font-size:9.5px;margin-top:14px;border-top:2px dashed var(--border2);padding-top:12px}
 
-/* ── PERM ── */
-.perm-user-card{padding:16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border)}
-.perm-username{font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px}
-.perm-avatar-sm{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
-.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.perm-field label{font-size:10px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px}
-.perm-select{width:100%;padding:6px 8px;border:1.5px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer}
-.perm-perm-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:4px}
-.perm-perm-row label{font-size:12px;font-weight:600;color:var(--text2)}
+/* ── STORE NOTIFICATION PULSE ── */
+.store-notif-pulse{animation:storePulse 2s ease infinite}
+@keyframes storePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
 
 /* ── PRINT ── */
 @media print{
@@ -376,9 +416,20 @@ tbody tr:last-child td{border-bottom:none}
   .nav-item{flex:none;min-width:88px}
 }
 
-/* ── STORE NOTIFICATION PULSE ── */
-.store-notif-pulse{animation:storePulse 2s ease infinite}
-@keyframes storePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+/* ── PERM ── */
+.perm-user-card{padding:16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border);animation:flyInUp .35s cubic-bezier(.22,1,.36,1) both}
+.perm-username{font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px}
+.perm-avatar-sm{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.perm-field label{font-size:10px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px}
+.perm-select{width:100%;padding:6px 8px;border:1.5px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer}
+.perm-perm-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:4px}
+.perm-perm-row label{font-size:12px;font-weight:600;color:var(--text2)}
+
+/* Store keeper pill badge */
+.role-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
+.role-badge.storekeeper{background:var(--store-glass);color:var(--store);border:1px solid rgba(16,185,129,.3)}
+.role-badge.regular{background:var(--p-glass);color:var(--p);border:1px solid rgba(59,130,246,.3)}
 </style>
 </head>
 <body>
@@ -386,7 +437,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- LOADER -->
 <div class="page-loader" id="page-loader">
   <div class="loader-logo">📦</div>
-  <div class="loader-text">POWER-IMS v4</div>
+  <div class="loader-text">POWER-IMS v5</div>
   <div class="loader-sub">Initializing system…</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
 </div>
@@ -404,7 +455,7 @@ tbody tr:last-child td{border-bottom:none}
   <div class="auth-card">
     <div class="auth-hdr">
       <div class="ah-icon">📦</div>
-      <h1>POWER-IMS v4</h1>
+      <h1>POWER-IMS v5</h1>
       <p>Inventory Management System</p>
     </div>
     <div class="auth-body">
@@ -420,20 +471,9 @@ tbody tr:last-child td{border-bottom:none}
       <div class="field"><label>Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
       <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
       <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
-      <div class="field" id="auth-admin-code-wrap" style="display:none">
-        <label>Admin Invite Code <span style="color:var(--text3);font-size:9px">(from owner)</span></label>
-        <input id="auth-admin-code" placeholder="Enter invite code from owner">
-      </div>
-      <div class="field" id="auth-request-type-wrap" style="display:none">
-        <label>Request Type</label>
-        <select id="auth-request-type" onchange="toggleAdminCode()">
-          <option value="user">👤 User Account (under an admin)</option>
-          <option value="admin">🔑 Admin Account (requires owner invite code)</option>
-        </select>
-      </div>
       <div class="field" id="auth-admin-target-wrap" style="display:none">
-        <label>Admin Username <span style="color:var(--text3);font-size:9px">(for user accounts)</span></label>
-        <input id="auth-admin-target" placeholder="Which admin are you under?">
+        <label>Platform Owner Username <span style="color:var(--text3);font-size:9px">(who invited you)</span></label>
+        <input id="auth-admin-target" placeholder="Enter the platform owner's username">
       </div>
       <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
       <div class="modal-error" id="auth-error"></div>
@@ -447,7 +487,7 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- HEADER -->
 <div class="app-header" id="app-header" style="display:none">
-  <div class="brand">
+  <div class="brand" onclick="handleBrandClick()">
     <div class="brand-logo" id="brand-logo">📦</div>
     <div class="brand-text">
       <div class="t1">POWER-IMS</div>
@@ -455,6 +495,8 @@ tbody tr:last-child td{border-bottom:none}
     </div>
   </div>
   <div class="hdr-right">
+    <!-- Back button for owner dashboard -->
+    <button class="back-btn no-print" id="owner-back-btn" onclick="exitOwnerDashboard()" style="display:none">← Back</button>
     <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">☁️<div class="sync-ring" id="sync-ring"></div></div>
     <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div></div>
     <div class="icon-btn no-print" id="store-notif-btn" onclick="openStoreReceipts()" style="display:none" title="Store Receipts">🏪<div class="notif-dot" id="store-notif-dot" style="display:none;background:var(--success)">0</div></div>
@@ -495,15 +537,15 @@ tbody tr:last-child td{border-bottom:none}
       <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼️</span>
       <div class="di-info"><div class="di-label">Profile Photo</div></div>
     </button>
-    <button class="drawer-item" id="btn-admin-perms" onclick="openPermissions();closeSettings()" style="display:none">
+    <button class="drawer-item" id="btn-owner-perms" onclick="openPermissions();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
-      <div class="di-info"><div class="di-label">User Permissions</div><div class="di-sub">Admin only</div></div>
+      <div class="di-info"><div class="di-label">User Permissions</div><div class="di-sub">Owner only</div></div>
     </button>
-    <button class="drawer-item" id="btn-admin-branches" onclick="openBranches();closeSettings()" style="display:none">
+    <button class="drawer-item" id="btn-owner-branches" onclick="openBranches();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">🏢</span>
-      <div class="di-info"><div class="di-label">Manage Branches</div><div class="di-sub">Admin only</div></div>
+      <div class="di-info"><div class="di-label">Manage Branches</div><div class="di-sub">Owner only</div></div>
     </button>
-    <button class="drawer-item" id="btn-admin-users" onclick="openAddUserModal();closeSettings()" style="display:none">
+    <button class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
       <div class="di-info"><div class="di-label">Add User</div><div class="di-sub">Create user for a branch</div></div>
     </button>
@@ -600,14 +642,20 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- ADD USER (Admin creates user with branch) -->
+<!-- ADD USER -->
 <div class="modal-overlay" id="add-user-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><span class="modal-hdr-icon">👤</span><div><h2>Add User</h2><p>Create a user under your admin</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
+    <div class="modal-hdr"><span class="modal-hdr-icon">👤</span><div><h2>Add User</h2><p>Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Username *</label><input id="nu-username" placeholder="Enter username"></div>
       <div class="field"><label>Password *</label><input id="nu-password" type="password" placeholder="Set password"></div>
-      <div class="field"><label>Assigned Branch *</label><select id="nu-branch"></select></div>
+      <div class="field"><label>Role *</label>
+        <select id="nu-role" onchange="toggleAddUserBranch()">
+          <option value="user">👤 Regular User</option>
+          <option value="storekeeper">🏪 Store Keeper</option>
+        </select>
+      </div>
+      <div class="field" id="nu-branch-wrap"><label>Assigned Branch *</label><select id="nu-branch"></select></div>
       <button class="modal-btn" onclick="submitAddUser()">✅ Create User</button>
       <button class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px">Cancel</button>
       <div class="modal-error" id="nu-error"></div>
@@ -640,10 +688,10 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- APPROVALS PANEL -->
+<!-- APPROVALS PANEL (Owner approves users) -->
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title">🔔 Pending Approvals</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title">🔔 Pending User Requests</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
     <div id="approval-list"></div>
   </div>
 </div>
@@ -680,45 +728,31 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- OWNER PANEL (full page overlay) -->
-<div id="owner-screen" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;">
+<!-- OWNER / PLATFORM DASHBOARD -->
+<div id="owner-screen" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;padding-bottom:20px">
   <div class="owner-screen">
     <div class="owner-hero">
-      <h1>👑 Owner Dashboard</h1>
-      <p>POWER-IMS Platform Control Center — Full visibility over all admins</p>
+      <h1>👑 Platform Dashboard</h1>
+      <p>POWER-IMS — Full visibility over all users on your platform</p>
     </div>
     <div class="owner-stats" id="owner-stats"></div>
     <div class="owner-section">
       <div class="owner-section-hdr">
-        <h3>🔐 Admin Accounts</h3>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-owner" onclick="openGenerateInvite()">🔑 Generate Invite Code</button>
-        </div>
+        <h3>👤 All Users</h3>
+        <button class="btn btn-owner" onclick="openAddUserModal()">➕ Add User</button>
       </div>
-      <div id="admin-list-body"></div>
+      <div id="user-list-body"></div>
     </div>
     <div class="owner-section">
       <div class="owner-section-hdr">
-        <h3>📋 Pending Admin Requests</h3>
-        <span id="pending-admin-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
+        <h3>⏳ Pending Access Requests</h3>
+        <span id="pending-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
-      <div id="pending-admin-list"></div>
+      <div id="pending-user-list"></div>
     </div>
-  </div>
-</div>
-
-<!-- GENERATE INVITE CODE MODAL -->
-<div class="modal-overlay" id="invite-modal">
-  <div class="modal-box narrow">
-    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">🔑</span><div><h2>Generate Invite Code</h2><p>For new admin accounts</p></div><button class="modal-hdr-close" onclick="closeModal('invite-modal')">✕</button></div>
-    <div class="modal-body">
-      <div id="invite-code-display" style="text-align:center;padding:20px;background:var(--owner-glass);border-radius:var(--radius);border:1px solid rgba(245,158,11,.3);margin-bottom:16px">
-        <div style="font-size:11px;color:var(--owner);font-weight:700;margin-bottom:8px">INVITE CODE</div>
-        <div id="invite-code-val" style="font-family:var(--mono);font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:.15em">—</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:6px">Valid for one-time admin signup</div>
-      </div>
-      <button class="modal-btn owner-btn" onclick="generateInviteCode()">🔄 Generate New Code</button>
-      <button class="modal-btn secondary" onclick="closeModal('invite-modal')" style="margin-top:5px">Close</button>
+    <div class="owner-section" style="animation-delay:.24s">
+      <div class="owner-section-hdr"><h3>🏢 Branches</h3><button class="btn" onclick="openBranches()">Manage</button></div>
+      <div id="owner-branch-list"></div>
     </div>
   </div>
 </div>
@@ -726,7 +760,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- SUBSCRIPTION MODAL -->
 <div class="modal-overlay" id="sub-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">💎</span><div><h2>Subscription</h2><p id="sub-modal-admin-name">Admin</p></div><button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button></div>
+    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">💎</span><div><h2>Subscription</h2><p id="sub-modal-user-name">User</p></div><button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>Subscription Plan</label>
         <select id="sub-plan-select">
@@ -743,7 +777,7 @@ tbody tr:last-child td{border-bottom:none}
         </select>
       </div>
       <div class="field"><label>Notes (optional)</label><input id="sub-notes" placeholder="e.g. Paid until Dec 2025"></div>
-      <button class="modal-btn owner-btn" onclick="saveSubscription()">💾 Save Subscription</button>
+      <button class="modal-btn owner-btn" onclick="saveSubscription()">💾 Save</button>
       <button class="modal-btn secondary" onclick="closeModal('sub-modal')" style="margin-top:5px">Cancel</button>
     </div>
   </div>
@@ -777,6 +811,7 @@ tbody tr:last-child td{border-bottom:none}
   <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
   <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
   <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
+  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')"><span class="ni-icon">📋</span><span class="ni-label">Items</span></button>
 </div>
 
 <script>
@@ -791,7 +826,7 @@ const TAB_META = {
   PURCHASE:{icon:'🛒',title:'Purchase',sub:'Purchase records'},
   SALES:{icon:'💰',title:'Sales',sub:'Sales records'},
   BALANCE:{icon:'⚖️',title:'Balance',sub:'Inventory stock levels'},
-  STORE:{icon:'🏪',title:'Store',sub:'Central store & dispatch to branches'},
+  STORE:{icon:'🏪',title:'Store',sub:'Central store inventory & dispatch'},
   EXPENSE:{icon:'💸',title:'Expense',sub:'Expense tracking'},
   REPORT:{icon:'📊',title:'Report',sub:'Financial summary'}
 };
@@ -803,23 +838,24 @@ const L=k=>(LANG[S.lang]||LANG.en)[k]||k;
 
 const FIREBASE_CONFIG={apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',authDomain:'powerims.firebaseapp.com',projectId:'powerims',appId:'1:306983469410:web:d65eedf6eb78602a8e6c3b'};
 
-// OWNER credentials (hardcoded, never changeable via UI)
+// SYSTEM OWNER credentials
 const OWNER_USERNAME = 'Mb';
 const OWNER_PASSWORD = '1194';
 
 const S={
-  user:null,adminId:null,role:null, // role: 'owner'|'admin'|'user'
+  user:null,ownerId:null,role:null, // role: 'system_owner'|'owner'|'storekeeper'|'user'
   tab:'ITEMS',theme:'dark',lang:'en',
   items:[],purchase:[],sales:[],expense:[],
-  storeItems:[],storeDispatches:[], // store inventory and dispatches
-  branchReceipts:[], // receipts received by a branch from store
+  // Store data is SEPARATE from inventory - managed only by storekeeper
+  storeItems:[],storeDispatches:[],
+  branchReceipts:[],
   beginBal:0,reportRange:{from:'',to:''},
   perms:{},exportPerms:{},pendingSignups:[],
   avatarDataUrl:null,
-  branches:['Main'],currentBranch:'',
-  adminMeta:{}, // owner sees this: {adminId: {sub:'free',status:'active',notes:''}}
+  branches:['Main'],
+  userBranch:null,
   db:null,dbConnected:false,_unsubscribe:null,
-  userBranch:null, // branch assigned to this user (non-admin users)
+  userMeta:{}, // {username:{sub,status,notes}}
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -840,31 +876,38 @@ function showToast(msg,type='',dur=2800){
 }
 
 /* ═══════════════════════════════════════════════════════
-   REGISTRY  ims_reg = {username:{password,adminId,role,branch?}}
-   OWNER ADMIN META  ims_adminmeta = {adminId:{sub,status,notes}}
+   REGISTRY
+   ims_reg = {username:{password,ownerId,role,branch?,sub?,status?}}
+   Roles: 'system_owner'|'owner'|'storekeeper'|'user'
+   
+   Data is SEPARATED per ownerId namespace.
+   Owners manage their own users and see only their data.
+   Store data is separate from inventory data.
 ═══════════════════════════════════════════════════════ */
 const getRegistry=()=>JSON.parse(localStorage.getItem('ims_reg')||'{}');
 const saveRegistry=r=>localStorage.setItem('ims_reg',JSON.stringify(r));
-const getAdminMeta=()=>JSON.parse(localStorage.getItem('ims_adminmeta')||'{}');
-const saveAdminMeta=m=>localStorage.setItem('ims_adminmeta',JSON.stringify(m));
-const getInviteCodes=()=>JSON.parse(localStorage.getItem('ims_invite_codes')||'[]');
-const saveInviteCodes=c=>localStorage.setItem('ims_invite_codes',JSON.stringify(c));
 
 function ensureDefaults(){
-  // Never modify owner — it's hardcoded, not in registry
   const reg=getRegistry();
-  if(!reg['admin']){reg['admin']={password:'admin',adminId:'admin',role:'admin'};saveRegistry(reg);}
+  // Default owner account
+  if(!reg['owner']){
+    reg['owner']={password:'owner123',ownerId:'owner',role:'owner'};
+    saveRegistry(reg);
+  }
 }
 
-const adminNS=()=>S.adminId||'default';
-const lsKey=k=>`ims_${adminNS()}_${k}`;
+// Namespace = ownerId (each owner has completely separate data)
+const ownerNS=()=>S.ownerId||'default';
+const lsKey=k=>`ims_${ownerNS()}_${k}`;
 
 function loadUserData(){
-  const ns=adminNS();
+  const ns=ownerNS();
+  // Main inventory data (shared among owner+users)
   S.items=JSON.parse(localStorage.getItem(`ims_${ns}_items`)||'[]');
   S.purchase=JSON.parse(localStorage.getItem(`ims_${ns}_purchase`)||'[]');
   S.sales=JSON.parse(localStorage.getItem(`ims_${ns}_sales`)||'[]');
   S.expense=JSON.parse(localStorage.getItem(`ims_${ns}_expense`)||'[]');
+  // STORE data — separate namespace, only storekeeper writes
   S.storeItems=JSON.parse(localStorage.getItem(`ims_${ns}_storeItems`)||'[]');
   S.storeDispatches=JSON.parse(localStorage.getItem(`ims_${ns}_storeDispatches`)||'[]');
   S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
@@ -873,14 +916,13 @@ function loadUserData(){
   S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
   S.branches=JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
   S.avatarDataUrl=localStorage.getItem(`ims_${S.user}_avatar`)||null;
-  // Load branch receipts for this user's branch
   if(S.userBranch){
-    S.branchReceipts=JSON.parse(localStorage.getItem(`ims_${ns}_branchreceipts_${S.userBranch}`)||'[]');
+    S.branchReceipts=loadBranchReceipts(S.userBranch);
   }
 }
 
 function saveUserData(){
-  const ns=adminNS();
+  const ns=ownerNS();
   localStorage.setItem(`ims_${ns}_items`,JSON.stringify(S.items));
   localStorage.setItem(`ims_${ns}_purchase`,JSON.stringify(S.purchase));
   localStorage.setItem(`ims_${ns}_sales`,JSON.stringify(S.sales));
@@ -892,19 +934,14 @@ function saveUserData(){
   localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
   localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
   localStorage.setItem(`ims_${ns}_branches`,JSON.stringify(S.branches));
-  if(S.userBranch){
-    localStorage.setItem(`ims_${ns}_branchreceipts_${S.userBranch}`,JSON.stringify(S.branchReceipts));
-  }
   syncToCloud();
 }
 
 function saveBranchReceipts(branch,receipts){
-  const ns=adminNS();
-  localStorage.setItem(`ims_${ns}_branchreceipts_${branch}`,JSON.stringify(receipts));
+  localStorage.setItem(`ims_${ownerNS()}_branchreceipts_${branch}`,JSON.stringify(receipts));
 }
 function loadBranchReceipts(branch){
-  const ns=adminNS();
-  return JSON.parse(localStorage.getItem(`ims_${ns}_branchreceipts_${branch}`)||'[]');
+  return JSON.parse(localStorage.getItem(`ims_${ownerNS()}_branchreceipts_${branch}`)||'[]');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -912,17 +949,16 @@ function loadBranchReceipts(branch){
 ═══════════════════════════════════════════════════════ */
 function initFirebase(){
   try{
-    let app;try{app=firebase.app('pims4');}catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims4');}
+    let app;try{app=firebase.app('pims5');}catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims5');}
     S.db=firebase.firestore(app);S.dbConnected=true;setSyncRing(true);return true;
   }catch(e){setSyncRing(false);return false;}
 }
-
 let _syncT=null;
 function syncToCloud(){
   if(!S.dbConnected||!S.db)return;
   clearTimeout(_syncT);
   _syncT=setTimeout(()=>{
-    const ns=adminNS();
+    const ns=ownerNS();
     const payload={
       items:JSON.stringify(S.items),purchase:JSON.stringify(S.purchase),
       sales:JSON.stringify(S.sales),expense:JSON.stringify(S.expense),
@@ -930,14 +966,12 @@ function syncToCloud(){
       beginBal:S.beginBal,perms:JSON.stringify(S.perms),
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
-      adminMeta:JSON.stringify(getAdminMeta()),
       updatedAt:new Date().toISOString()
     };
-    // Save branch receipts
     S.branches.forEach(b=>{
       payload[`br_${b}`]=JSON.stringify(loadBranchReceipts(b));
     });
-    S.db.collection('power_ims4').doc(ns).set(payload,{merge:true})
+    S.db.collection('power_ims5').doc(ns).set(payload,{merge:true})
       .then(()=>setSyncRing(true)).catch(()=>setSyncRing(false));
   },1200);
 }
@@ -948,14 +982,14 @@ function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
    EMERGENCY RESET
 ═══════════════════════════════════════════════════════ */
 function emergencyReset(){
-  if(!confirm('Reset admin to defaults? Inventory data will NOT be deleted.'))return;
+  if(!confirm('Reset default owner account? Inventory data will NOT be deleted.'))return;
   const reg=getRegistry();
-  reg['admin']={password:'admin',adminId:'admin',role:'admin'};
+  reg['owner']={password:'owner123',ownerId:'owner',role:'owner'};
   saveRegistry(reg);
-  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentAdmin');localStorage.removeItem('ims_currentRole');
-  showMsg('auth-success','✅ Reset done! Login: admin / admin','success');
-  document.getElementById('auth-user').value='admin';
-  document.getElementById('auth-pass').value='admin';
+  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentOwner');localStorage.removeItem('ims_currentRole');
+  showMsg('auth-success','✅ Reset! Login: owner / owner123','success');
+  document.getElementById('auth-user').value='owner';
+  document.getElementById('auth-pass').value='owner123';
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -968,16 +1002,9 @@ function setAuthMode(m){
   document.getElementById('tab-signup-btn').classList.toggle('active',m==='signup');
   document.getElementById('auth-confirm-wrap').style.display=m==='signup'?'':'none';
   document.getElementById('auth-signup-avatar').style.display=m==='signup'?'':'none';
-  document.getElementById('auth-request-type-wrap').style.display=m==='signup'?'':'none';
   document.getElementById('auth-admin-target-wrap').style.display=m==='signup'?'':'none';
-  document.getElementById('auth-admin-code-wrap').style.display='none';
   document.getElementById('auth-btn').innerHTML=m==='signup'?'📝 Request Access':'🔐 Log In';
   hideMsg('auth-error');hideMsg('auth-success');
-}
-function toggleAdminCode(){
-  const t=document.getElementById('auth-request-type').value;
-  document.getElementById('auth-admin-code-wrap').style.display=t==='admin'?'':'none';
-  document.getElementById('auth-admin-target-wrap').style.display=t==='user'?'':'none';
 }
 
 function submitAuth(){
@@ -985,9 +1012,9 @@ function submitAuth(){
   const p=document.getElementById('auth-pass').value;
   if(!u||!p){showMsg('auth-error','Please enter username and password');return;}
 
-  // OWNER CHECK — hardcoded, not in registry
+  // SYSTEM OWNER — hardcoded
   if(u===OWNER_USERNAME&&p===OWNER_PASSWORD){
-    doLogin(u,'_owner_','owner');return;
+    doLoginSystemOwner();return;
   }
 
   ensureDefaults();
@@ -997,91 +1024,77 @@ function submitAuth(){
     const entry=reg[u];
     if(!entry){showMsg('auth-error','Username not found.');return;}
     if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
-    // Check if admin account is suspended
-    if(entry.role==='admin'){
-      const meta=getAdminMeta();
-      if(meta[u]?.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact the owner.');return;}
-    }
-    doLogin(u,entry.adminId||u,entry.role||'user');
+    // Check if account is suspended
+    const meta=entry.userMeta||{};
+    if(entry.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact your platform owner.');return;}
+    doLogin(u,entry.ownerId||u,entry.role||'user');
   }else{
+    // Request Access flow — user signs up under an owner
     const c=document.getElementById('auth-confirm').value;
-    const reqType=document.getElementById('auth-request-type').value;
+    const ownerTarget=document.getElementById('auth-admin-target').value.trim();
     if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
     if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
     if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already exists.');return;}
-
-    if(reqType==='admin'){
-      // Validate invite code
-      const code=document.getElementById('auth-admin-code').value.trim();
-      const codes=getInviteCodes();
-      const codeIdx=codes.findIndex(c=>c.code===code&&!c.used);
-      if(codeIdx===-1){showMsg('auth-error','Invalid or already used invite code.');return;}
-      // Mark code as used
-      codes[codeIdx].used=true;codes[codeIdx].usedBy=u;
-      saveInviteCodes(codes);
-      // Add as pending admin request for owner
-      const allPendingAdmins=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
-      allPendingAdmins.push({username:u,password:p,role:'admin',requestedAt:new Date().toISOString(),code});
-      localStorage.setItem('ims_pending_admins',JSON.stringify(allPendingAdmins));
-      showMsg('auth-success','✅ Admin request sent! Owner will approve your account.','success');
-    }else{
-      // User under an admin
-      const adminTarget=document.getElementById('auth-admin-target').value.trim();
-      if(!adminTarget){showMsg('auth-error','Please enter the admin username you are under.');return;}
-      if(!reg[adminTarget]||reg[adminTarget].role!=='admin'){showMsg('auth-error','Admin not found. Check spelling.');return;}
-      // Add as pending user signup for that admin
-      const ns=adminTarget;
-      const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-      const avatar=document.getElementById('auth-avatar-preview')?.querySelector('img')?.src||null;
-      pending.push({username:u,password:p,role:'user',adminId:adminTarget,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
-      localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
-      showMsg('auth-success','✅ Request sent to admin! Wait for approval.','success');
-    }
+    if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
+    if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
+    // Add to owner's pending signups
+    const ns=reg[ownerTarget].ownerId||ownerTarget;
+    const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
+    pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
+    localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
+    showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
   }
 }
 
-function doLogin(u,adminId,role){
-  S.user=u;S.adminId=adminId;S.role=role;
+function doLogin(u,ownerId,role){
+  S.user=u;S.ownerId=ownerId;S.role=role;
   localStorage.setItem('ims_currentUser',u);
-  localStorage.setItem('ims_currentAdmin',adminId);
+  localStorage.setItem('ims_currentOwner',ownerId);
   localStorage.setItem('ims_currentRole',role);
-  // Get branch for non-admin users
-  if(role==='user'){
-    const reg=getRegistry();
-    S.userBranch=reg[u]?.branch||null;
-  }
-  if(role==='owner'){
-    doLoginOwner();return;
-  }
+  const reg=getRegistry();
+  S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   loadUserData();loadPrefs();
   S.avatarDataUrl=localStorage.getItem(`ims_${u}_avatar`)||null;
+  // UI setup
   document.getElementById('user-label').textContent=u;
-  document.getElementById('user-role-label').textContent=role==='admin'?'Administrator':'User'+(S.userBranch?` — ${S.userBranch}`:'');
-  const chip=document.getElementById('hdr-chip');
-  if(chip){chip.className='hdr-chip no-print';}
-  const av=document.getElementById('hdr-avatar');
-  if(av&&role==='admin'){av.className='hdr-avatar';}
+  const roleLabel=role==='owner'?'Owner':role==='storekeeper'?'Store Keeper':role==='user'?'User'+(S.userBranch?` — ${S.userBranch}`:''):'User';
+  document.getElementById('user-role-label').textContent=roleLabel;
+  document.getElementById('hdr-chip').className='hdr-chip no-print'+(role==='storekeeper'?' store-chip':'');
+  document.getElementById('user-role-label').className='role'+(role==='storekeeper'?' store-role':'');
   const logo=document.getElementById('brand-logo');
-  if(logo){logo.className='brand-logo';}
-  document.getElementById('brand-sub').textContent='Inventory System';
-  document.getElementById('btn-admin-perms').style.display=isAdmin()?'flex':'none';
-  document.getElementById('btn-admin-branches').style.display=isAdmin()?'flex':'none';
-  document.getElementById('btn-admin-users').style.display=isAdmin()?'flex':'none';
-  document.getElementById('notif-btn').style.display=isAdmin()?'flex':'none';
-  document.getElementById('store-nav-btn').style.display=isAdmin()?'':'none';
+  logo.className='brand-logo'+(role==='storekeeper'?' store-logo':'');
+  logo.textContent=role==='storekeeper'?'🏪':'📦';
+  document.getElementById('brand-sub').textContent=role==='storekeeper'?'Store Keeper':'Inventory System';
+  const hdr=document.getElementById('app-header');
+  hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
+  document.getElementById('drawer-hdr').className='drawer-hdr'+(role==='storekeeper'?' store-drawer-hdr':'');
+  // Approvals for owner
+  document.getElementById('notif-btn').style.display=isOwner()?'flex':'none';
+  // Store notifications for branch users
+  document.getElementById('store-nav-btn').style.display=(isOwner()||isStorekeeper())?'':'none';
+  document.getElementById('btn-owner-perms').style.display=isOwner()?'flex':'none';
+  document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
+  document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
+  document.getElementById('owner-back-btn').style.display='none';
   updateHdrAvatar();
   showUI();
-  if(isAdmin())loadAdminPendingApprovals();
+  if(isOwner())loadPendingApprovals();
   updateStoreNotifBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
-  switchTab(canRead(lastTab)?lastTab:'ITEMS');
+  // Store keepers start on STORE tab
+  const startTab=isStorekeeper()?'STORE':(canRead(lastTab)?lastTab:'ITEMS');
+  switchTab(startTab);
   initFirebase();
 }
 
 /* ═══════════════════════════════════════════════════════
-   OWNER LOGIN
+   SYSTEM OWNER (platform admin - the seller)
 ═══════════════════════════════════════════════════════ */
-function doLoginOwner(){
+function doLoginSystemOwner(){
+  S.user=OWNER_USERNAME;S.ownerId='_system_';S.role='system_owner';
+  localStorage.setItem('ims_currentUser',OWNER_USERNAME);
+  localStorage.setItem('ims_currentOwner','_system_');
+  localStorage.setItem('ims_currentRole','system_owner');
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-header').style.display='flex';
   document.getElementById('bottom-nav').style.display='none';
@@ -1090,154 +1103,274 @@ function doLoginOwner(){
   const hdr=document.getElementById('app-header');hdr.className='app-header owner-mode';
   document.getElementById('brand-logo').className='brand-logo owner';
   document.getElementById('brand-logo').textContent='👑';
-  document.getElementById('brand-sub').textContent='Owner Dashboard';
+  document.getElementById('brand-sub').textContent='System Dashboard';
   document.getElementById('user-label').textContent=OWNER_USERNAME;
-  document.getElementById('user-role-label').textContent='OWNER';
+  document.getElementById('user-role-label').textContent='SYSTEM OWNER';
   document.getElementById('user-role-label').className='role owner-role';
   document.getElementById('hdr-chip').className='hdr-chip owner-chip no-print';
   document.getElementById('hdr-avatar').className='hdr-avatar owner-avatar';
   document.getElementById('hdr-avatar').textContent='👑';
   document.getElementById('notif-btn').style.display='none';
   document.getElementById('store-notif-btn').style.display='none';
-  document.getElementById('store-nav-btn').style.display='none';
+  document.getElementById('owner-back-btn').style.display='none';
   document.getElementById('drawer-hdr').className='drawer-hdr owner-drawer-hdr';
   initFirebase();
-  renderOwnerDashboard();
+  renderSystemOwnerDashboard();
 }
 
 /* ═══════════════════════════════════════════════════════
-   OWNER DASHBOARD
+   SYSTEM OWNER DASHBOARD
 ═══════════════════════════════════════════════════════ */
-function renderOwnerDashboard(){
+function renderSystemOwnerDashboard(){
   const reg=getRegistry();
-  const meta=getAdminMeta();
-  const admins=Object.keys(reg).filter(u=>reg[u].role==='admin');
-  const pendingAdmins=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
-
-  // Stats
+  const owners=Object.keys(reg).filter(u=>reg[u].role==='owner');
+  const allUsers=Object.keys(reg).filter(u=>reg[u].role!=='system_owner');
+  
   document.getElementById('owner-stats').innerHTML=`
-    <div class="owner-stat"><div class="stat-icon">🔑</div><div class="stat-val">${admins.length}</div><div class="stat-lbl">Active Admins</div></div>
-    <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${pendingAdmins.length}</div><div class="stat-lbl">Pending Requests</div></div>
-    <div class="owner-stat"><div class="stat-icon">💎</div><div class="stat-val">${admins.filter(a=>meta[a]?.sub==='pro'||meta[a]?.sub==='enterprise').length}</div><div class="stat-lbl">Premium Admins</div></div>
-    <div class="owner-stat"><div class="stat-icon">🚫</div><div class="stat-val">${admins.filter(a=>meta[a]?.status==='suspended').length}</div><div class="stat-lbl">Suspended</div></div>`;
+    <div class="owner-stat"><div class="stat-icon">👑</div><div class="stat-val">${owners.length}</div><div class="stat-lbl">Platform Owners</div></div>
+    <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${allUsers.length}</div><div class="stat-lbl">Total Users</div></div>
+    <div class="owner-stat"><div class="stat-icon">💎</div><div class="stat-val">${owners.filter(u=>['pro','enterprise'].includes(reg[u].sub)).length}</div><div class="stat-lbl">Premium</div></div>
+    <div class="owner-stat"><div class="stat-icon">🚫</div><div class="stat-val">${allUsers.filter(u=>reg[u].status==='suspended').length}</div><div class="stat-lbl">Suspended</div></div>`;
 
-  // Admin list
-  document.getElementById('admin-list-body').innerHTML=admins.length?admins.map(a=>{
-    const m=meta[a]||{sub:'free',status:'active'};
-    const subClass={free:'sub-free',basic:'sub-basic',pro:'sub-pro',enterprise:'sub-enterprise'}[m.sub]||'sub-free';
-    const statusClass={active:'status-active',suspended:'status-suspended'}[m.status]||'status-active';
-    return`<div class="admin-card">
-      <div class="admin-avatar">${a[0].toUpperCase()}</div>
-      <div class="admin-info">
-        <div class="admin-name">${esc(a)}</div>
-        <div class="admin-meta">
-          <span class="sub-badge ${subClass}">💎 ${m.sub||'free'}</span>
-          ${m.notes?`<span style="margin-left:8px;font-size:10px;color:var(--text3)">${esc(m.notes)}</span>`:''}
-        </div>
+  document.getElementById('user-list-body').innerHTML=owners.length?owners.map((u,i)=>{
+    const r=reg[u];
+    const sub=r.sub||'free';
+    const status=r.status||'active';
+    const subClass={free:'sub-free',basic:'sub-basic',pro:'sub-pro',enterprise:'sub-enterprise'}[sub]||'sub-free';
+    const statusClass={active:'status-active',suspended:'status-suspended'}[status]||'status-active';
+    return`<div class="user-card" style="animation-delay:${i*.06}s">
+      <div class="user-avatar">${u[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(u)} <span class="role-badge regular" style="margin-left:6px">Owner</span></div>
+        <div class="user-meta"><span class="sub-badge ${subClass}">💎 ${sub}</span>${r.notes?` — ${esc(r.notes)}`:''}</div>
       </div>
-      <span class="admin-status ${statusClass}">${m.status==='suspended'?'🚫 Suspended':'✅ Active'}</span>
-      <button class="btn btn-sm" onclick="openSubModal('${a}')" style="margin-left:8px">💎 Sub</button>
-      ${m.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendAdmin('${a}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendAdmin('${a}')" style="margin-left:4px">✅</button>`}
+      <span class="user-status ${statusClass}">${status==='suspended'?'🚫 Suspended':'✅ Active'}</span>
+      <button class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Sub</button>
+      ${status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px">✅</button>`}
     </div>`;
-  }).join(''):`<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No admins yet. Generate an invite code to onboard admins.</div>`;
+  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No owners yet. Add one with the button above.</div>`;
 
-  // Pending admin requests
-  document.getElementById('pending-admin-count').textContent=pendingAdmins.length;
-  document.getElementById('pending-admin-list').innerHTML=pendingAdmins.length?pendingAdmins.map((p,i)=>`
-    <div class="admin-card">
-      <div class="admin-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
-      <div class="admin-info">
-        <div class="admin-name">${esc(p.username)}</div>
-        <div class="admin-meta">Requested: ${new Date(p.requestedAt).toLocaleString()} | Code: ${esc(p.code)}</div>
+  // Pending — global pending owners (users who signed up requesting to be owners)
+  const pendingOwners=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+  document.getElementById('pending-count').textContent=pendingOwners.length;
+  document.getElementById('pending-user-list').innerHTML=pendingOwners.length?pendingOwners.map((p,i)=>`
+    <div class="user-card" style="animation-delay:${i*.06}s">
+      <div class="user-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(p.username)}</div>
+        <div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
       </div>
-      <button class="apv-btn approve" style="width:auto;padding:6px 12px;margin-left:8px" onclick="approveAdmin(${i})">✅ Approve</button>
-      <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:4px" onclick="denyAdmin(${i})">❌ Deny</button>
-    </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No pending requests 🎉</div>`;
+      <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve</button>
+      <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
+    </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
+
+  // Branches list (global summary)
+  document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
 }
 
-function approveAdmin(i){
-  const pending=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+function approveOwner(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
   const p=pending[i];const reg=getRegistry();
-  reg[p.username]={password:p.password,adminId:p.username,role:'admin'};
-  saveRegistry(reg);
-  // Set default free subscription
-  const meta=getAdminMeta();
-  meta[p.username]={sub:'free',status:'active',approvedAt:new Date().toISOString()};
-  saveAdminMeta(meta);
-  pending.splice(i,1);
-  localStorage.setItem('ims_pending_admins',JSON.stringify(pending));
-  showToast(`✅ ${p.username} approved as admin!`,'success');
-  renderOwnerDashboard();
+  reg[p.username]={password:p.password,ownerId:p.username,role:'owner',sub:'free',status:'active'};
+  saveRegistry(reg);pending.splice(i,1);
+  localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+  showToast(`✅ ${p.username} approved as platform owner!`,'success');
+  renderSystemOwnerDashboard();
 }
-function denyAdmin(i){
-  const pending=JSON.parse(localStorage.getItem('ims_pending_admins')||'[]');
+function denyOwner(i){
+  const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
   const name=pending[i].username;pending.splice(i,1);
-  localStorage.setItem('ims_pending_admins',JSON.stringify(pending));
-  showToast(`❌ ${name} denied`,'error');renderOwnerDashboard();
+  localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+  showToast(`❌ ${name} denied`,'error');renderSystemOwnerDashboard();
 }
-function suspendAdmin(adminId){
-  customConfirm('Suspend Admin?',`${adminId} will lose access.`,'🚫','Suspend',()=>{
-    const meta=getAdminMeta();if(!meta[adminId])meta[adminId]={};
-    meta[adminId].status='suspended';saveAdminMeta(meta);
-    showToast(`${adminId} suspended`,'warn');renderOwnerDashboard();
+function suspendUser(u){
+  customConfirm('Suspend User?',`${u} will lose access.`,'🚫','Suspend',()=>{
+    const reg=getRegistry();if(reg[u])reg[u].status='suspended';saveRegistry(reg);
+    showToast(`${u} suspended`,'warn');renderSystemOwnerDashboard();
   });
 }
-function unsuspendAdmin(adminId){
-  const meta=getAdminMeta();if(!meta[adminId])meta[adminId]={};
-  meta[adminId].status='active';saveAdminMeta(meta);
-  showToast(`${adminId} reactivated`,'success');renderOwnerDashboard();
+function unsuspendUser(u){
+  const reg=getRegistry();if(reg[u])reg[u].status='active';saveRegistry(reg);
+  showToast(`${u} reactivated`,'success');renderSystemOwnerDashboard();
 }
 
-let _subAdminTarget='';
-function openSubModal(adminId){
-  _subAdminTarget=adminId;
-  const meta=getAdminMeta();const m=meta[adminId]||{sub:'free',status:'active'};
-  document.getElementById('sub-modal-admin-name').textContent=adminId;
-  document.getElementById('sub-plan-select').value=m.sub||'free';
-  document.getElementById('sub-status-select').value=m.status||'active';
-  document.getElementById('sub-notes').value=m.notes||'';
+let _subTarget='';
+function openSubModal(u){
+  _subTarget=u;
+  const reg=getRegistry();const r=reg[u]||{};
+  document.getElementById('sub-modal-user-name').textContent=u;
+  document.getElementById('sub-plan-select').value=r.sub||'free';
+  document.getElementById('sub-status-select').value=r.status||'active';
+  document.getElementById('sub-notes').value=r.notes||'';
   openModal('sub-modal');
 }
 function saveSubscription(){
-  const meta=getAdminMeta();
-  if(!meta[_subAdminTarget])meta[_subAdminTarget]={};
-  meta[_subAdminTarget].sub=document.getElementById('sub-plan-select').value;
-  meta[_subAdminTarget].status=document.getElementById('sub-status-select').value;
-  meta[_subAdminTarget].notes=document.getElementById('sub-notes').value;
-  saveAdminMeta(meta);syncToCloud();
-  closeModal('sub-modal');showToast('Subscription updated!','success');renderOwnerDashboard();
+  const reg=getRegistry();if(!reg[_subTarget])return;
+  reg[_subTarget].sub=document.getElementById('sub-plan-select').value;
+  reg[_subTarget].status=document.getElementById('sub-status-select').value;
+  reg[_subTarget].notes=document.getElementById('sub-notes').value;
+  saveRegistry(reg);syncToCloud();
+  closeModal('sub-modal');showToast('Subscription updated!','success');renderSystemOwnerDashboard();
 }
 
-function openGenerateInvite(){openModal('invite-modal');generateInviteCode();}
-function generateInviteCode(){
-  const code=genCode();
-  const codes=getInviteCodes();
-  codes.push({code,created:new Date().toISOString(),used:false});
-  saveInviteCodes(codes);
-  document.getElementById('invite-code-val').textContent=code;
+/* Back button — exit system owner dashboard back to login */
+function exitOwnerDashboard(){
+  // Only for owner users (not system owner)
+  document.getElementById('owner-screen').style.display='none';
+  document.getElementById('content').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  document.getElementById('owner-back-btn').style.display='none';
+  document.getElementById('app-header').className='app-header';
+  renderTab();
+}
+
+function handleBrandClick(){
+  if(S.role==='owner'){
+    // Toggle to owner dashboard
+    const ownerScreen=document.getElementById('owner-screen');
+    const isShowing=ownerScreen.style.display!=='none';
+    ownerScreen.style.display=isShowing?'none':'block';
+    document.getElementById('content').style.display=isShowing?'block':'none';
+    document.getElementById('bottom-nav').style.display=isShowing?'flex':'none';
+    document.getElementById('owner-back-btn').style.display=isShowing?'none':'flex';
+    if(!isShowing)renderOwnerDashboard();
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
-   PERMISSIONS
+   OWNER DASHBOARD (within the app — manages their own users)
 ═══════════════════════════════════════════════════════ */
+function renderOwnerDashboard(){
+  const reg=getRegistry();
+  const myUsers=Object.keys(reg).filter(u=>reg[u].ownerId===S.ownerId&&u!==S.user);
+  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+
+  document.getElementById('owner-stats').innerHTML=`
+    <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${myUsers.length}</div><div class="stat-lbl">My Users</div></div>
+    <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${pending.length}</div><div class="stat-lbl">Pending</div></div>
+    <div class="owner-stat"><div class="stat-icon">🏢</div><div class="stat-val">${S.branches.length}</div><div class="stat-lbl">Branches</div></div>
+    <div class="owner-stat"><div class="stat-icon">🏪</div><div class="stat-val">${myUsers.filter(u=>reg[u].role==='storekeeper').length}</div><div class="stat-lbl">Storekeepers</div></div>`;
+
+  document.getElementById('user-list-body').innerHTML=myUsers.length?myUsers.map((u,i)=>{
+    const r=reg[u];
+    const roleClass=r.role==='storekeeper'?'storekeeper':'regular';
+    const statusClass=r.status==='suspended'?'status-suspended':'status-active';
+    return`<div class="user-card" style="animation-delay:${i*.06}s">
+      <div class="user-avatar">${u[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(u)} <span class="role-badge ${roleClass}" style="margin-left:6px">${r.role==='storekeeper'?'🏪 Store Keeper':'👤 User'}</span></div>
+        <div class="user-meta">Branch: ${esc(r.branch||'—')}</div>
+      </div>
+      <span class="user-status ${statusClass}">${r.status==='suspended'?'🚫':'✅'}</span>
+      ${r.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:8px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
+      <button class="btn btn-sm" onclick="deleteMyUser('${u}')" style="margin-left:4px;color:var(--error)">🗑️</button>
+    </div>`;
+  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No users yet. Add a user or they can request access.</div>`;
+
+  document.getElementById('pending-count').textContent=pending.length;
+  document.getElementById('pending-user-list').innerHTML=pending.length?pending.map((p,i)=>`
+    <div class="user-card" style="animation-delay:${i*.06}s">
+      <div class="user-avatar">${p.username[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(p.username)}</div>
+        <div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="approve-role-${i}" style="padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
+          <option value="user">👤 User</option>
+          <option value="storekeeper">🏪 Storekeeper</option>
+        </select>
+        <select id="approve-branch-${i}" style="padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
+          ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
+        </select>
+        <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveMyUser(${i})">✅</button>
+        <button class="apv-btn deny" style="width:auto;padding:6px 12px" onclick="denyMyUser(${i})">❌</button>
+      </div>
+    </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
+
+  document.getElementById('owner-branch-list').innerHTML=S.branches.map(b=>`
+    <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:600">🏢 ${esc(b)}</span>
+      <span style="font-size:11px;color:var(--text3)">${Object.keys(getRegistry()).filter(u=>getRegistry()[u].branch===b).length} user(s)</span>
+    </div>`).join('');
+}
+
+function approveMyUser(i){
+  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+  const p=pending[i];
+  const branch=document.getElementById(`approve-branch-${i}`)?.value||S.branches[0];
+  const role=document.getElementById(`approve-role-${i}`)?.value||'user';
+  const reg=getRegistry();
+  reg[p.username]={password:p.password,ownerId:S.ownerId,role,branch,status:'active'};
+  saveRegistry(reg);
+  if(p.avatar)localStorage.setItem(`ims_${p.username}_avatar`,p.avatar);
+  if(!S.perms[p.username])S.perms[p.username]={};
+  S.perms[p.username].branches=[branch];
+  pending.splice(i,1);
+  localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+  saveUserData();
+  showToast(`✅ ${p.username} approved as ${role}!`,'success');
+  updateNotifBadge();renderOwnerDashboard();
+}
+function denyMyUser(i){
+  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+  const name=pending[i].username;pending.splice(i,1);
+  localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+  showToast(`❌ ${name} denied`,'error');updateNotifBadge();renderOwnerDashboard();
+}
+function suspendMyUser(u){
+  customConfirm('Suspend User?',`${u} will lose access.`,'🚫','Suspend',()=>{
+    const reg=getRegistry();if(reg[u])reg[u].status='suspended';saveRegistry(reg);
+    showToast(`${u} suspended`,'warn');renderOwnerDashboard();
+  });
+}
+function unsuspendMyUser(u){
+  const reg=getRegistry();if(reg[u])reg[u].status='active';saveRegistry(reg);
+  showToast(`${u} reactivated`,'success');renderOwnerDashboard();
+}
+function deleteMyUser(u){
+  customConfirm('Delete User?',`Remove "${u}" permanently?`,'🗑️','Delete',()=>{
+    const reg=getRegistry();delete reg[u];saveRegistry(reg);
+    showToast(`${u} deleted`,'success');renderOwnerDashboard();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   PERMISSIONS & ROLES
+═══════════════════════════════════════════════════════ */
+const isSystemOwner=()=>S.role==='system_owner';
 const isOwner=()=>S.role==='owner';
-const isAdmin=()=>S.role==='admin';
+const isStorekeeper=()=>S.role==='storekeeper';
 const isUser=()=>S.role==='user';
+
 const getPerm=tab=>{
-  if(isAdmin()||isOwner())return'full';
+  if(isOwner()||isSystemOwner())return'full';
+  // Storekeepers: full access to STORE, read-only to ITEMS, no access to others by default
+  if(isStorekeeper()){
+    if(tab==='STORE')return'full';
+    if(tab==='ITEMS')return'read';
+    return S.perms[S.user]?.[tab]??'none';
+  }
   return S.perms[S.user]?.[tab]??'full';
 };
 const canWrite=tab=>['full','add_only'].includes(getPerm(tab));
 const canRead=tab=>getPerm(tab)!=='none';
-const canExport=()=>isAdmin()||isOwner()||(S.exportPerms[S.user]??true);
-const canEditRow=row=>isAdmin()||isOwner()||(!row._by)||(row._by===S.user);
+const canExport=()=>isOwner()||isSystemOwner()||(S.exportPerms[S.user]??true);
+const canEditRow=row=>isOwner()||isSystemOwner()||(!row._by)||(row._by===S.user);
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN — MANAGE USERS
+   OWNER — ADD USER DIRECTLY
 ═══════════════════════════════════════════════════════ */
+function toggleAddUserBranch(){
+  const role=document.getElementById('nu-role').value;
+  // Storekeepers don't need a branch — they manage the central store
+  document.getElementById('nu-branch-wrap').style.display=role==='storekeeper'?'none':'';
+}
 function openAddUserModal(){
   document.getElementById('nu-username').value='';
   document.getElementById('nu-password').value='';
+  document.getElementById('nu-role').value='user';
+  document.getElementById('nu-branch-wrap').style.display='';
   const sel=document.getElementById('nu-branch');
   sel.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
   hideMsg('nu-error');openModal('add-user-modal');
@@ -1245,104 +1378,68 @@ function openAddUserModal(){
 function submitAddUser(){
   const u=document.getElementById('nu-username').value.trim();
   const p=document.getElementById('nu-password').value;
-  const branch=document.getElementById('nu-branch').value;
+  const role=document.getElementById('nu-role').value;
+  const branch=role==='storekeeper'?'STORE':document.getElementById('nu-branch').value;
   if(!u||!p){showMsg('nu-error','Username and password required');return;}
   if(p.length<4){showMsg('nu-error','Password min 4 characters');return;}
   const reg=getRegistry();
   if(reg[u]||u===OWNER_USERNAME){showMsg('nu-error','Username already exists');return;}
-  reg[u]={password:p,adminId:S.adminId,role:'user',branch};
+  reg[u]={password:p,ownerId:S.ownerId,role,branch,status:'active'};
   saveRegistry(reg);
-  // Also set branch perm
   if(!S.perms[u])S.perms[u]={};
-  S.perms[u].branches=[branch];
+  if(role!=='storekeeper')S.perms[u].branches=[branch];
   saveUserData();
   closeModal('add-user-modal');
-  showToast(`✅ User "${u}" created for branch "${branch}"!`,'success');
+  showToast(`✅ User "${u}" created (${role})!`,'success');
+  if(isOwner()&&document.getElementById('owner-screen').style.display!=='none')renderOwnerDashboard();
 }
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN — APPROVAL (for users requesting signup)
+   OWNER — APPROVAL QUEUE
 ═══════════════════════════════════════════════════════ */
-function loadAdminPendingApprovals(){
-  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${adminNS()}_pending`)||'[]');
+function loadPendingApprovals(){
+  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
   updateNotifBadge();
 }
 function updateNotifBadge(){
-  if(!isAdmin())return;
+  if(!isOwner())return;
   const dot=document.getElementById('notif-dot');
   if(S.pendingSignups.length){dot.style.display='flex';dot.textContent=S.pendingSignups.length;}
   else dot.style.display='none';
 }
 function openApprovals(){
-  const list=document.getElementById('approval-list');
-  if(!S.pendingSignups.length){
-    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No pending approvals 🎉</div>';
-  }else{
-    list.innerHTML=S.pendingSignups.map((p,i)=>`
-      <div class="apv-item">
-        <div class="apv-type">🧑 User Request</div>
-        <div class="apv-msg">${p.avatar?`<img src="${esc(p.avatar)}" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover">`:''}
-          <strong>${esc(p.username)}</strong> wants to join</div>
-        <div class="apv-time">${new Date(p.requestedAt).toLocaleString()}</div>
-        <div style="margin-bottom:8px">
-          <label style="font-size:11px;font-weight:600;color:var(--text3)">Assign Branch:</label>
-          <select id="approve-branch-${i}" style="margin-left:8px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
-            ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
-          </select>
-        </div>
-        <div class="apv-actions">
-          <button class="apv-btn approve" onclick="approveSignup(${i})">✅ Approve</button>
-          <button class="apv-btn deny" onclick="denySignup(${i})">❌ Deny</button>
-        </div>
-      </div>`).join('');
-  }
-  document.getElementById('approval-overlay').classList.add('open');
+  renderOwnerDashboard();
+  document.getElementById('owner-screen').style.display='block';
+  document.getElementById('content').style.display='none';
+  document.getElementById('bottom-nav').style.display='none';
+  document.getElementById('owner-back-btn').style.display='flex';
 }
 function closeApprovals(){document.getElementById('approval-overlay').classList.remove('open');}
-function approveSignup(i){
-  const p=S.pendingSignups[i];
-  const branch=document.getElementById(`approve-branch-${i}`)?.value||S.branches[0];
-  const reg=getRegistry();
-  reg[p.username]={password:p.password,adminId:S.adminId,role:'user',branch};
-  saveRegistry(reg);
-  if(p.avatar)localStorage.setItem(`ims_${p.username}_avatar`,p.avatar);
-  if(!S.perms[p.username])S.perms[p.username]={};
-  S.perms[p.username].branches=[branch];
-  S.pendingSignups.splice(i,1);
-  saveUserData();
-  localStorage.setItem(`ims_${adminNS()}_pending`,JSON.stringify(S.pendingSignups));
-  showToast(`✅ ${p.username} approved for branch "${branch}"!`,'success');
-  updateNotifBadge();openApprovals();
-}
-function denySignup(i){
-  const name=S.pendingSignups[i].username;S.pendingSignups.splice(i,1);
-  localStorage.setItem(`ims_${adminNS()}_pending`,JSON.stringify(S.pendingSignups));
-  showToast(`❌ ${name} denied`,'error');updateNotifBadge();openApprovals();
-}
 
 /* ═══════════════════════════════════════════════════════
-   STORE — DISPATCH & RECEIPTS
+   STORE — SEPARATE from inventory
+   Store has its own items list (S.storeItems)
+   Store uses the ITEMS catalog for part# lookup (like Sales/Purchase)
+   Only storekeeper can write; owner can read
 ═══════════════════════════════════════════════════════ */
-function dispatchTooBranch(storeItemIdx,toBranch,qty,price){
-  const si=S.storeItems[storeItemIdx];
+function dispatchToBranch(storeEntryIdx,toBranch,qty,price){
+  const si=S.storeItems[storeEntryIdx];
   if(!si){showToast('Item not found','error');return;}
   if(qty>si.qty){showToast('Insufficient store stock','error');return;}
   const dispatch={
     id:genCode(),date:nowDt(),
-    itemId:si.id,itemName:si.name,itemDesc:si.desc,
+    itemId:si.itemId,itemName:si.itemName,itemDesc:si.itemDesc||'',
     qty,price,total:qty*price,
-    fromStore:S.adminId,toBranch,
-    status:'pending', // pending|approved|rejected
+    fromStore:S.ownerId,toBranch,
+    status:'pending',
     _by:S.user,createdAt:new Date().toISOString()
   };
   S.storeDispatches.push(dispatch);
-  // Deduct from store
-  S.storeItems[storeItemIdx].qty-=qty;
+  S.storeItems[storeEntryIdx].qty-=qty;
   // Add receipt to branch
   const branchReceipts=loadBranchReceipts(toBranch);
   branchReceipts.push({...dispatch,receiptId:'RCP-'+genCode()});
   saveBranchReceipts(toBranch,branchReceipts);
-  // If this user is on that branch, update their view
   if(S.userBranch===toBranch)S.branchReceipts=loadBranchReceipts(toBranch);
   saveUserData();
   showToast(`📦 Dispatched to "${toBranch}"!`,'success');
@@ -1351,7 +1448,6 @@ function dispatchTooBranch(storeItemIdx,toBranch,qty,price){
 }
 
 function updateStoreNotifBadge(){
-  // For non-admin branch users — show pending receipts
   const btn=document.getElementById('store-notif-btn');
   const dot=document.getElementById('store-notif-dot');
   if(!btn||!dot)return;
@@ -1378,22 +1474,18 @@ function openStoreReceipts(){
       const statusBadge=r.status==='pending'?`<span class="td-badge badge-pending">⏳ Pending</span>`:r.status==='approved'?`<span class="td-badge badge-approved">✅ Approved</span>`:`<span class="td-badge badge-rejected">❌ Rejected</span>`;
       return`<div class="apv-item store-receipt-item">
         <div class="receipt-status-bar">
-          <div class="apv-type">🏪 FROM STORE — ${esc(r.receiptId||r.id)}</div>
-          ${statusBadge}
+          <div class="apv-type">🏪 STORE — ${esc(r.receiptId||r.id)}</div>${statusBadge}
         </div>
         <div class="receipt-detail">
           📦 <strong>${esc(r.itemName)}</strong> (${esc(r.itemId)})<br>
           Qty: ${fmtQ(r.qty)} × ${fmt(r.price)} = <strong>${fmt(r.total)}</strong><br>
-          Date: ${(r.date||'').replace('T',' ')} | Branch: ${esc(r.toBranch)}<br>
-          Dispatched by: ${esc(r.fromStore)}
+          Date: ${(r.date||'').replace('T',' ')} | Branch: ${esc(r.toBranch)}
         </div>
         ${r.status==='pending'?`<div class="receipt-actions">
           <button class="apv-btn approve" onclick="approveStoreReceipt('${branch}',${origIdx})">✅ Approve & Receive</button>
           <button class="apv-btn deny" onclick="rejectStoreReceipt('${branch}',${origIdx})">❌ Reject</button>
-          <button class="btn btn-sm" style="margin-left:4px" onclick="viewStoreReceiptPrint(${JSON.stringify(r).replace(/"/g,'&quot;')})">🖨️</button>
-        </div>`:`<div style="margin-top:8px">
-          <button class="btn btn-sm" onclick="viewStoreReceiptPrint(${JSON.stringify(r).replace(/"/g,'&quot;')})">🖨️ Print Receipt</button>
-        </div>`}
+          <button class="btn btn-sm" style="margin-left:4px" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️</button>
+        </div>`:`<div style="margin-top:8px"><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️ Print</button></div>`}
       </div>`;
     }).join('');
   }
@@ -1404,11 +1496,8 @@ function closeStoreReceipts(){document.getElementById('store-receipt-overlay').c
 function approveStoreReceipt(branch,idx){
   const receipts=loadBranchReceipts(branch);
   if(!receipts[idx])return;
-  receipts[idx].status='approved';
-  receipts[idx].approvedBy=S.user;
-  receipts[idx].approvedAt=new Date().toISOString();
+  receipts[idx].status='approved';receipts[idx].approvedBy=S.user;receipts[idx].approvedAt=new Date().toISOString();
   saveBranchReceipts(branch,receipts);
-  // Add to branch purchase records
   const r=receipts[idx];
   S.purchase.push({
     date:r.date,party:'[STORE DISPATCH]',branch,
@@ -1418,60 +1507,45 @@ function approveStoreReceipt(branch,idx){
   S.branchReceipts=loadBranchReceipts(branch);
   saveUserData();
   showToast('✅ Receipt approved! Added to purchase records.','success');
-  updateStoreNotifBadge();
-  openStoreReceipts();
+  updateStoreNotifBadge();openStoreReceipts();
 }
 function rejectStoreReceipt(branch,idx){
   const receipts=loadBranchReceipts(branch);
   if(!receipts[idx])return;
-  // Return qty to store
   const r=receipts[idx];
-  const si=S.storeItems.findIndex(x=>x.id===r.itemId);
+  const si=S.storeItems.findIndex(x=>x.itemId===r.itemId);
   if(si>=0)S.storeItems[si].qty+=r.qty;
-  receipts[idx].status='rejected';
-  receipts[idx].rejectedBy=S.user;
+  receipts[idx].status='rejected';receipts[idx].rejectedBy=S.user;
   saveBranchReceipts(branch,receipts);
   S.branchReceipts=loadBranchReceipts(branch);
   saveUserData();
   showToast('❌ Receipt rejected. Qty returned to store.','warn');
-  updateStoreNotifBadge();
-  openStoreReceipts();
+  updateStoreNotifBadge();openStoreReceipts();
 }
 
 function viewStoreReceiptPrint(r){
-  if(typeof r==='string')r=JSON.parse(r);
+  if(typeof r==='string')try{r=JSON.parse(r);}catch(e){return;}
   const statusLabel=r.status==='approved'?'✅ APPROVED':r.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
   document.getElementById('store-receipt-print-content').innerHTML=`
-    <div class="rcpt-hdr">
-      <div class="rcpt-biz">📦 POWER-IMS — STORE</div>
-      <div class="rcpt-sub">Dispatch Receipt</div>
-      <div class="rcpt-sub">${new Date().toLocaleString()}</div>
-    </div>
+    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS — STORE</div><div class="rcpt-sub">Dispatch Receipt</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
     <div class="rcpt-line"><span>Receipt ID</span><span>${esc(r.receiptId||r.id)}</span></div>
     <div class="rcpt-line"><span>Date</span><span>${(r.date||'').replace('T',' ')}</span></div>
-    <div class="rcpt-line"><span>From</span><span>Central Store</span></div>
     <div class="rcpt-line"><span>To Branch</span><span>${esc(r.toBranch)}</span></div>
     <div class="rcpt-line"><span>Part No.</span><span>${esc(r.itemId)}</span></div>
     <div class="rcpt-line"><span>Item</span><span>${esc(r.itemName)}</span></div>
     <div class="rcpt-line"><span>Qty</span><span>${fmtQ(r.qty)}</span></div>
     <div class="rcpt-line"><span>Unit Price</span><span>${fmt(r.price)}</span></div>
     <div class="rcpt-line bold"><span>TOTAL</span><span>${fmt(r.total)}</span></div>
-    <div class="rcpt-total">
-      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">STATUS</div>
-      <div style="font-size:1rem;font-weight:800;color:var(--p)">${statusLabel}</div>
-    </div>
+    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">STATUS</div><div style="font-size:1rem;font-weight:800;color:var(--p)">${statusLabel}</div></div>
     <div class="rcpt-footer">POWER-IMS Store Dispatch<br>Dispatched by: ${esc(r._by||r.fromStore)}<br>Printed: ${new Date().toLocaleString()}</div>`;
   openModal('store-receipt-print-modal');
 }
-
 function printStoreReceiptDirectly(){
   const pa=document.getElementById('print-area');
-  pa.innerHTML=`<style>
-    @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
     #print-area{position:fixed;top:0;left:0;width:88mm;background:white;padding:16px;font-family:monospace}
     .rcpt-hdr{text-align:center;padding:14px 0;border-bottom:2px dashed #ccc;margin-bottom:12px}
-    .rcpt-biz{font-size:16px;font-weight:800;color:#065f46}
-    .rcpt-sub{font-size:10px;color:#64748b;margin-top:2px}
+    .rcpt-biz{font-size:16px;font-weight:800;color:#065f46}.rcpt-sub{font-size:10px;color:#64748b;margin-top:2px}
     .rcpt-line{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
     .rcpt-line.bold{font-weight:700;border-top:1px solid #e2e8f0;padding-top:7px;margin-top:4px}
     .rcpt-total{background:#f0fdf4;border-radius:6px;padding:10px;text-align:center;margin:10px 0}
@@ -1481,7 +1555,7 @@ function printStoreReceiptDirectly(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   FIFO / STOCK
+   STOCK (inventory only — separate from store)
 ═══════════════════════════════════════════════════════ */
 function getStock(itemId){
   const inQ=S.purchase.filter(p=>p.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
@@ -1489,7 +1563,7 @@ function getStock(itemId){
   return inQ-outQ;
 }
 function getStoreStock(itemId){
-  return(S.storeItems.find(s=>s.id===itemId)?.qty)||0;
+  return S.storeItems.filter(s=>s.itemId===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1518,7 +1592,12 @@ function previewAuthAvatar(inp){const f=inp.files[0];if(!f)return;const r=new Fi
 function previewModalAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_modalAvatar=e.target.result;document.getElementById('avatar-modal-preview').innerHTML=`<img src="${e.target.result}">`};r.readAsDataURL(f);}
 function saveAvatar(){if(!_modalAvatar){showToast('Select a photo','error');return;}S.avatarDataUrl=_modalAvatar;localStorage.setItem(`ims_${S.user}_avatar`,_modalAvatar);updateHdrAvatar();closeModal('avatar-modal');showToast('Photo updated!','success');}
 function openAvatarChange(){_modalAvatar=null;document.getElementById('avatar-modal-preview').innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}">`:'👤';openModal('avatar-modal');}
-function updateHdrAvatar(){const el=document.getElementById('hdr-avatar');if(!el||isOwner())return;el.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.user?S.user[0].toUpperCase():'👤');}
+function updateHdrAvatar(){
+  const el=document.getElementById('hdr-avatar');if(!el||isSystemOwner())return;
+  const cls='hdr-avatar'+(isStorekeeper()?' store-avatar':'');
+  el.className=cls;
+  el.innerHTML=S.avatarDataUrl?`<img src="${S.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.user?S.user[0].toUpperCase():'👤');
+}
 
 /* ═══════════════════════════════════════════════════════
    UI
@@ -1530,12 +1609,6 @@ function showUI(){
   document.getElementById('bottom-nav').style.display='flex';
   document.getElementById('owner-screen').style.display='none';
 }
-function hideUI(){
-  document.getElementById('app-header').style.display='none';
-  document.getElementById('content').style.display='none';
-  document.getElementById('bottom-nav').style.display='none';
-  document.getElementById('owner-screen').style.display='none';
-}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openSettings(){document.getElementById('settings-drawer').classList.add('open');document.getElementById('drawer-overlay').classList.add('open');}
@@ -1544,9 +1617,13 @@ function showMsg(id,msg,type='error'){const el=document.getElementById(id);el.te
 function hideMsg(id){const el=document.getElementById(id);el.className=el.className.replace(' show','');}
 
 function logout(){
-  S.user=null;S.adminId=null;S.role=null;
-  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentAdmin');localStorage.removeItem('ims_currentRole');
-  closeSettings();hideUI();
+  S.user=null;S.ownerId=null;S.role=null;
+  localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentOwner');localStorage.removeItem('ims_currentRole');
+  closeSettings();
+  document.getElementById('app-header').style.display='none';
+  document.getElementById('content').style.display='none';
+  document.getElementById('bottom-nav').style.display='none';
+  document.getElementById('owner-screen').style.display='none';
   document.getElementById('auth-user').value='';document.getElementById('auth-pass').value='';
   document.getElementById('auth-confirm').value='';setAuthMode('login');_authAvatar=null;
   document.getElementById('auth-avatar-preview').innerHTML='👤';
@@ -1557,6 +1634,7 @@ function logout(){
   document.getElementById('user-role-label').className='role';
   document.getElementById('hdr-chip').className='hdr-chip no-print';
   document.getElementById('hdr-avatar').className='hdr-avatar';
+  document.getElementById('owner-back-btn').style.display='none';
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1580,7 +1658,7 @@ let _ctxRow={};
 function showCtxMenu(e,idx,listType){
   e.preventDefault();_ctxRow={idx,listType};
   const list=getList(listType);const row=list[idx];
-  const editable=canEditRow(row)||isAdmin();
+  const editable=canEditRow(row)||isOwner();
   const rw=canWrite(S.tab);
   const menu=document.getElementById('ctx-menu');
   let html='';
@@ -1592,7 +1670,7 @@ function showCtxMenu(e,idx,listType){
     html+=`<div class="ctx-divider"></div>`;
     html+=`<div class="ctx-item" onclick="openRowReceipt(${idx},'${listType}')"><span class="ctx-icon">🧾</span>Print Receipt</div>`;
   }
-  if(isAdmin()&&row?._by){html+=`<div class="ctx-divider"></div><div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>By: <strong>${esc(row._by)}</strong></div>`;}
+  if(isOwner()&&row?._by){html+=`<div class="ctx-divider"></div><div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>By: <strong>${esc(row._by)}</strong></div>`;}
   menu.innerHTML=html||'<div class="ctx-item" style="color:var(--text3)">No actions available</div>';
   const x=Math.min(e.clientX,window.innerWidth-200);
   const y=Math.min(e.clientY,window.innerHeight-160);
@@ -1610,7 +1688,7 @@ function getList(type){
 function deleteRow(idx,listType){
   hideCtxMenu();
   const list=getList(listType);const row=list[idx];
-  const label=row.id||row.reason||row.name||'this row';
+  const label=row.itemId||row.id||row.reason||row.name||'this row';
   customConfirm('Delete Row?',`"${label}" will be removed.`,'🗑️','Delete',()=>{
     list.splice(idx,1);saveUserData();renderTab();showToast('Row deleted','success');
   });
@@ -1657,16 +1735,17 @@ function renderHeadActions(){
   const rw=canWrite(S.tab);
   let html='';
   if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'){
-    const label=S.tab==='STORE'?'Add Store Item':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
+    const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
     html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
   }
-  if(S.tab==='STORE'&&isAdmin()){
-    html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
+  if(S.tab==='STORE'&&(isOwner()||isStorekeeper())){
+    html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
   }
   if(S.tab==='PURCHASE'||S.tab==='SALES'){
+    const availBranches=S.userBranch?[S.userBranch]:S.branches;
     html+=`<select id="branch-filter" onchange="renderTab()" style="padding:7px 11px;border:1.5px solid var(--border2);border-radius:9px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11.5px;cursor:pointer;font-weight:600">
       <option value="">🏢 All Branches</option>
-      ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
+      ${availBranches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
     </select>`;
     if(S.userBranch){
       setTimeout(()=>{const bf=document.getElementById('branch-filter');if(bf)bf.value=S.userBranch;},50);
@@ -1682,10 +1761,10 @@ function openAddModal(){
   if(S.tab==='ITEMS')buildItemForm(null,'add');
   else if(S.tab==='PURCHASE')buildTxForm(null,'add',true);
   else if(S.tab==='SALES')buildTxForm(null,'add',false);
-  else if(S.tab==='STORE')buildStoreItemForm(null,'add');
+  else if(S.tab==='STORE')buildStoreEntryForm(null,'add');
   else if(S.tab==='EXPENSE')buildExpenseForm(null,'add');
   const hdr=document.getElementById('add-form-hdr');
-  if(S.tab==='STORE')hdr.className='modal-hdr store-hdr';else hdr.className='modal-hdr';
+  hdr.className='modal-hdr'+(S.tab==='STORE'?' store-hdr':'');
   openModal('add-row-modal');
 }
 function openEditModal(idx,listType){
@@ -1694,56 +1773,79 @@ function openEditModal(idx,listType){
   if(listType==='items')buildItemForm(row,'edit',idx);
   else if(listType==='purchase')buildTxForm(row,'edit',true,idx);
   else if(listType==='sales')buildTxForm(row,'edit',false,idx);
-  else if(listType==='storeItems')buildStoreItemForm(row,'edit',idx);
+  else if(listType==='storeItems')buildStoreEntryForm(row,'edit',idx);
   else buildExpenseForm(row,'edit',idx);
   openModal('edit-row-modal');
 }
 
-/* ── STORE ITEM FORM ── */
-function buildStoreItemForm(row,mode,idx){
+/* ── STORE ENTRY FORM (uses item catalog like Purchase/Sales) ── */
+function buildStoreEntryForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='🏪';
-  document.getElementById('add-form-title').textContent=mode==='add'?'Add Store Item':'Edit Store Item';
-  document.getElementById('add-form-sub').textContent='Register item in central store';
-  const d=row||{id:'',name:'',desc:'',qty:0,cost:0};
+  document.getElementById('add-form-title').textContent=mode==='add'?'Add Store Stock':'Edit Store Stock';
+  document.getElementById('add-form-sub').textContent='Receive stock into central store';
+  const itemOpts=S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}" ${m.id===(row?.itemId||'')?'selected':''}>${esc(m.id)} — ${esc(m.name)}</option>`).join('');
+  const d=row||{itemId:'',itemName:'',itemDesc:'',qty:0,cost:0,supplier:'',date:nowDt()};
   const body=document.getElementById(mode==='add'?'add-form-body':'edit-form-body');
   body.innerHTML=`
-    <div class="field-row">
-      <div class="field"><label>Part Number *</label><input id="f-id" value="${esc(d.id)}" placeholder="e.g. P001"></div>
-      <div class="field"><label>Item Name *</label><input id="f-name" value="${esc(d.name)}" placeholder="Product name"></div>
+    <div class="field"><label>Date *</label><input type="datetime-local" id="f-date" value="${d.date||nowDt()}"></div>
+    <div class="field"><label>Part Number (from catalog) *</label>
+      <select id="f-item" onchange="autoFillStoreItem()"><option value="">— Select item —</option>${itemOpts}</select>
     </div>
-    <div class="field"><label>Description</label><input id="f-desc" value="${esc(d.desc||'')}" placeholder="Optional"></div>
+    <div class="field-row">
+      <div class="field"><label>Item Name (auto)</label><input id="f-name" readonly style="background:var(--surface3);cursor:not-allowed"></div>
+      <div class="field"><label>Description (auto)</label><input id="f-desc" readonly style="background:var(--surface3);cursor:not-allowed"></div>
+    </div>
+    <div class="field"><label>Supplier</label><input id="f-supplier" value="${esc(d.supplier||'')}" placeholder="Supplier name" list="party-list"></div>
     <div class="field-row">
       <div class="field"><label>Quantity *</label><input type="number" id="f-qty" value="${d.qty||''}" placeholder="0" min="0" step="any"></div>
       <div class="field"><label>Unit Cost</label><input type="number" id="f-cost" value="${d.cost||''}" placeholder="0.00" step="any"></div>
     </div>
-    <button class="modal-btn store-btn" onclick="submitStoreItemForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
+    <button class="modal-btn store-btn" onclick="submitStoreEntryForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
     <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
+  // Auto-fill if editing
+  if(d.itemId&&mode==='edit'){
+    document.getElementById('f-name').value=d.itemName||'';
+    document.getElementById('f-desc').value=d.itemDesc||'';
+  }
 }
-function submitStoreItemForm(mode,idx){
-  const id=document.getElementById('f-id').value.trim();
-  const name=document.getElementById('f-name').value.trim();
-  const desc=document.getElementById('f-desc').value.trim();
+function autoFillStoreItem(){
+  const sel=document.getElementById('f-item');if(!sel)return;
+  const item=S.items.find(m=>m.id===sel.value);
+  document.getElementById('f-name').value=item?item.name:'';
+  document.getElementById('f-desc').value=item?item.desc:'';
+}
+function submitStoreEntryForm(mode,idx){
+  const date=document.getElementById('f-date').value;
+  const itemId=document.getElementById('f-item').value;
+  const supplier=document.getElementById('f-supplier').value.trim();
   const qty=parseFloat(document.getElementById('f-qty').value)||0;
   const cost=parseFloat(document.getElementById('f-cost').value)||0;
-  if(!id||!name){showMsg('f-error','Part Number and Name required');return;}
-  const row={id,name,desc,qty,cost,_by:S.user};
+  if(!itemId){showMsg('f-error','Please select an item from catalog');return;}
+  if(!qty){showMsg('f-error','Quantity required');return;}
+  const item=S.items.find(m=>m.id===itemId)||{name:'',desc:''};
+  const row={date,itemId,itemName:item.name,itemDesc:item.desc,supplier,qty,cost,_by:S.user};
   if(mode==='add'){
-    const existing=S.storeItems.findIndex(x=>x.id===id);
-    if(existing>=0){S.storeItems[existing].qty+=qty;}
-    else S.storeItems.push(row);
+    // Check if item already in store — merge qty
+    const existing=S.storeItems.findIndex(x=>x.itemId===itemId);
+    if(existing>=0){
+      S.storeItems[existing].qty+=qty;
+      // Update cost to latest
+      S.storeItems[existing].cost=cost||S.storeItems[existing].cost;
+    }else{
+      S.storeItems.push(row);
+    }
   }else{
     S.storeItems[idx]={...S.storeItems[idx],...row};
   }
   saveUserData();renderTab();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Store item added!':'Updated!','success');
+  showToast(mode==='add'?'Store stock added!':'Updated!','success');
 }
 
 /* ── DISPATCH MODAL ── */
-let _dispatchModal_open=false;
 function openDispatchModal(){
-  const storeItemOpts=S.storeItems.filter(s=>s.qty>0).map(s=>`<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.name)} (Stock: ${fmtQ(s.qty)})</option>`).join('');
+  const storeItemOpts=S.storeItems.filter(s=>s.qty>0).map(s=>`<option value="${s.itemId}">${esc(s.itemId)} — ${esc(s.itemName)} (Stock: ${fmtQ(s.qty)})</option>`).join('');
   const branchOpts=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
   document.getElementById('add-form-icon').textContent='📤';
   document.getElementById('add-form-title').textContent='Dispatch to Branch';
@@ -1783,11 +1885,11 @@ function submitDispatch(){
   if(!qty){showMsg('f-error','Quantity required');return;}
   if(!price){showMsg('f-error','Price required');return;}
   if(!branch){showMsg('f-error','Select a branch');return;}
-  const idx=S.storeItems.findIndex(s=>s.id===itemId);
-  if(idx<0){showMsg('f-error','Item not found');return;}
+  const idx=S.storeItems.findIndex(s=>s.itemId===itemId);
+  if(idx<0){showMsg('f-error','Item not found in store');return;}
   if(S.storeItems[idx].qty<qty){showMsg('f-error',`Only ${S.storeItems[idx].qty} in stock`);return;}
   closeModal('add-row-modal');
-  dispatchTooBranch(idx,branch,qty,price);
+  dispatchToBranch(idx,branch,qty,price);
 }
 
 /* ── ITEM FORM ── */
@@ -1812,8 +1914,8 @@ function submitItemForm(mode,idx){
   const name=document.getElementById('f-name').value.trim();
   const desc=document.getElementById('f-desc').value.trim();
   if(!id||!name){showMsg('f-error','Part Number and Name are required');return;}
-  if(mode==='add'){S.items.push({id,name,desc,_by:S.user});}
-  else{S.items[idx]={...S.items[idx],id,name,desc,_by:S.user};}
+  if(mode==='add')S.items.push({id,name,desc,_by:S.user});
+  else S.items[idx]={...S.items[idx],id,name,desc,_by:S.user};
   saveUserData();renderTab();closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
   showToast(mode==='add'?'Item added!':'Item updated!','success');updateSuggestions();
 }
@@ -1966,7 +2068,7 @@ function renderItems(){
             <td style="font-weight:600">${esc(row.name)}</td>
             <td style="color:var(--text3)">${esc(row.desc)}</td>
           </tr>`).join('')}
-        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Item" to get started.</td></tr>`:''}
+        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Items" to get started.</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
@@ -2016,7 +2118,7 @@ function renderTx(){
       <tbody>
         ${rows||`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:32px">No records yet.</td></tr>`}
         ${visible.length?`<tr class="summary-row">
-          <td colspan="${isP?'6':'6'}">TOTALS</td>
+          <td colspan="6">TOTALS</td>
           <td class="num td-mono">${fmtQ(totQty)}</td>
           ${isP?'<td></td>':'<td></td><td></td>'}
           <td class="num td-mono ${colorClass(totVal)}">${fmt(totVal)}</td><td></td>
@@ -2027,7 +2129,7 @@ function renderTx(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   RENDER BALANCE
+   RENDER BALANCE — hide items with 0 purchase AND 0 sales
 ═══════════════════════════════════════════════════════ */
 function renderBalance(){
   const filterBranch=S.userBranch||'';
@@ -2037,22 +2139,23 @@ function renderBalance(){
     const salFilter=filterBranch?S.sales.filter(s=>s.id===item.id&&s.branch===filterBranch):S.sales.filter(s=>s.id===item.id);
     const inQ=purFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
     const outQ=salFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    // CHANGE 5: Skip items with zero purchase AND zero sales
+    if(inQ===0&&outQ===0)return null;
     const stock=inQ-outQ;
     const cost=purFilter.reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
     const avg=inQ>0?cost/inQ:0;const val=stock*avg;totalV+=val;
-    const sc=stock>0?'stock-pos':stock===0?'stock-zero':'stock-neg';
     return`<tr class="${stock<0?'row-low':stock===0?'row-zero':''}">
       <td class="td-mono">${esc(item.id)}</td><td style="font-weight:600">${esc(item.name)}</td>
       <td style="color:var(--text3)">${esc(item.desc)}</td>
       <td class="num td-mono">${fmtQ(inQ)}</td><td class="num td-mono">${fmtQ(outQ)}</td>
-      <td class="num td-mono ${sc}">${fmtQ(stock)}</td>
+      <td class="num td-mono ${stock>0?'num-pos':stock===0?'num-zero':'num-neg'}">${fmtQ(stock)}</td>
       <td class="num td-mono ${colorClass(val)}">${fmt(val)}</td>
     </tr>`;
-  }).join('');
+  }).filter(Boolean).join('');
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
       <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">Purchase Qty</th><th class="num">Sales Qty</th><th class="num">Balance</th><th class="num">Inv. Value</th></tr></thead>
-      <tbody>${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No items tracked yet.</td></tr>`}</tbody>
+      <tbody>${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No activity recorded yet.</td></tr>`}</tbody>
     </table>
   </div>`;
   document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
@@ -2062,22 +2165,29 @@ function renderBalance(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   RENDER STORE
+   RENDER STORE — Completely separate from inventory
+   Store has its OWN stock from storeItems
+   Only storekeeper can add stock; owner can view
 ═══════════════════════════════════════════════════════ */
 function renderStore(){
   const items=S.storeItems;
   const dispatches=S.storeDispatches;
-  let totalStoreVal=sum(items,s=>s.qty*(s.cost||0));
+  const totalStoreVal=sum(items,s=>s.qty*(s.cost||0));
+
+  // Aggregate by itemId for display
   const storeRows=items.map((s,i)=>`
     <tr oncontextmenu="showCtxMenu(event,${i},'storeItems')" title="Right-click for options">
-      <td class="td-mono">${esc(s.id)}</td>
-      <td style="font-weight:600">${esc(s.name)}</td>
-      <td style="color:var(--text3)">${esc(s.desc||'')}</td>
+      <td class="td-mono">${esc(s.itemId)}</td>
+      <td style="font-weight:600">${esc(s.itemName)}</td>
+      <td style="color:var(--text3)">${esc(s.itemDesc||'')}</td>
+      <td style="font-size:11px;color:var(--text3)">${esc(s.supplier||'—')}</td>
+      <td class="td-mono" style="font-size:11px">${(s.date||'').replace('T',' ')}</td>
       <td class="num td-mono ${s.qty>0?'num-pos':s.qty===0?'num-zero':'num-neg'}">${fmtQ(s.qty)}</td>
       <td class="num td-mono">${fmt(s.cost||0)}</td>
       <td class="num td-mono">${fmt(s.qty*(s.cost||0))}</td>
     </tr>`).join('');
-  const dispatchRows=[...dispatches].reverse().slice(0,20).map(d=>{
+
+  const dispatchRows=[...dispatches].reverse().slice(0,30).map(d=>{
     const statusBadge=d.status==='pending'?`<span class="td-badge badge-pending">⏳ Pending</span>`:d.status==='approved'?`<span class="td-badge badge-approved">✅ Approved</span>`:`<span class="td-badge badge-rejected">❌ Rejected</span>`;
     return`<tr>
       <td class="td-mono" style="font-size:11px">${(d.date||'').replace('T',' ')}</td>
@@ -2091,20 +2201,22 @@ function renderStore(){
       <td><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
     </tr>`;
   }).join('');
+
   document.getElementById('tab-content').innerHTML=`
-    <div style="padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
-      <span style="font-size:11px;font-weight:700;color:var(--text3)">CENTRAL STORE INVENTORY</span>
-      <span style="font-family:var(--mono);font-size:12px;color:var(--success)">Total Value: ${fmt(totalStoreVal)}</span>
+    <div style="padding:12px 16px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">🏪 CENTRAL STORE INVENTORY</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--success);font-weight:700">Total Value: ${fmt(totalStoreVal)}</span>
+      ${isStorekeeper()?`<span style="font-size:10px;color:var(--success);margin-left:auto;background:var(--store-glass);padding:3px 10px;border-radius:99px;border:1px solid rgba(16,185,129,.3)">Store Keeper Mode</span>`:''}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Part No.</th><th>Item Name</th><th>Desc</th><th class="num">Stock Qty</th><th class="num">Unit Cost</th><th class="num">Total Value</th></tr></thead>
-        <tbody>${storeRows||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">No store items yet.</td></tr>'}</tbody>
+        <thead><tr><th>Part No.</th><th>Item Name</th><th>Desc</th><th>Supplier</th><th>Date Received</th><th class="num">Stock Qty</th><th class="num">Unit Cost</th><th class="num">Total Value</th></tr></thead>
+        <tbody>${storeRows||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">No store stock yet. Add stock to get started.</td></tr>'}</tbody>
       </table>
     </div>
     ${dispatches.length?`
-    <div style="padding:12px 16px;background:var(--surface2);border-top:2px solid var(--border);margin-top:0;border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;font-weight:700;color:var(--text3)">RECENT DISPATCHES (last 20)</span>
+    <div style="padding:12px 16px;background:var(--surface2);border-top:2px solid var(--border);border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">📤 DISPATCH HISTORY (last 30)</span>
     </div>
     <div class="table-wrap">
       <table>
@@ -2173,8 +2285,8 @@ function renderReport(){
     {l:'Cash on Hand',v:coh,total:true},
   ];
   const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
-    <div class="report-label">${r.l}${r.edit&&isAdmin()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
-    <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isAdmin()?'':fmt(r.v)}</div>
+    <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
+    <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
   </div>`).join('');
   document.getElementById('tab-content').innerHTML=`
     <div class="date-bar no-print">
@@ -2283,20 +2395,17 @@ function printReceiptDirectly(){
 ═══════════════════════════════════════════════════════ */
 function openPermissions(){
   const reg=getRegistry();
-  const users=Object.keys(reg).filter(u=>u!==S.adminId&&reg[u].adminId===S.adminId&&reg[u].role==='user');
+  const users=Object.keys(reg).filter(u=>u!==S.user&&reg[u].ownerId===S.ownerId&&reg[u].role==='user');
   const body=document.getElementById('perm-body');
   if(!users.length){
-    body.innerHTML='<p style="color:var(--text3)">No users under your admin yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
+    body.innerHTML='<p style="color:var(--text3)">No regular users under your account yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
   }else{
     body.innerHTML=users.map(u=>{
-      const up=S.perms[u]||{};const ep=S.exportPerms[u]??true;const bp=up.branches||[];
+      const up=S.perms[u]||{};const ep=S.exportPerms[u]??true;
       return`<div class="perm-user-card">
         <div class="perm-username"><div class="perm-avatar-sm">${u[0].toUpperCase()}</div>${esc(u)} <span style="font-size:10px;color:var(--text3)">(Branch: ${esc(reg[u]?.branch||'None')})</span></div>
         <div class="perm-grid">${PERM_TABS.map(t=>`<div class="perm-field"><label>${t}</label><select class="perm-select" onchange="setUserPerm('${u}','${t}',this.value)">${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}</select></div>`).join('')}</div>
         <div class="perm-perm-row"><label>Export Permission</label><label class="toggle-sw"><input type="checkbox" ${ep?'checked':''} onchange="setExportPerm('${u}',this.checked)"><span></span></label></div>
-        <div style="margin-top:10px"><div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:6px">BRANCH ACCESS</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px">${S.branches.map(b=>`<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" style="accent-color:var(--p)" ${!bp.length||bp.includes(b)?'checked':''} onchange="setBranchPerm('${u}','${b}',this.checked)">${esc(b)}</label>`).join('')}</div>
-        </div>
       </div>`;
     }).join('')+`<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
   }
@@ -2304,7 +2413,6 @@ function openPermissions(){
 }
 function setUserPerm(u,tab,v){if(!S.perms[u])S.perms[u]={};S.perms[u][tab]=v;saveUserData();showToast(`Perm updated for ${u}`,'success');}
 function setExportPerm(u,v){S.exportPerms[u]=v;saveUserData();showToast(`Export ${v?'enabled':'disabled'} for ${u}`,'success');}
-function setBranchPerm(u,b,v){if(!S.perms[u])S.perms[u]={};if(!S.perms[u].branches)S.perms[u].branches=[];if(v){if(!S.perms[u].branches.includes(b))S.perms[u].branches.push(b);}else{S.perms[u].branches=S.perms[u].branches.filter(x=>x!==b);}saveUserData();}
 
 /* ═══════════════════════════════════════════════════════
    BRANCHES
@@ -2312,7 +2420,7 @@ function setBranchPerm(u,b,v){if(!S.perms[u])S.perms[u]={};if(!S.perms[u].branch
 function openBranches(){renderBranchList();openModal('branch-modal');}
 function renderBranchList(){
   document.getElementById('branch-list-ui').innerHTML=S.branches.map((b,i)=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:9px;margin-bottom:7px;border:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:9px;margin-bottom:7px;border:1px solid var(--border);animation:flyInLeft .3s ease both;animation-delay:${i*.05}s">
       <span style="font-weight:600">🏢 ${esc(b)}</span>
       ${i>0?`<button onclick="deleteBranch(${i})" class="btn btn-danger btn-sm">✕</button>`:'<span style="font-size:10px;color:var(--text3)">Default</span>'}
     </div>`).join('');
@@ -2385,6 +2493,7 @@ function exportXL(tab){
     S.items.filter(m=>m.id).forEach(item=>{
       const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
       const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      if(inQ===0&&outQ===0)return; // skip zero items in export too
       const stock=inQ-outQ;const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
       const avg=inQ>0?cost/inQ:0;data.push([item.id,item.name,item.desc,inQ,outQ,stock,stock*avg]);
     });
@@ -2392,8 +2501,8 @@ function exportXL(tab){
     headers=['Date','Reason','Amount','Payment'];
     data=S.expense.filter(r=>r.reason||r.amt).map(r=>[r.date||'',r.reason||'',parseFloat(r.amt)||0,r.payment||'CASH']);
   }else if(tab==='STORE'){
-    headers=['Part No.','Name','Desc','Stock Qty','Unit Cost','Total Value'];
-    data=S.storeItems.map(s=>[s.id,s.name,s.desc||'',s.qty,s.cost||0,s.qty*(s.cost||0)]);
+    headers=['Part No.','Item Name','Desc','Supplier','Date Received','Stock Qty','Unit Cost','Total Value'];
+    data=S.storeItems.map(s=>[s.itemId,s.itemName,s.itemDesc||'',s.supplier||'',s.date||'',s.qty,s.cost||0,s.qty*(s.cost||0)]);
   }
   const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
   ws['!cols']=headers.map(()=>({wch:16}));
@@ -2423,7 +2532,11 @@ function submitChangePass(){
 ═══════════════════════════════════════════════════════ */
 document.addEventListener('click',e=>{if(!e.target.closest('#ctx-menu'))hideCtxMenu();});
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeSettings();closeApprovals();closeStoreReceipts();cancelConfirm();closeModal('receipt-modal');closeModal('add-row-modal');closeModal('edit-row-modal');closeModal('store-receipt-print-modal');hideCtxMenu();}
+  if(e.key==='Escape'){
+    closeSettings();closeApprovals();closeStoreReceipts();cancelConfirm();
+    closeModal('receipt-modal');closeModal('add-row-modal');closeModal('edit-row-modal');closeModal('store-receipt-print-modal');
+    hideCtxMenu();
+  }
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -2436,18 +2549,18 @@ function init(){
     const l=document.getElementById('page-loader');
     l.style.opacity='0';l.style.transition='opacity .4s';
     setTimeout(()=>l.style.display='none',400);
-  },1000);
+  },900);
   const savedUser=localStorage.getItem('ims_currentUser');
-  const savedAdmin=localStorage.getItem('ims_currentAdmin');
+  const savedOwner=localStorage.getItem('ims_currentOwner');
   const savedRole=localStorage.getItem('ims_currentRole');
-  if(savedUser&&savedAdmin&&savedRole){
-    if(savedUser===OWNER_USERNAME&&savedRole==='owner'){
-      S.user=savedUser;S.adminId=savedAdmin;S.role=savedRole;
-      doLoginOwner();return;
+  if(savedUser&&savedOwner&&savedRole){
+    if(savedUser===OWNER_USERNAME&&savedRole==='system_owner'){
+      S.user=savedUser;S.ownerId=savedOwner;S.role=savedRole;
+      doLoginSystemOwner();return;
     }
     ensureDefaults();
     const reg=getRegistry();
-    if(reg[savedUser]){doLogin(savedUser,savedAdmin,savedRole);return;}
+    if(reg[savedUser]){doLogin(savedUser,savedOwner,savedRole);return;}
   }
   document.getElementById('auth-screen').style.display='flex';
 }
@@ -2455,14 +2568,3 @@ init();
 </script>
 </body>
 </html>
-
-1. make store sparated from the inventory data 
-store have its own inventory managment tobe only managed by the store keeper
-store will use from the list of items on the add items tab just like sales and purchase
-2. make back button for the owners dashboard
-3. eliminate admins i want to approve users on my dashboard so that the users can approve thier own workers on thier platform 
-4. user's data should be separated
-5. items with zero purchase and zero sales should not be visibe ont the Balance
-6. UX  - have flyin animation
-
-N.B the project is to be sold on subscription for users usage on monthly interval

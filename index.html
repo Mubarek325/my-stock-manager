@@ -72,10 +72,10 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .app-header.owner-mode{background:linear-gradient(90deg,rgba(146,64,14,.15),var(--surface));border-bottom-color:rgba(245,158,11,.3)}
 .app-header.store-mode{background:linear-gradient(90deg,rgba(6,95,70,.15),var(--surface));border-bottom-color:rgba(16,185,129,.3)}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
-.brand-logo{width:38px;height:38px;border-radius:10px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px var(--p-glow);flex-shrink:0;transition:transform .2s}
-.brand:hover .brand-logo{transform:scale(1.08)}
-.brand-logo.owner{background:var(--owner-gradient);box-shadow:0 4px 14px var(--owner-glow)}
-.brand-logo.store-logo{background:var(--store-gradient);box-shadow:0 4px 14px var(--store-glow)}
+.brand-logo{width:38px;height:38px;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;overflow:hidden;box-shadow:0 2px 12px rgba(43,75,150,.28)}
+.brand:hover .brand-logo{transform:scale(1.1)}
+.brand-logo.owner{box-shadow:0 0 0 2.5px var(--owner),0 4px 16px var(--owner-glow)}
+.brand-logo.store-logo{box-shadow:0 0 0 2.5px var(--store),0 4px 16px var(--store-glow)}
 .brand-text .t1{font-family:var(--display);font-size:.95rem;font-weight:800;color:var(--text);letter-spacing:.04em}
 .brand-text .t2{font-size:.58rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:1px}
 .hdr-right{display:flex;align-items:center;gap:8px}
@@ -278,7 +278,7 @@ tbody tr:last-child td{border-bottom:none}
 .confirm-actions button:hover{background:var(--surface2)}
 
 .page-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
-.loader-logo{font-size:56px;animation:float 2.2s ease-in-out infinite}
+.loader-logo{width:88px;height:88px;animation:float 2.2s ease-in-out infinite;filter:drop-shadow(0 8px 24px rgba(43,75,150,.35))}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .loader-bar{width:160px;height:3px;background:var(--surface2);border-radius:99px;overflow:hidden}
 .loader-fill{height:100%;background:var(--gradient);border-radius:99px;animation:loadFill 1.2s ease-in-out infinite}
@@ -294,11 +294,15 @@ tbody tr:last-child td{border-bottom:none}
 .auth-orb1{width:400px;height:400px;background:var(--p);top:-100px;right:-100px;animation:orbFloat 8s ease-in-out infinite}
 .auth-orb2{width:300px;height:300px;background:var(--accent2);bottom:-80px;left:-80px;animation:orbFloat 6s ease-in-out infinite reverse}
 @keyframes orbFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-20px)}}
-.auth-card{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);border:1px solid var(--border2);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;z-index:1;animation:flyInScale .5s cubic-bezier(.22,1,.36,1)}
-.auth-hdr{padding:28px;background:var(--gradient);color:#fff;text-align:center}
-.auth-hdr .ah-icon{font-size:40px;margin-bottom:12px;animation:float 3s ease-in-out infinite}
-.auth-hdr h1{font-family:var(--display);font-size:1.3rem;font-weight:800}
-.auth-hdr p{font-size:.72rem;opacity:.7;margin-top:4px;letter-spacing:.04em}
+.auth-card{background:var(--surface);border-radius:var(--radius-xl);width:min(440px,100%);border:1px solid var(--border2);box-shadow:var(--shadow-lg);overflow:hidden;position:relative;z-index:1;animation:flyInScale .5s cubic-bezier(.22,1,.36,1)}
+.auth-hdr{padding:36px 28px 30px;background:linear-gradient(150deg,#1a3a8f 0%,#1e40af 50%,#0369a1 100%);color:#fff;text-align:center;position:relative;overflow:hidden}
+.auth-hdr::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,.07);border-radius:50%}
+.auth-hdr::after{content:'';position:absolute;bottom:-50px;left:-40px;width:160px;height:160px;background:rgba(255,255,255,.05);border-radius:50%}
+.auth-hdr-content{position:relative;z-index:1}
+.auth-hdr .ah-icon{width:80px;height:80px;margin:0 auto 18px;display:block;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 6px 20px rgba(0,0,0,.3))}
+.auth-hdr h1{font-family:var(--display);font-size:1.45rem;font-weight:800;letter-spacing:.06em;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+.auth-hdr h1 .v5-badge{font-size:.55em;font-weight:600;opacity:.65;vertical-align:super;letter-spacing:.04em}
+.auth-hdr p{font-size:.72rem;opacity:.6;margin-top:6px;letter-spacing:.08em;text-transform:uppercase}
 .auth-body{padding:26px}
 .auth-tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:20px}
 .auth-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border-radius:7px;transition:all .18s}
@@ -403,7 +407,7 @@ tbody tr:last-child td{border-bottom:none}
 <body>
 
 <div class="page-loader" id="page-loader">
-  <div class="loader-logo">📦</div>
+  <div class="loader-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="display:block;width:100%;height:100%"><circle cx="50" cy="50" r="47" fill="#ECEEF8"/><rect x="14" y="16" width="13" height="68" rx="6.5" fill="#2B4A96"/><path d="M27 19 C79 19 79 81 27 81" fill="none" stroke="#2B4A96" stroke-width="14" stroke-linecap="round"/><path d="M27 33 C59 33 59 67 27 67" fill="none" stroke="#ECEEF8" stroke-width="10" stroke-linecap="round"/><rect x="54" y="39" width="22" height="9" rx="4.5" fill="#2B4A96"/><rect x="54" y="53" width="16" height="9" rx="4.5" fill="#2B4A96"/></svg></div>
   <div class="loader-text">POWER-IMS v5</div>
   <div class="loader-sub" id="loader-sub-text">Initializing system…</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
@@ -418,9 +422,11 @@ tbody tr:last-child td{border-bottom:none}
   <div class="auth-bg"><div class="auth-orb auth-orb1"></div><div class="auth-orb auth-orb2"></div></div>
   <div class="auth-card">
     <div class="auth-hdr">
-      <div class="ah-icon">📦</div>
-      <h1>POWER-IMS v5</h1>
-      <p>Inventory Management System</p>
+      <div class="auth-hdr-content">
+        <div class="ah-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="display:block;width:100%;height:100%"><circle cx="50" cy="50" r="47" fill="#ECEEF8"/><rect x="14" y="16" width="13" height="68" rx="6.5" fill="#2B4A96"/><path d="M27 19 C79 19 79 81 27 81" fill="none" stroke="#2B4A96" stroke-width="14" stroke-linecap="round"/><path d="M27 33 C59 33 59 67 27 67" fill="none" stroke="#ECEEF8" stroke-width="10" stroke-linecap="round"/><rect x="54" y="39" width="22" height="9" rx="4.5" fill="#2B4A96"/><rect x="54" y="53" width="16" height="9" rx="4.5" fill="#2B4A96"/></svg></div>
+        <h1>POWER-IMS<span class="v5-badge">v5</span></h1>
+        <p>Inventory Management System</p>
+      </div>
     </div>
     <div class="auth-body">
       <div class="auth-tabs">
@@ -453,7 +459,7 @@ tbody tr:last-child td{border-bottom:none}
 <!-- HEADER -->
 <div class="app-header" id="app-header" style="display:none">
   <div class="brand" onclick="handleBrandClick()">
-    <div class="brand-logo" id="brand-logo">📦</div>
+    <div class="brand-logo" id="brand-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="display:block;width:100%;height:100%"><circle cx="50" cy="50" r="47" fill="#ECEEF8"/><rect x="14" y="16" width="13" height="68" rx="6.5" fill="#2B4A96"/><path d="M27 19 C79 19 79 81 27 81" fill="none" stroke="#2B4A96" stroke-width="14" stroke-linecap="round"/><path d="M27 33 C59 33 59 67 27 67" fill="none" stroke="#ECEEF8" stroke-width="10" stroke-linecap="round"/><rect x="54" y="39" width="22" height="9" rx="4.5" fill="#2B4A96"/><rect x="54" y="53" width="16" height="9" rx="4.5" fill="#2B4A96"/></svg></div>
     <div class="brand-text">
       <div class="t1">POWER-IMS</div>
       <div class="t2" id="brand-sub">Inventory System</div>
@@ -800,6 +806,8 @@ const FIREBASE_CONFIG={apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',authDoma
 const OWNER_USERNAME = 'Mb';
 const OWNER_PASSWORD = '1194';
 
+const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="display:block;width:100%;height:100%"><circle cx="50" cy="50" r="47" fill="#ECEEF8"/><rect x="14" y="16" width="13" height="68" rx="6.5" fill="#2B4A96"/><path d="M27 19 C79 19 79 81 27 81" fill="none" stroke="#2B4A96" stroke-width="14" stroke-linecap="round"/><path d="M27 33 C59 33 59 67 27 67" fill="none" stroke="#ECEEF8" stroke-width="10" stroke-linecap="round"/><rect x="54" y="39" width="22" height="9" rx="4.5" fill="#2B4A96"/><rect x="54" y="53" width="16" height="9" rx="4.5" fill="#2B4A96"/></svg>';
+
 const S={
   user:null,ownerId:null,role:null,
   tab:'ITEMS',theme:'dark',lang:'en',
@@ -1089,7 +1097,7 @@ async function doLogin(u,ownerId,role){
   document.getElementById('user-role-label').className='role'+(role==='storekeeper'?' store-role':'');
   const logo=document.getElementById('brand-logo');
   logo.className='brand-logo'+(role==='storekeeper'?' store-logo':'');
-  logo.textContent=role==='storekeeper'?'🏪':'📦';
+  logo.innerHTML=LOGO_SVG;
   document.getElementById('brand-sub').textContent=role==='storekeeper'?'Store Keeper':'Inventory System';
   const hdr=document.getElementById('app-header');
   hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
@@ -1165,7 +1173,7 @@ function doLoginSystemOwner(){
   document.getElementById('owner-screen').style.display='block';
   const hdr=document.getElementById('app-header');hdr.className='app-header owner-mode';
   document.getElementById('brand-logo').className='brand-logo owner';
-  document.getElementById('brand-logo').textContent='👑';
+  document.getElementById('brand-logo').innerHTML=LOGO_SVG;
   document.getElementById('brand-sub').textContent='System Dashboard';
   document.getElementById('user-label').textContent=OWNER_USERNAME;
   document.getElementById('user-role-label').textContent='SYSTEM OWNER';
@@ -1656,7 +1664,7 @@ function logout(){
   document.getElementById('auth-avatar-preview').innerHTML='👤';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app-header').className='app-header';
-  document.getElementById('brand-logo').className='brand-logo';document.getElementById('brand-logo').textContent='📦';
+  document.getElementById('brand-logo').className='brand-logo';document.getElementById('brand-logo').innerHTML=LOGO_SVG;
   document.getElementById('brand-sub').textContent='Inventory System';
   document.getElementById('user-role-label').className='role';
   document.getElementById('hdr-chip').className='hdr-chip no-print';

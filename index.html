@@ -6,12 +6,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0f1e">
-<title>POWER-IMS v5</title>
+<title>POWER-IMS 02may</title>
 <link href="https://fonts.cdnfonts.com/css/gebuk" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root {
   --bg:#0a0f1e;--bg2:#0d1428;--surface:#111827;--surface2:#1a2236;--surface3:#222d42;
@@ -106,6 +108,12 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .nav-item:hover,.nav-item.active{color:var(--p);background:var(--p-glass)}
 .nav-item:hover .ni-icon,.nav-item.active .ni-icon{transform:translateY(-3px) scale(1.1)}
 .nav-item.store-nav.active{color:var(--success);background:rgba(16,185,129,.1)}
+.nav-store-combo{display:flex;align-items:stretch}
+.store-sub-menu{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:6px;min-width:140px;box-shadow:0 -8px 30px rgba(0,0,0,.35);z-index:700;animation:flyInUp .22s cubic-bezier(.22,1,.36,1)}
+.store-sub-menu::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:var(--surface);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);transform:translateX(-50%) rotate(45deg)}
+.store-sub-item{display:flex;align-items:center;gap:9px;width:100%;padding:10px 14px;border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border-radius:9px;transition:all .15s;white-space:nowrap}
+.store-sub-item:hover{background:var(--store-glass);color:var(--store)}
+.store-sub-item.active{background:var(--store-glass);color:var(--store)}
 
 .content{padding:16px;max-width:1400px;margin:0 auto}
 @media(min-width:768px){.content{padding:24px 28px}}
@@ -123,8 +131,11 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .owner-hero{background:var(--owner-gradient);border-radius:var(--radius-xl);padding:32px;margin-bottom:24px;position:relative;overflow:hidden;animation:flyInUp .4s cubic-bezier(.22,1,.36,1)}
 .owner-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
 .owner-hero::after{content:'';position:absolute;bottom:-20px;left:100px;width:120px;height:120px;background:rgba(255,255,255,.05);border-radius:50%}
+.owner-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;z-index:1}
 .owner-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:4px}
 .owner-hero p{color:rgba(255,255,255,.7);font-size:.8rem}
+.owner-logout-btn{display:flex;align-items:center;gap:7px;padding:9px 16px;border:1.5px solid rgba(255,255,255,.28);border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;backdrop-filter:blur(6px);white-space:nowrap;flex-shrink:0}
+.owner-logout-btn:hover{background:rgba(239,68,68,.45);border-color:rgba(239,68,68,.55);transform:translateY(-2px);box-shadow:0 4px 16px rgba(239,68,68,.3)}
 .owner-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
 .owner-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;animation:flyInUp .42s cubic-bezier(.22,1,.36,1) both;transition:transform .2s,box-shadow .2s}
 .owner-stat:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
@@ -156,6 +167,46 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .sub-basic{background:rgba(59,130,246,.15);color:var(--p)}
 .sub-pro{background:rgba(139,92,246,.15);color:var(--accent2)}
 .sub-enterprise{background:var(--owner-glass);color:var(--owner)}
+.sub-trial{background:rgba(245,158,11,.18);color:var(--warn);border:1px solid rgba(245,158,11,.3)}
+.sub-active-paid{background:rgba(16,185,129,.15);color:var(--success);border:1px solid rgba(16,185,129,.3)}
+.sub-expired{background:rgba(239,68,68,.15);color:var(--error);border:1px solid rgba(239,68,68,.3)}
+.sub-sus{background:rgba(100,116,139,.12);color:var(--text3);border:1px solid var(--border2)}
+
+/* Subscription gate overlay */
+.sub-gate{position:fixed;inset:0;z-index:9999;background:rgba(10,15,30,.97);display:flex;align-items:center;justify-content:center;padding:24px}
+.sub-gate-box{max-width:400px;width:100%;text-align:center;animation:flyInScale .4s cubic-bezier(.22,1,.36,1)}
+.sub-gate-icon{font-size:64px;margin-bottom:16px;line-height:1}
+.sub-gate-title{font-family:var(--display);font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:8px}
+.sub-gate-sub{font-size:.84rem;color:var(--text2);line-height:1.65;margin-bottom:22px}
+.sub-gate-contact{font-size:.75rem;color:var(--text3);background:var(--surface2);border-radius:10px;padding:12px 16px;margin-bottom:20px;border:1px solid var(--border);line-height:1.7}
+.sub-gate-btn{padding:11px 28px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-weight:700;cursor:pointer;font-family:var(--font);font-size:13px;transition:all .18s}
+.sub-gate-btn:hover{background:var(--surface3);border-color:var(--p);color:var(--p)}
+
+/* In-app subscription banner */
+.sub-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--radius-sm);margin:0 0 16px;font-size:12px;font-weight:600;border:1px solid;animation:flyInUp .3s}
+.sub-banner.trial{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--warn)}
+.sub-banner.warn{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--error)}
+.sub-banner.ok{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.2);color:var(--success)}
+.sub-banner-icon{font-size:20px;flex-shrink:0}
+.sub-banner-days{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.12);padding:2px 8px;border-radius:99px;margin-left:auto;white-space:nowrap}
+
+/* Subscription plan cards in modal */
+.sub-plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.sub-plan-card{border:2px solid var(--border2);border-radius:12px;padding:12px 10px;cursor:pointer;transition:all .2s;background:var(--surface2);text-align:center;position:relative}
+.sub-plan-card:hover{border-color:var(--p);background:var(--p-glass)}
+.sub-plan-card.active{border-color:var(--p);background:var(--p-glass);box-shadow:0 0 0 3px var(--p-glow)}
+.sub-plan-chk{position:absolute;top:6px;right:6px;width:16px;height:16px;background:var(--p);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;opacity:0;transition:opacity .15s}
+.sub-plan-card.active .sub-plan-chk{opacity:1}
+.sub-plan-card-icon{font-size:22px;margin-bottom:4px}
+.sub-plan-card-name{font-size:12px;font-weight:700;color:var(--text)}
+.sub-plan-card-price{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Payment history */
+.pay-history{max-height:130px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.pay-history-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:11px}
+.pay-history-row:last-child{border-bottom:none}
+.pay-history-date{color:var(--text3);font-family:var(--mono);font-size:10px;white-space:nowrap}
+.pay-history-amount{font-weight:700;color:var(--success);font-family:var(--mono);margin-left:auto;white-space:nowrap}
 
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);white-space:nowrap;text-decoration:none}
 .btn:hover{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow);transform:translateY(-1px)}
@@ -402,6 +453,60 @@ tbody tr:last-child td{border-bottom:none}
 
 /* Cloud auth status indicator */
 .cloud-auth-note{font-size:10px;color:var(--text3);text-align:center;margin-top:10px;padding:6px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.auth-type-btn{padding:8px 10px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
+.auth-type-btn.active{border-color:var(--p);background:var(--p);color:#fff;box-shadow:0 2px 10px var(--p-glow)}
+.auth-type-btn:not(.active):hover{border-color:var(--p);color:var(--p)}
+
+/* Export modal redesign */
+.exp-modal-hdr{padding:26px 26px 22px;background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#0369a1 100%);border-radius:var(--radius-xl) var(--radius-xl) 0 0;color:#fff;position:relative;overflow:hidden}
+.exp-modal-hdr::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%}
+.exp-modal-hdr::after{content:'';position:absolute;bottom:-20px;left:40px;width:80px;height:80px;background:rgba(255,255,255,.05);border-radius:50%}
+.exp-modal-hdr-row{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
+.exp-modal-icon{width:44px;height:44px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.exp-modal-title{font-size:1.15rem;font-weight:800;letter-spacing:-.01em}
+.exp-modal-sub{font-size:.68rem;opacity:.7;margin-top:3px}
+.exp-close{width:30px;height:30px;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+.exp-close:hover{background:rgba(255,255,255,.3)}
+.exp-body{padding:22px 24px 26px}
+.exp-section-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.exp-format-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.exp-format-card{border:2px solid var(--border2);border-radius:14px;padding:14px 12px;cursor:pointer;transition:all .2s;background:var(--surface2);text-align:center;position:relative;overflow:hidden}
+.exp-format-card:hover{border-color:var(--p);background:var(--p-glass)}
+.exp-format-card.active{border-color:var(--p);background:var(--p-glass);box-shadow:0 0 0 3px var(--p-glow)}
+.exp-format-card.active-xl{border-color:var(--accent3);background:rgba(16,185,129,.08);box-shadow:0 0 0 3px rgba(16,185,129,.2)}
+.exp-format-card-icon{font-size:28px;margin-bottom:6px;line-height:1}
+.exp-format-card-name{font-size:13px;font-weight:700;color:var(--text)}
+.exp-format-card-desc{font-size:10px;color:var(--text3);margin-top:2px}
+.exp-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;opacity:0;transition:all .2s}
+.exp-format-card.active .exp-check{background:var(--p);color:#fff;opacity:1}
+.exp-format-card.active-xl .exp-check{background:var(--accent3);color:#fff;opacity:1}
+.exp-sheets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+.exp-sheet-pill{padding:6px 14px;border-radius:99px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s}
+.exp-sheet-pill:hover{border-color:var(--p);color:var(--p)}
+.exp-sheet-pill.active{border-color:var(--p);background:var(--p);color:#fff;box-shadow:0 2px 10px var(--p-glow)}
+.exp-export-btn{width:100%;padding:13px;border:none;border-radius:var(--radius-sm);background:var(--gradient);color:#fff;font-weight:800;font-size:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px var(--p-glow);letter-spacing:.02em;font-family:var(--font)}
+.exp-export-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--p-glow)}
+.exp-export-btn:active{transform:translateY(0)}
+.exp-divider{height:1px;background:var(--border);margin:0 0 18px}
+
+/* Report credit lists */
+.credit-section{margin-top:20px}
+.credit-section-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:1px solid var(--border);border-bottom:none}
+.credit-section-hdr-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.credit-section-hdr-icon.purchase{background:rgba(239,68,68,.15)}
+.credit-section-hdr-icon.sales{background:rgba(16,185,129,.15)}
+.credit-section-title{font-size:12px;font-weight:700;color:var(--text)}
+.credit-section-count{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
+.credit-section-count.purchase{background:rgba(239,68,68,.15);color:var(--error)}
+.credit-section-count.sales{background:rgba(16,185,129,.15);color:var(--success)}
+.credit-table-wrap{border:1px solid var(--border);border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden}
+.credit-table{width:100%;border-collapse:collapse;font-size:11px}
+.credit-table thead th{background:var(--surface3);color:var(--text2);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.credit-table tbody tr{border-top:1px solid var(--border)}
+.credit-table tbody tr:hover{background:var(--surface2)}
+.credit-table td{padding:7px 10px;color:var(--text)}
+.credit-table td.num{text-align:right;font-family:var(--mono);font-weight:600}
+.credit-empty{padding:16px;text-align:center;color:var(--text3);font-size:12px}
 </style>
 </head>
 <body>
@@ -438,11 +543,18 @@ tbody tr:last-child td{border-bottom:none}
         <div class="avatar-hint">Click to add photo (optional)</div>
         <input type="file" id="auth-avatar-file" accept="image/*" style="display:none" onchange="previewAuthAvatar(this)">
       </div>
+      <div id="auth-type-toggle" style="display:none;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button id="auth-type-biz" class="auth-type-btn active" onclick="setAuthSubMode('business')">🏢 New Business</button>
+          <button id="auth-type-emp" class="auth-type-btn" onclick="setAuthSubMode('employee')">👤 Employee</button>
+        </div>
+        <div id="auth-type-hint" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center">Register your business for a 14-day free trial</div>
+      </div>
       <div class="field"><label>Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
       <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
       <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
       <div class="field" id="auth-admin-target-wrap" style="display:none">
-        <label>Platform Owner Username <span style="color:var(--text3);font-size:9px">(who invited you)</span></label>
+        <label>Platform Owner Username <span style="color:var(--text3);font-size:9px">(who manages your account)</span></label>
         <input id="auth-admin-target" placeholder="Enter the platform owner's username">
       </div>
       <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
@@ -543,18 +655,46 @@ tbody tr:last-child td{border-bottom:none}
 <!-- MODALS (unchanged from original) -->
 <div class="modal-overlay" id="export-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><span class="modal-hdr-icon">📤</span><div><h2>Export Data</h2><p>Download PDF or Excel reports</p></div><button class="modal-hdr-close" onclick="closeModal('export-modal')">✕</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Format</label><select id="exp-format"><option value="PDF">📄 PDF (Print)</option><option value="XL">📊 Excel (.xlsx)</option></select></div>
-      <div class="field"><label>Sheet</label>
-        <select id="exp-sheet">
-          <option value="PURCHASE">🛒 Purchase</option><option value="SALES">💰 Sales</option>
-          <option value="BALANCE">⚖️ Balance</option><option value="EXPENSE">💸 Expense</option>
-          <option value="STORE">🏪 Store</option>
-        </select>
+    <div class="exp-modal-hdr">
+      <div class="exp-modal-hdr-row">
+        <div>
+          <div class="exp-modal-icon">📤</div>
+          <div class="exp-modal-title">Export Report</div>
+          <div class="exp-modal-sub">Download as PDF or Excel spreadsheet</div>
+        </div>
+        <button class="exp-close" onclick="closeModal('export-modal')">✕</button>
       </div>
-      <button class="modal-btn" onclick="doExport()">📤 Export Now</button>
-      <button class="modal-btn secondary" onclick="closeModal('export-modal')" style="margin-top:5px">Cancel</button>
+    </div>
+    <div class="exp-body">
+      <div class="exp-section-label">Format</div>
+      <div class="exp-format-cards">
+        <div class="exp-format-card active" id="exp-card-PDF" onclick="selectExpFormat('PDF')">
+          <div class="exp-check">✓</div>
+          <div class="exp-format-card-icon">📄</div>
+          <div class="exp-format-card-name">PDF</div>
+          <div class="exp-format-card-desc">Download .pdf file</div>
+        </div>
+        <div class="exp-format-card" id="exp-card-XL" onclick="selectExpFormat('XL')">
+          <div class="exp-check">✓</div>
+          <div class="exp-format-card-icon">📊</div>
+          <div class="exp-format-card-name">Excel</div>
+          <div class="exp-format-card-desc">Download .xlsx file</div>
+        </div>
+      </div>
+      <div class="exp-divider"></div>
+      <div class="exp-section-label">Sheet</div>
+      <div class="exp-sheets">
+        <div class="exp-sheet-pill active" id="exp-pill-PURCHASE" onclick="selectExpSheet('PURCHASE')">🛒 Purchase</div>
+        <div class="exp-sheet-pill" id="exp-pill-SALES" onclick="selectExpSheet('SALES')">💰 Sales</div>
+        <div class="exp-sheet-pill" id="exp-pill-BALANCE" onclick="selectExpSheet('BALANCE')">⚖️ Balance</div>
+        <div class="exp-sheet-pill" id="exp-pill-EXPENSE" onclick="selectExpSheet('EXPENSE')">💸 Expense</div>
+        <div class="exp-sheet-pill" id="exp-pill-STORE" onclick="selectExpSheet('STORE')">🏪 Store</div>
+      </div>
+      <div class="exp-divider"></div>
+      <button class="exp-export-btn" onclick="doExport()">
+        <span id="exp-btn-icon">📄</span>
+        <span id="exp-btn-label">Download PDF</span>
+      </button>
     </div>
   </div>
 </div>
@@ -690,9 +830,15 @@ tbody tr:last-child td{border-bottom:none}
 <div id="owner-screen" style="display:none;position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;padding-bottom:20px">
   <div class="owner-screen">
     <div class="owner-hero">
-      <h1>👑 Platform Dashboard</h1>
-      <p>POWER-IMS — Full visibility over all users on your platform</p>
+      <div class="owner-hero-top">
+        <div>
+          <h1>👑 Platform Dashboard</h1>
+          <p>POWER-IMS — Full visibility over all users on your platform</p>
+        </div>
+        <button class="owner-logout-btn" onclick="logout()">🚪 Log Out</button>
+      </div>
     </div>
+    <div id="owner-sub-banner"></div>
     <div class="owner-stats" id="owner-stats"></div>
     <div class="owner-section">
       <div class="owner-section-hdr">
@@ -717,26 +863,67 @@ tbody tr:last-child td{border-bottom:none}
 
 <div class="modal-overlay" id="sub-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">💎</span><div><h2>Subscription</h2><p id="sub-modal-user-name">User</p></div><button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button></div>
-    <div class="modal-body">
-      <div class="field"><label>Subscription Plan</label>
-        <select id="sub-plan-select">
-          <option value="free">🆓 Free</option>
-          <option value="basic">📦 Basic</option>
-          <option value="pro">⚡ Pro</option>
-          <option value="enterprise">💎 Enterprise</option>
-        </select>
-      </div>
-      <div class="field"><label>Status</label>
-        <select id="sub-status-select">
-          <option value="active">✅ Active</option>
-          <option value="suspended">🚫 Suspended</option>
-        </select>
-      </div>
-      <div class="field"><label>Notes (optional)</label><input id="sub-notes" placeholder="e.g. Paid until Dec 2025"></div>
-      <button class="modal-btn owner-btn" onclick="saveSubscription()">💾 Save</button>
-      <button class="modal-btn secondary" onclick="closeModal('sub-modal')" style="margin-top:5px">Cancel</button>
+    <div class="modal-hdr owner-hdr">
+      <span class="modal-hdr-icon">💎</span>
+      <div><h2>Manage Subscription</h2><p id="sub-modal-user-name">User</p></div>
+      <button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button>
     </div>
+    <div class="modal-body">
+      <div id="sub-status-badge-wrap" style="margin-bottom:14px"></div>
+      <div class="exp-section-label">Plan</div>
+      <div class="sub-plan-cards">
+        <div class="sub-plan-card" id="spc-trial" onclick="selectSubPlan('trial')">
+          <div class="sub-plan-chk">✓</div>
+          <div class="sub-plan-card-icon">🆓</div>
+          <div class="sub-plan-card-name">Trial</div>
+          <div class="sub-plan-card-price">14 days free</div>
+        </div>
+        <div class="sub-plan-card" id="spc-basic" onclick="selectSubPlan('basic')">
+          <div class="sub-plan-chk">✓</div>
+          <div class="sub-plan-card-icon">📦</div>
+          <div class="sub-plan-card-name">Basic</div>
+          <div class="sub-plan-card-price">Up to 2 users</div>
+        </div>
+        <div class="sub-plan-card" id="spc-pro" onclick="selectSubPlan('pro')">
+          <div class="sub-plan-chk">✓</div>
+          <div class="sub-plan-card-icon">⚡</div>
+          <div class="sub-plan-card-name">Pro</div>
+          <div class="sub-plan-card-price">Up to 10 users</div>
+        </div>
+        <div class="sub-plan-card" id="spc-enterprise" onclick="selectSubPlan('enterprise')">
+          <div class="sub-plan-chk">✓</div>
+          <div class="sub-plan-card-icon">💎</div>
+          <div class="sub-plan-card-name">Enterprise</div>
+          <div class="sub-plan-card-price">Unlimited users</div>
+        </div>
+      </div>
+      <div class="exp-divider"></div>
+      <div class="exp-section-label">Record Payment</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="field" style="margin-bottom:0"><label>Amount Paid</label><input id="sub-pay-amount" type="number" min="0" placeholder="e.g. 500"></div>
+        <div class="field" style="margin-bottom:0"><label>Active Until</label><input id="sub-paid-until" type="date"></div>
+      </div>
+      <div class="field"><label>Note (optional)</label><input id="sub-notes" placeholder="e.g. Bank transfer ref #123"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="modal-btn owner-btn" style="flex:1" onclick="saveSubscription()">💾 Save</button>
+        <button class="modal-btn secondary" style="flex:0 0 auto;width:auto;padding:12px 16px" onclick="closeModal('sub-modal')">Cancel</button>
+      </div>
+      <div id="sub-pay-history-wrap" style="margin-top:16px;display:none">
+        <div class="exp-section-label" style="margin-bottom:8px">Payment History</div>
+        <div class="pay-history" id="sub-pay-history"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION GATE — shown when subscription expired/suspended -->
+<div id="sub-gate" style="display:none" class="sub-gate">
+  <div class="sub-gate-box">
+    <div class="sub-gate-icon" id="sub-gate-icon">🔒</div>
+    <div class="sub-gate-title" id="sub-gate-title">Subscription Expired</div>
+    <div class="sub-gate-sub" id="sub-gate-sub">Your subscription has expired. Please contact the platform administrator to renew your access.</div>
+    <div class="sub-gate-contact">Contact your <strong>POWER-IMS Administrator</strong> to renew your subscription and restore access to the platform.</div>
+    <button class="sub-gate-btn" onclick="logout()">← Return to Login</button>
   </div>
 </div>
 
@@ -746,6 +933,7 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- CONTENT -->
 <div class="content" id="content" style="display:none">
+  <div id="app-sub-banner"></div>
   <div class="page-card">
     <div class="page-card-head">
       <div class="page-title-block">
@@ -764,8 +952,24 @@ tbody tr:last-child td{border-bottom:none}
   <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE"><span class="ni-icon">🛒</span><span class="ni-label">Purchase</span></button>
   <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES"><span class="ni-icon">💰</span><span class="ni-label">Sales</span></button>
   <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE"><span class="ni-icon">⚖️</span><span class="ni-label">Balance</span></button>
+  <!-- Combined Store button — owner only -->
+  <div class="nav-store-combo" id="store-combo-wrap" style="display:none;position:relative;flex:1">
+    <button class="nav-item store-nav" id="store-combo-btn" onclick="toggleStoreMenu(event)" style="width:100%">
+      <span class="ni-icon" id="store-combo-icon">🏪</span>
+      <span class="ni-label" id="store-combo-label">Store</span>
+      <span id="store-combo-arrow" style="font-size:6px;opacity:.55;margin-top:1px;line-height:1">▲</span>
+    </button>
+    <div class="store-sub-menu" id="store-sub-menu" style="display:none">
+      <button class="store-sub-item" data-tab="STORE" onclick="switchTab('STORE');closeStoreMenu()">
+        <span>🏪</span><span>Store</span>
+      </button>
+      <button class="store-sub-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE');closeStoreMenu()">
+        <span>📊</span><span>St. Balance</span>
+      </button>
+    </div>
+  </div>
+  <!-- Separate buttons kept for storekeepers -->
   <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
-  <!-- ★ NEW: Store Balance tab — visible only to storekeeper/owner -->
   <button class="nav-item store-nav" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label">St.Balance</span></button>
   <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
   <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
@@ -1001,28 +1205,42 @@ function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
    EMERGENCY RESET
 ═══════════════════════════════════════════════════════ */
 function emergencyReset(){
-  if(!confirm('Reset default owner account? Inventory data will NOT be deleted.'))return;
+  if(!confirm('⚠️ Clear ALL owner accounts and pending requests?\n\nInventory data is NOT deleted. You can add new subscribers after.\n\nContinue?'))return;
   const reg=getRegistry();
-  reg['owner']={password:'owner123',ownerId:'owner',role:'owner'};
+  // Remove all owner-role entries, keep users/storekeepers in place
+  Object.keys(reg).forEach(u=>{if(reg[u].role==='owner')delete reg[u];});
   saveRegistry(reg);
+  localStorage.removeItem('ims_pending_owners');
   localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentOwner');localStorage.removeItem('ims_currentRole');
-  showMsg('auth-success','✅ Reset! Login: owner / owner123','success');
-  document.getElementById('auth-user').value='owner';
-  document.getElementById('auth-pass').value='owner123';
+  showMsg('auth-success','✅ All owner accounts cleared. Use the system owner dashboard to approve new subscribers.','success');
+  document.getElementById('auth-user').value='';
+  document.getElementById('auth-pass').value='';
 }
 
 /* ═══════════════════════════════════════════════════════
    AUTH MODES
 ═══════════════════════════════════════════════════════ */
 let authMode='login';
+let authSubMode='business';
+function setAuthSubMode(m){
+  authSubMode=m;
+  document.getElementById('auth-type-biz').classList.toggle('active',m==='business');
+  document.getElementById('auth-type-emp').classList.toggle('active',m==='employee');
+  document.getElementById('auth-admin-target-wrap').style.display=m==='employee'?'':'none';
+  const hint=document.getElementById('auth-type-hint');
+  if(hint)hint.textContent=m==='business'?'Register your business for a 14-day free trial':'Request access under an existing business account';
+  document.getElementById('auth-btn').innerHTML=m==='business'?'🏢 Register Business':'📝 Request Access';
+}
 function setAuthMode(m){
   authMode=m;
   document.getElementById('tab-login-btn').classList.toggle('active',m==='login');
   document.getElementById('tab-signup-btn').classList.toggle('active',m==='signup');
   document.getElementById('auth-confirm-wrap').style.display=m==='signup'?'':'none';
   document.getElementById('auth-signup-avatar').style.display=m==='signup'?'':'none';
-  document.getElementById('auth-admin-target-wrap').style.display=m==='signup'?'':'none';
-  document.getElementById('auth-btn').innerHTML=m==='signup'?'📝 Request Access':'🔐 Log In';
+  document.getElementById('auth-type-toggle').style.display=m==='signup'?'':'none';
+  if(m==='signup')setAuthSubMode('business');
+  else document.getElementById('auth-admin-target-wrap').style.display='none';
+  document.getElementById('auth-btn').innerHTML=m==='signup'?'🏢 Register Business':'🔐 Log In';
   hideMsg('auth-error');hideMsg('auth-success');
 }
 
@@ -1056,21 +1274,34 @@ async function submitAuth(){
       doLogin(u,entry.ownerId||u,entry.role||'user');
     }else{
       const c=document.getElementById('auth-confirm').value;
-      const ownerTarget=document.getElementById('auth-admin-target').value.trim();
       if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
       if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
-      if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already exists.');return;}
-      if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
-      if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
-      const ns=reg[ownerTarget].ownerId||ownerTarget;
-      const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-      pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
-      localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
-      // ★ Also push pending request to cloud
-      if(S.db){
-        S.db.collection('power_ims5').doc(ns).set({pending:JSON.stringify(pending)},{merge:true}).catch(()=>{});
+      if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already taken. Choose a different username.');return;}
+      if(authSubMode==='business'){
+        // New subscriber/owner registration — goes to system owner's pending queue
+        const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+        if(pending.find(x=>x.username===u)){showMsg('auth-error','A request with this username is already pending.');return;}
+        pending.push({username:u,password:p,requestedAt:new Date().toISOString()});
+        localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+        // Push to cloud so system owner sees it on any device
+        if(S.db){
+          S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+        }
+        showMsg('auth-success','✅ Business registered! The platform administrator will activate your account shortly.','success');
+      }else{
+        // Employee/user signup — goes to their owner's pending queue
+        const ownerTarget=document.getElementById('auth-admin-target').value.trim();
+        if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
+        if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
+        const ns=reg[ownerTarget].ownerId||ownerTarget;
+        const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
+        pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
+        localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
+        if(S.db){
+          S.db.collection('power_ims5').doc(ns).set({pending:JSON.stringify(pending)},{merge:true}).catch(()=>{});
+        }
+        showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
       }
-      showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
     }
   }finally{
     btn.innerHTML=origText;
@@ -1087,6 +1318,12 @@ async function doLogin(u,ownerId,role){
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   initFirebase();
   await loadFromCloud(ownerId);
+  // Subscription gate — block expired/suspended owners and their users
+  if(role!=='system_owner'){
+    const gateReg=getRegistry();
+    const blocked=checkSubscriptionGate(gateReg,ownerId);
+    if(blocked){showSubGate(blocked);return;}
+  }
   loadUserData();loadPrefs();
   S.avatarDataUrl=localStorage.getItem(`ims_${u}_avatar`)||null;
   // UI setup
@@ -1103,8 +1340,6 @@ async function doLogin(u,ownerId,role){
   hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
   document.getElementById('drawer-hdr').className='drawer-hdr'+(role==='storekeeper'?' store-drawer-hdr':'');
   document.getElementById('notif-btn').style.display=isOwner()?'flex':'none';
-  document.getElementById('store-nav-btn').style.display=(isOwner()||isStorekeeper())?'':'none';
-  document.getElementById('nav-STOREBALANCE').style.display=(isOwner()||isStorekeeper())?'':'none';
   document.getElementById('btn-owner-perms').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
@@ -1113,6 +1348,12 @@ async function doLogin(u,ownerId,role){
   // ★ CHANGE 5: Apply tab visibility rules per role
   updateNavForRole();
   showUI();
+  // Subscription banner in main app for owners (warn when close to expiry)
+  if(role==='owner'){
+    const regSub=getRegistry();const ssBanner=getSubStatus(regSub[ownerId]);
+    const bannerEl=document.getElementById('app-sub-banner');
+    if(bannerEl)bannerEl.innerHTML=buildSubBanner(ssBanner);
+  }
   if(isOwner())loadPendingApprovals();
   updateStoreNotifBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
@@ -1132,30 +1373,84 @@ async function doLogin(u,ownerId,role){
    All others see their normal tabs (subject to permissions)
 ═══════════════════════════════════════════════════════ */
 function updateNavForRole(){
+  // Always hide the separate store buttons and combo by default
+  document.getElementById('store-nav-btn').style.display='none';
+  document.getElementById('nav-STOREBALANCE').style.display='none';
+  document.getElementById('store-combo-wrap').style.display='none';
   if(isStorekeeper()){
-    // Hide all regular tabs
     ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
-      const el=document.getElementById(`nav-${tab}`);
-      if(el)el.style.display='none';
+      const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
     });
-    // Show store tabs
+    // Storekeepers get the two separate store buttons
     document.getElementById('store-nav-btn').style.display='flex';
     document.getElementById('nav-STOREBALANCE').style.display='flex';
-    // Hide ITEMS in drawer for storekeepers
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='none';
   }else{
-    // Show all regular tabs (owner/user see everything they have permission for)
     ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
-      const el=document.getElementById(`nav-${tab}`);
-      if(el)el.style.display='';
+      const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='';
     });
-    // STORE and STOREBALANCE visible to owner only (not regular users)
-    document.getElementById('store-nav-btn').style.display=isOwner()?'flex':'none';
-    document.getElementById('nav-STOREBALANCE').style.display=isOwner()?'flex':'none';
+    // Owners get the single combined Store button
+    if(isOwner())document.getElementById('store-combo-wrap').style.display='flex';
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='flex';
   }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SUBSCRIPTION ENGINE
+═══════════════════════════════════════════════════════ */
+function getSubStatus(r){
+  if(!r) return{status:'expired',daysLeft:0,label:'Expired',variant:'expired'};
+  if(r.status==='suspended') return{status:'suspended',daysLeft:0,label:'Suspended',variant:'sus'};
+  const today=new Date().toISOString().slice(0,10);
+  if(r.paidUntil&&r.paidUntil>=today){
+    const diff=Math.ceil((new Date(r.paidUntil)-new Date(today))/86400000);
+    return{status:'active',daysLeft:diff,label:`Active · ${diff}d left`,variant:'active-paid'};
+  }
+  if(r.trialStart){
+    const te=new Date(r.trialStart);te.setDate(te.getDate()+(r.trialDays||14));
+    const teStr=te.toISOString().slice(0,10);
+    if(teStr>=today){
+      const diff=Math.ceil((te-new Date(today))/86400000);
+      return{status:'trial',daysLeft:diff,label:`Trial · ${diff}d left`,variant:'trial'};
+    }
+    return{status:'expired',daysLeft:0,label:'Expired',variant:'expired'};
+  }
+  // Legacy account with no subscription data → auto-grant 14-day trial from today
+  return{status:'trial',daysLeft:14,label:'Trial · 14d left',variant:'trial'};
+}
+
+function checkSubscriptionGate(reg,ownerId){
+  const ss=getSubStatus(reg[ownerId]);
+  return(ss.status==='expired'||ss.status==='suspended')?ss:null;
+}
+
+function showSubGate(ss){
+  const gate=document.getElementById('sub-gate');
+  document.getElementById('sub-gate-icon').textContent=ss.status==='suspended'?'🚫':'🔒';
+  document.getElementById('sub-gate-title').textContent=ss.status==='suspended'?'Account Suspended':'Subscription Expired';
+  document.getElementById('sub-gate-sub').textContent=ss.status==='suspended'
+    ?'Your account has been suspended. Please contact the platform administrator to restore access.'
+    :'Your subscription has expired. Please contact the platform administrator to renew your access and continue using POWER-IMS.';
+  document.getElementById('auth-screen').style.display='none';
+  gate.style.display='flex';
+}
+
+function buildSubBanner(ss){
+  if(ss.status==='active'&&ss.daysLeft>7) return`<div class="sub-banner ok"><span class="sub-banner-icon">✅</span><span class="sub-banner-text">Subscription active</span><span class="sub-banner-days">${ss.daysLeft} days left</span></div>`;
+  if(ss.status==='trial') return`<div class="sub-banner trial"><span class="sub-banner-icon">⏳</span><span class="sub-banner-text"><strong>Free Trial</strong> — upgrade before it ends to keep your data</span><span class="sub-banner-days">${ss.daysLeft}d left</span></div>`;
+  if(ss.status==='active'&&ss.daysLeft<=7) return`<div class="sub-banner warn"><span class="sub-banner-icon">⚠️</span><span class="sub-banner-text"><strong>Subscription expiring soon</strong> — contact your administrator to renew</span><span class="sub-banner-days">${ss.daysLeft}d left</span></div>`;
+  return'';
+}
+
+let _subPlan='basic';
+function selectSubPlan(plan){
+  _subPlan=plan;
+  ['trial','basic','pro','enterprise'].forEach(p=>{
+    const c=document.getElementById('spc-'+p);
+    if(c)c.classList.toggle('active',p===plan);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1186,31 +1481,68 @@ function doLoginSystemOwner(){
   document.getElementById('owner-back-btn').style.display='none';
   document.getElementById('drawer-hdr').className='drawer-hdr owner-drawer-hdr';
   initFirebase();
-  renderSystemOwnerDashboard();
+  loadPendingOwnersFromCloud().then(()=>renderSystemOwnerDashboard());
+}
+
+async function loadPendingOwnersFromCloud(){
+  if(!S.db)return;
+  try{
+    const doc=await S.db.collection('power_ims5').doc('_pending_owners').get();
+    if(doc.exists&&doc.data().pending){
+      const cloud=JSON.parse(doc.data().pending||'[]');
+      const local=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+      const merged=[...local];
+      cloud.forEach(c=>{if(!merged.find(l=>l.username===c.username))merged.push(c);});
+      localStorage.setItem('ims_pending_owners',JSON.stringify(merged));
+    }
+  }catch(e){}
+}
+
+function deleteOwner(u){
+  customConfirm(`Delete Owner "${u}"?`,'This removes their account. Inventory data stays intact.','🗑️','Delete',()=>{
+    const reg=getRegistry();delete reg[u];saveRegistry(reg);
+    showToast(`${u} deleted`,'success');renderSystemOwnerDashboard();
+  });
 }
 
 function renderSystemOwnerDashboard(){
   const reg=getRegistry();
   const owners=Object.keys(reg).filter(u=>reg[u].role==='owner');
   const allUsers=Object.keys(reg).filter(u=>reg[u].role!=='system_owner');
+  const ssList=owners.map(u=>getSubStatus(reg[u]));
+  const paidCount=ssList.filter(s=>s.status==='active').length;
+  const trialCount=ssList.filter(s=>s.status==='trial').length;
+  const expiredCount=ssList.filter(s=>s.status==='expired'||s.status==='suspended').length;
+  const expiringSoon=ssList.filter(s=>(s.status==='active'||s.status==='trial')&&s.daysLeft<=5).length;
   document.getElementById('owner-stats').innerHTML=`
     <div class="owner-stat"><div class="stat-icon">👑</div><div class="stat-val">${owners.length}</div><div class="stat-lbl">Platform Owners</div></div>
-    <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${allUsers.length}</div><div class="stat-lbl">Total Users</div></div>
-    <div class="owner-stat"><div class="stat-icon">💎</div><div class="stat-val">${owners.filter(u=>['pro','enterprise'].includes(reg[u].sub)).length}</div><div class="stat-lbl">Premium</div></div>
-    <div class="owner-stat"><div class="stat-icon">🚫</div><div class="stat-val">${allUsers.filter(u=>reg[u].status==='suspended').length}</div><div class="stat-lbl">Suspended</div></div>`;
-  document.getElementById('user-list-body').innerHTML=owners.length?owners.map((u,i)=>{
-    const r=reg[u];const sub=r.sub||'free';const status=r.status||'active';
-    const subClass={free:'sub-free',basic:'sub-basic',pro:'sub-pro',enterprise:'sub-enterprise'}[sub]||'sub-free';
-    const statusClass={active:'status-active',suspended:'status-suspended'}[status]||'status-active';
-    return`<div class="user-card" style="animation-delay:${i*.06}s">
+    <div class="owner-stat"><div class="stat-icon">✅</div><div class="stat-val">${paidCount}</div><div class="stat-lbl">Paid Active</div></div>
+    <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${trialCount}</div><div class="stat-lbl">On Trial</div></div>
+    <div class="owner-stat"><div class="stat-icon">🔴</div><div class="stat-val">${expiredCount}</div><div class="stat-lbl">Expired/Sus</div></div>
+    ${expiringSoon?`<div class="owner-stat" style="border-color:rgba(245,158,11,.3)"><div class="stat-icon">⚠️</div><div class="stat-val" style="color:var(--warn)">${expiringSoon}</div><div class="stat-lbl">Expiring Soon</div></div>`:''}`;
+  const sortedOwners=[...owners].sort((a,b)=>{
+    const sa=getSubStatus(reg[a]);const sb=getSubStatus(reg[b]);
+    const rank={expired:0,suspended:1,trial:2,active:3};
+    if(rank[sa.status]!==rank[sb.status])return rank[sa.status]-rank[sb.status];
+    return sa.daysLeft-sb.daysLeft;
+  });
+  document.getElementById('user-list-body').innerHTML=sortedOwners.length?sortedOwners.map((u,i)=>{
+    const r=reg[u];const ss=getSubStatus(r);
+    const planLabel={trial:'Trial',basic:'Basic',pro:'Pro',enterprise:'Enterprise'}[r.sub||'trial']||'Trial';
+    const urgentStyle=ss.daysLeft<=3&&ss.status!=='expired'&&ss.status!=='suspended'?'border-left:3px solid var(--warn);':'';
+    return`<div class="user-card" style="animation-delay:${i*.06}s;${urgentStyle}">
       <div class="user-avatar">${u[0].toUpperCase()}</div>
       <div class="user-info">
         <div class="user-name">${esc(u)} <span class="role-badge regular" style="margin-left:6px">Owner</span></div>
-        <div class="user-meta"><span class="sub-badge ${subClass}">💎 ${sub}</span>${r.notes?` — ${esc(r.notes)}`:''}</div>
+        <div class="user-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="sub-badge sub-${ss.variant}">${ss.label}</span>
+          <span style="font-size:10px;color:var(--text3)">${planLabel} plan</span>
+          ${r.paidUntil?`<span style="font-size:10px;color:var(--text3)">Until ${r.paidUntil}</span>`:''}
+        </div>
       </div>
-      <span class="user-status ${statusClass}">${status==='suspended'?'🚫 Suspended':'✅ Active'}</span>
-      <button class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Sub</button>
-      ${status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px">✅</button>`}
+      <button class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Manage</button>
+      ${ss.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px" title="Suspend">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px" title="Restore">✅</button>`}
+      <button class="btn btn-sm" onclick="deleteOwner('${u}')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div>`;
   }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No owners yet.</div>`;
   const pendingOwners=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
@@ -1219,7 +1551,7 @@ function renderSystemOwnerDashboard(){
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
       <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
-      <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve</button>
+      <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve + Trial</button>
       <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
@@ -1228,15 +1560,22 @@ function renderSystemOwnerDashboard(){
 function approveOwner(i){
   const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
   const p=pending[i];const reg=getRegistry();
-  reg[p.username]={password:p.password,ownerId:p.username,role:'owner',sub:'free',status:'active'};
+  reg[p.username]={
+    password:p.password,ownerId:p.username,role:'owner',
+    sub:'trial',status:'trial',
+    trialStart:new Date().toISOString().slice(0,10),trialDays:14,
+    payHistory:[]
+  };
   saveRegistry(reg);pending.splice(i,1);
   localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
-  showToast(`✅ ${p.username} approved!`,'success');renderSystemOwnerDashboard();
+  if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+  showToast(`✅ ${p.username} approved — 14-day trial started!`,'success');renderSystemOwnerDashboard();
 }
 function denyOwner(i){
   const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
   const name=pending[i].username;pending.splice(i,1);
   localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+  if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
   showToast(`❌ ${name} denied`,'error');renderSystemOwnerDashboard();
 }
 function suspendUser(u){
@@ -1255,16 +1594,33 @@ function openSubModal(u){
   _subTarget=u;
   const reg=getRegistry();const r=reg[u]||{};
   document.getElementById('sub-modal-user-name').textContent=u;
-  document.getElementById('sub-plan-select').value=r.sub||'free';
-  document.getElementById('sub-status-select').value=r.status||'active';
-  document.getElementById('sub-notes').value=r.notes||'';
+  selectSubPlan(r.sub||'basic');
+  document.getElementById('sub-paid-until').value=r.paidUntil||'';
+  document.getElementById('sub-pay-amount').value='';
+  document.getElementById('sub-notes').value='';
+  const ss=getSubStatus(r);
+  document.getElementById('sub-status-badge-wrap').innerHTML=`<span class="sub-badge sub-${ss.variant}" style="font-size:12px;padding:5px 12px">${ss.label}</span>`;
+  const ph=(r.payHistory||[]).slice().reverse();
+  const wrap=document.getElementById('sub-pay-history-wrap');
+  const hist=document.getElementById('sub-pay-history');
+  if(ph.length){
+    wrap.style.display='block';
+    hist.innerHTML=ph.map(h=>`<div class="pay-history-row"><span class="pay-history-date">${h.date||''}</span><span style="color:var(--text2)">${esc(h.plan||'')}${h.until?' → '+h.until:''}${h.note?' · '+esc(h.note):''}</span><span class="pay-history-amount">${h.amount?fmt(h.amount):''}</span></div>`).join('');
+  }else{wrap.style.display='none';}
   openModal('sub-modal');
 }
 function saveSubscription(){
   const reg=getRegistry();if(!reg[_subTarget])return;
-  reg[_subTarget].sub=document.getElementById('sub-plan-select').value;
-  reg[_subTarget].status=document.getElementById('sub-status-select').value;
-  reg[_subTarget].notes=document.getElementById('sub-notes').value;
+  const plan=_subPlan;
+  const paidUntil=document.getElementById('sub-paid-until').value;
+  const amount=parseFloat(document.getElementById('sub-pay-amount').value)||0;
+  const note=document.getElementById('sub-notes').value.trim();
+  reg[_subTarget].sub=plan;
+  if(paidUntil){reg[_subTarget].paidUntil=paidUntil;reg[_subTarget].status='active';}
+  if(amount>0||paidUntil){
+    if(!reg[_subTarget].payHistory)reg[_subTarget].payHistory=[];
+    reg[_subTarget].payHistory.push({date:new Date().toISOString().slice(0,10),amount,plan,until:paidUntil,note});
+  }
   saveRegistry(reg);syncToCloud();
   closeModal('sub-modal');showToast('Subscription updated!','success');renderSystemOwnerDashboard();
 }
@@ -1295,6 +1651,10 @@ function handleBrandClick(){
 ═══════════════════════════════════════════════════════ */
 function renderOwnerDashboard(){
   const reg=getRegistry();
+  const ownerEntry=reg[S.ownerId];
+  const ss=getSubStatus(ownerEntry);
+  const bannerEl=document.getElementById('owner-sub-banner');
+  if(bannerEl)bannerEl.innerHTML=buildSubBanner(ss);
   const myUsers=Object.keys(reg).filter(u=>reg[u].ownerId===S.ownerId&&u!==S.user);
   const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
   document.getElementById('owner-stats').innerHTML=`
@@ -1730,6 +2090,25 @@ function deleteRow(idx,listType){
 }
 
 /* ═══════════════════════════════════════════════════════
+   STORE COMBO MENU
+═══════════════════════════════════════════════════════ */
+function toggleStoreMenu(e){
+  e&&e.stopPropagation();
+  const menu=document.getElementById('store-sub-menu');
+  const arrow=document.getElementById('store-combo-arrow');
+  const isOpen=menu.style.display!=='none';
+  menu.style.display=isOpen?'none':'block';
+  if(arrow)arrow.textContent=isOpen?'▲':'▼';
+}
+function closeStoreMenu(){
+  const menu=document.getElementById('store-sub-menu');
+  const arrow=document.getElementById('store-combo-arrow');
+  if(menu)menu.style.display='none';
+  if(arrow)arrow.textContent='▲';
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#store-combo-wrap'))closeStoreMenu();});
+
+/* ═══════════════════════════════════════════════════════
    TAB SWITCHING
 ═══════════════════════════════════════════════════════ */
 function switchTab(tab){
@@ -1745,6 +2124,17 @@ function switchTab(tab){
   document.getElementById('page-title').textContent=meta.title;
   document.getElementById('page-sub').textContent=meta.sub;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  // Combo store button: highlight when STORE or STOREBALANCE is active
+  const comboBtn=document.getElementById('store-combo-btn');
+  if(comboBtn){
+    const isStore=tab==='STORE'||tab==='STOREBALANCE';
+    comboBtn.classList.toggle('active',isStore);
+    if(isStore){
+      document.getElementById('store-combo-icon').textContent=tab==='STORE'?'🏪':'📊';
+      document.getElementById('store-combo-label').textContent=tab==='STORE'?'Store':'St.Balance';
+    }
+  }
+  document.querySelectorAll('.store-sub-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(S.user)localStorage.setItem(`ims_${S.user}_lastTab`,tab);
   updateSuggestions();renderTab();
 }
@@ -2405,6 +2795,22 @@ function renderReport(){
     <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
     <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
   </div>`).join('');
+  const creditPurchases=PR.filter(p=>p.payment&&p.payment!=='CASH');
+  const creditSales=SR.filter(s=>s.payment&&s.payment!=='CASH');
+  const cpRows=creditPurchases.length?creditPurchases.map(r=>`<tr>
+    <td>${(r.date||'').slice(0,10)}</td><td>${esc(r.party||'—')}</td><td>${esc(r.name||'—')}</td>
+    <td class="num">${fmtQ(parseFloat(r.qty)||0)}</td>
+    <td class="num">${fmt((parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0))}</td>
+    <td><span class="td-badge badge-credit">${r.payment}</span></td>
+  </tr>`).join(''):`<tr><td colspan="6" class="credit-empty">No credit purchases in range</td></tr>`;
+  const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return`<tr>
+    <td>${(s.date||'').slice(0,10)}</td><td>${esc(s.party||'—')}</td><td>${esc(s.name||'—')}</td>
+    <td class="num">${fmtQ(parseFloat(s.qty)||0)}</td>
+    <td class="num">${fmt(b+v)}</td>
+    <td><span class="td-badge badge-credit">${s.payment}</span></td>
+  </tr>`;}).join(''):`<tr><td colspan="6" class="credit-empty">No credit sales in range</td></tr>`;
+  const creditTotalP=creditPurchases.reduce((a,r)=>a+(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),0);
+  const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0);},0);
   document.getElementById('tab-content').innerHTML=`
     <div class="date-bar no-print">
       <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
@@ -2412,7 +2818,29 @@ function renderReport(){
       <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">Clear</button>
       <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">🖨️ Print</button>
     </div>
-    ${rr(reportData)}`;
+    ${rr(reportData)}
+    <div class="credit-section">
+      <div class="credit-section-hdr">
+        <div class="credit-section-hdr-icon purchase">🛒</div>
+        <span class="credit-section-title">Pending Purchase on Credit</span>
+        <span class="credit-section-count purchase">${creditPurchases.length} record${creditPurchases.length!==1?'s':''} · ${fmt(creditTotalP)}</span>
+      </div>
+      <div class="credit-table-wrap"><table class="credit-table">
+        <thead><tr><th>Date</th><th>Supplier</th><th>Item</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <tbody>${cpRows}</tbody>
+      </table></div>
+    </div>
+    <div class="credit-section" style="margin-top:16px">
+      <div class="credit-section-hdr">
+        <div class="credit-section-hdr-icon sales">💰</div>
+        <span class="credit-section-title">Sales on Credit</span>
+        <span class="credit-section-count sales">${creditSales.length} record${creditSales.length!==1?'s':''} · ${fmt(creditTotalS)}</span>
+      </div>
+      <div class="credit-table-wrap"><table class="credit-table">
+        <thead><tr><th>Date</th><th>Customer</th><th>Item</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <tbody>${csRows}</tbody>
+      </table></div>
+    </div>`;
   document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
   setTimeout(()=>buildChart(PR,SR,ER),50);
 }
@@ -2558,40 +2986,83 @@ function updateBranchDL(){
 /* ═══════════════════════════════════════════════════════
    EXPORT
 ═══════════════════════════════════════════════════════ */
-function openExportModal(){if(!canExport()){showToast('⛔ No export permission','error');return;}openModal('export-modal');}
+let _expFormat='PDF';
+let _expSheet='PURCHASE';
+
+function selectExpFormat(fmt){
+  _expFormat=fmt;
+  document.querySelectorAll('.exp-format-card').forEach(c=>c.classList.remove('active','active-xl'));
+  const card=document.getElementById('exp-card-'+fmt);
+  if(card)card.classList.add(fmt==='XL'?'active-xl':'active');
+  const btnIcon=document.getElementById('exp-btn-icon');
+  const btnLabel=document.getElementById('exp-btn-label');
+  if(btnIcon)btnIcon.textContent=fmt==='PDF'?'📄':'📊';
+  if(btnLabel)btnLabel.textContent=fmt==='PDF'?'Download PDF':'Download Excel';
+}
+function selectExpSheet(sheet){
+  _expSheet=sheet;
+  document.querySelectorAll('.exp-sheet-pill').forEach(p=>p.classList.remove('active'));
+  const pill=document.getElementById('exp-pill-'+sheet);
+  if(pill)pill.classList.add('active');
+}
+function openExportModal(){
+  if(!canExport()){showToast('⛔ No export permission','error');return;}
+  const tabToSheet={'PURCHASE':'PURCHASE','SALES':'SALES','BALANCE':'BALANCE','EXPENSE':'EXPENSE','STORE':'STORE','STOREBALANCE':'STORE','REPORT':'PURCHASE'};
+  const sheet=tabToSheet[S.tab]||'PURCHASE';
+  openModal('export-modal');
+  selectExpFormat(_expFormat);
+  selectExpSheet(sheet);
+}
 function doExport(){
-  const fmt2=document.getElementById('exp-format').value;
-  const sheet=document.getElementById('exp-sheet').value;
   closeModal('export-modal');
-  if(fmt2==='PDF')exportPDF(sheet);else exportXL(sheet);
+  if(_expFormat==='PDF')exportPDF(_expSheet);else exportXL(_expSheet);
 }
 function exportPDF(tab){
-  const prevTab=S.tab;S.tab=tab;renderTab();
-  const content=document.getElementById('tab-content').innerHTML;
-  const pa=document.getElementById('print-area');
-  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
-    #print-area{position:fixed;top:0;left:0;width:100%;background:white;padding:22px;font-family:sans-serif}
-    .print-top{display:flex;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #1e40af}
-    .print-biz{font-size:20px;font-weight:800;color:#1e40af}.print-sub{font-size:11px;color:#64748b}
-    .print-meta{font-size:11px;color:#64748b;text-align:right}
-    .table-wrap{overflow:visible}
-    table{width:100%;border-collapse:collapse;font-size:11px}
-    thead th{background:#1e40af;color:#fff;padding:7px 10px;text-align:left;font-size:10px}
-    thead th.num{text-align:right}td{border-bottom:1px solid #e2e8f0;padding:7px 10px;font-size:11px}
-    td.num,td.td-mono{text-align:right;font-family:monospace}
-    .num-pos{color:#10b981;font-weight:700}.num-neg{color:#ef4444;font-weight:700}
-    tr.summary-row td{background:#f0fdf4;font-weight:700;border-top:2px solid #10b981}
-    .td-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px}
-    .badge-cash{background:#d1fae5;color:#065f46}.badge-credit{background:#fef3c7;color:#92400e}.badge-other{background:#dbeafe;color:#1e40af}.badge-store{background:#d1fae5;color:#065f46}
-    .head-actions,.no-print,.date-bar{display:none!important}
-    .report-row{display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #e2e8f0}
-    .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}.report-val{font-family:monospace;font-weight:700}
-    input{border:none;background:transparent}
-  </style><div class="print-top"><div><div class="print-biz">📦 POWER-IMS</div><div class="print-sub">${tab} Report</div></div>
-  <div class="print-meta">Printed: ${new Date().toLocaleString()}<br>User: ${S.user}</div></div>${content}`;
-  window.print();
-  setTimeout(()=>{pa.innerHTML='';S.tab=prevTab;renderTab();},1200);
+  if(typeof window.jspdf==='undefined'||!window.jspdf.jsPDF){showToast('PDF library not loaded','error');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+  const pageW=doc.internal.pageSize.getWidth();
+  // Header bar
+  doc.setFillColor(30,58,138);doc.rect(0,0,pageW,48,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('POWER-IMS',24,30);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text(`${tab} Report`,24,43);
+  doc.setFontSize(9);doc.text(`Generated: ${new Date().toLocaleString()}   User: ${S.user}`,pageW-24,30,{align:'right'});
+  doc.text(`Branch: ${S.userBranch||'All'}`,pageW-24,43,{align:'right'});
+  doc.setTextColor(0,0,0);
+  const filterBranch=S.userBranch||'';
+  let headers=[],rows=[];
+  if(tab==='PURCHASE'){
+    headers=[['Date','Supplier','Branch','Part No.','Item Name','Qty','Unit Price','Total','Payment']];
+    rows=S.purchase.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.qty||'',fmtN(r.uPrice),fmtN((r.qty||0)*(r.uPrice||0)),r.payment||'CASH']);
+    const tot=rows.reduce((a,b)=>a+parseFloat((b[7]+'').replace(/,/g,'')||0),0);
+    rows.push(['','','','','','TOTAL','',fmtN(tot),'']);
+  }else if(tab==='SALES'){
+    headers=[['Date','Customer','Branch','Part No.','Item Name','Qty','Price','VAT','Total','Payment']];
+    rows=S.sales.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.qty||'',fmtN(s.sPrice),fmtN(v),fmtN(b+v),s.payment||'CASH'];});
+  }else if(tab==='BALANCE'){
+    headers=[['Part No.','Item Name','Purchase Qty','Sales Qty','Balance','Avg Cost','Inventory Value']];
+    S.items.filter(m=>m.id).forEach(item=>{
+      const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+      if(inQ===0&&outQ===0)return;
+      const stock=inQ-outQ;const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+      const avg=inQ>0?cost/inQ:0;rows.push([item.id,item.name,inQ,outQ,stock,fmtN(avg),fmtN(stock*avg)]);
+    });
+  }else if(tab==='EXPENSE'){
+    headers=[['Date','Reason','Amount','Payment']];
+    rows=S.expense.filter(r=>r.reason||r.amt).map(r=>[r.date||'',r.reason||'',fmtN(parseFloat(r.amt)||0),r.payment||'CASH']);
+    const tot=S.expense.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
+    rows.push(['','TOTAL',fmtN(tot),'']);
+  }else if(tab==='STORE'){
+    headers=[['Part No.','Item Name','Supplier','Date','Stock Qty','Unit Cost','Total Value']];
+    rows=S.storeItems.map(s=>[s.itemId,s.itemName,s.supplier||'',s.date||'',s.qty,fmtN(s.cost||0),fmtN(s.qty*(s.cost||0))]);
+  }
+  doc.autoTable({startY:56,head:headers,body:rows,theme:'grid',headStyles:{fillColor:[30,58,138],textColor:255,fontStyle:'bold',fontSize:9},bodyStyles:{fontSize:9},alternateRowStyles:{fillColor:[240,244,255]},margin:{left:20,right:20},didParseCell:d=>{if(d.row.index===rows.length-1&&rows.length>0){d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[240,253,244];}}});
+  const fn=`POWER-IMS_${tab}_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fn);
+  showToast(`${tab} PDF downloaded ✓`,'success');
 }
+function fmtN(n){return typeof n==='number'?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):(n||'');}
 function exportXL(tab){
   if(typeof XLSX==='undefined'){showToast('XLSX not loaded','error');return;}
   let headers=[],data=[];

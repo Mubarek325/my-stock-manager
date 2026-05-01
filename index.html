@@ -44,7 +44,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
 
-/* ── FLY-IN ANIMATIONS ── */
 @keyframes flyInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 @keyframes flyInLeft{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes flyInRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
@@ -56,7 +55,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .fly-in-left{animation:flyInLeft .38s cubic-bezier(.22,1,.36,1) both}
 .fly-in-scale{animation:flyInScale .38s cubic-bezier(.22,1,.36,1) both}
 
-/* Staggered rows */
 tbody tr{opacity:0;animation:staggerIn .35s cubic-bezier(.22,1,.36,1) both}
 tbody tr:nth-child(1){animation-delay:.03s}
 tbody tr:nth-child(2){animation-delay:.06s}
@@ -70,7 +68,6 @@ tbody tr:nth-child(9){animation-delay:.27s}
 tbody tr:nth-child(10){animation-delay:.30s}
 tbody tr:nth-child(n+11){animation-delay:.33s}
 
-/* ── HEADER ── */
 .app-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;height:var(--hdr-h);position:sticky;top:0;z-index:200;backdrop-filter:blur(20px);gap:12px;box-shadow:0 1px 0 var(--border),0 4px 20px rgba(0,0,0,.1);animation:flyInUp .4s cubic-bezier(.22,1,.36,1)}
 .app-header.owner-mode{background:linear-gradient(90deg,rgba(146,64,14,.15),var(--surface));border-bottom-color:rgba(245,158,11,.3)}
 .app-header.store-mode{background:linear-gradient(90deg,rgba(6,95,70,.15),var(--surface));border-bottom-color:rgba(16,185,129,.3)}
@@ -99,12 +96,9 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .sync-ring.active{border-color:var(--accent);animation:ringPulse 1.5s ease infinite}
 @keyframes ringPulse{0%,100%{opacity:1}50%{opacity:.3}}
 .notif-dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--error);border:2px solid var(--surface);font-size:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
-
-/* Back button */
 .back-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;font-family:var(--font)}
 .back-btn:hover{background:var(--owner-glass);color:var(--owner);border-color:rgba(245,158,11,.4);transform:translateX(-2px)}
 
-/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:400;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);display:flex;gap:4px;backdrop-filter:blur(20px);animation:flyInUp .45s cubic-bezier(.22,1,.36,1)}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .22s}
 .nav-item .ni-icon{font-size:18px;line-height:1;transition:transform .22s}
@@ -113,11 +107,9 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .nav-item:hover .ni-icon,.nav-item.active .ni-icon{transform:translateY(-3px) scale(1.1)}
 .nav-item.store-nav.active{color:var(--success);background:rgba(16,185,129,.1)}
 
-/* ── CONTENT ── */
 .content{padding:16px;max-width:1400px;margin:0 auto}
 @media(min-width:768px){.content{padding:24px 28px}}
 
-/* ── PAGE CARD ── */
 .page-card{background:var(--surface);border-radius:var(--radius-xl);border:1px solid var(--border);overflow:hidden;animation:flyInScale .42s cubic-bezier(.22,1,.36,1)}
 .page-card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);gap:12px;flex-wrap:wrap}
 .page-title-block{display:flex;align-items:center;gap:12px}
@@ -127,7 +119,6 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .page-sub{font-size:.65rem;color:var(--text3);margin-top:1px}
 .head-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 
-/* ── OWNER DASHBOARD ── */
 .owner-screen{min-height:100vh;padding:24px;max-width:1200px;margin:0 auto}
 .owner-hero{background:var(--owner-gradient);border-radius:var(--radius-xl);padding:32px;margin-bottom:24px;position:relative;overflow:hidden;animation:flyInUp .4s cubic-bezier(.22,1,.36,1)}
 .owner-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
@@ -166,7 +157,6 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .sub-pro{background:rgba(139,92,246,.15);color:var(--accent2)}
 .sub-enterprise{background:var(--owner-glass);color:var(--owner)}
 
-/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);white-space:nowrap;text-decoration:none}
 .btn:hover{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow);transform:translateY(-1px)}
 .btn-primary{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 4px 14px var(--p-glow)}
@@ -178,7 +168,6 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .btn-sm{padding:5px 10px;font-size:10.5px;border-radius:7px}
 .btn-icon{width:34px;height:34px;padding:0;justify-content:center;font-size:14px}
 
-/* ── TABLE ── */
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:700px}
 thead th{background:var(--surface2);padding:10px 12px;text-align:left;border-bottom:2px solid var(--border2);font-family:var(--display);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;user-select:none}
@@ -204,7 +193,6 @@ tbody tr:last-child td{border-bottom:none}
 .row-zero td{background:rgba(245,158,11,.04)!important}
 .summary-row td{background:linear-gradient(90deg,rgba(16,185,129,.08),var(--surface2))!important;font-weight:700!important;border-top:2px solid var(--border2)!important}
 
-/* ── MODALS ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:600;padding:16px}
 .modal-overlay.open{display:flex}
 .modal-box{background:var(--surface);border-radius:var(--radius-xl);width:min(500px,100%);box-shadow:var(--shadow-lg);animation:flyInScale .3s cubic-bezier(.22,1,.36,1);max-height:92dvh;overflow-y:auto;border:1px solid var(--border2)}
@@ -237,7 +225,6 @@ tbody tr:last-child td{border-bottom:none}
 .modal-success{margin-top:8px;padding:9px 12px;border-radius:7px;background:rgba(16,185,129,.1);color:var(--success);font-size:12px;font-weight:500;display:none}
 .modal-success.show{display:block}
 
-/* ── SETTINGS DRAWER ── */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s}
 .drawer-overlay.open{opacity:1;pointer-events:auto}
 .settings-drawer{position:fixed;top:0;right:-380px;width:min(380px,95vw);height:100dvh;background:var(--surface);z-index:501;box-shadow:var(--shadow-lg);border-left:1px solid var(--border);transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
@@ -265,14 +252,12 @@ tbody tr:last-child td{border-bottom:none}
 .toggle-sw input:checked+span::before{transform:translateX(18px)}
 .drawer-select{padding:6px 10px;border:1.5px solid var(--border2);border-radius:8px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer}
 
-/* ── TOAST ── */
 .toast-wrap{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;align-items:center}
 .toast{background:var(--surface2);color:var(--text);padding:10px 18px;border-radius:99px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-lg);animation:flyInUp .3s cubic-bezier(.22,1,.36,1);border:1px solid var(--border2);display:flex;align-items:center;gap:8px;pointer-events:auto}
 .toast.success{background:var(--success);color:#fff;border-color:var(--success)}
 .toast.error{background:var(--error);color:#fff;border-color:var(--error)}
 .toast.warn{background:var(--warn);color:#fff;border-color:var(--warn)}
 
-/* ── CONTEXT MENU ── */
 .ctx-menu{position:fixed;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:700;min-width:190px;overflow:hidden;animation:flyInScale .14s ease}
 .ctx-item{display:flex;align-items:center;gap:10px;padding:10px 15px;cursor:pointer;font-size:12.5px;font-weight:500;transition:background .1s;color:var(--text)}
 .ctx-item:hover{background:var(--p-glass);color:var(--p)}
@@ -280,7 +265,6 @@ tbody tr:last-child td{border-bottom:none}
 .ctx-icon{font-size:14px;width:20px;text-align:center}
 .ctx-divider{height:1px;background:var(--border);margin:4px 0}
 
-/* ── CONFIRM ── */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:950;padding:16px}
 .confirm-overlay.open{display:flex}
 .confirm-box{background:var(--surface);border-radius:var(--radius-xl);width:min(340px,100%);box-shadow:var(--shadow-lg);animation:flyInScale .25s cubic-bezier(.22,1,.36,1);overflow:hidden;border:1px solid var(--border2)}
@@ -293,7 +277,6 @@ tbody tr:last-child td{border-bottom:none}
 .confirm-actions button:last-child{color:var(--error)}
 .confirm-actions button:hover{background:var(--surface2)}
 
-/* ── LOADER ── */
 .page-loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
 .loader-logo{font-size:56px;animation:float 2.2s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
@@ -305,7 +288,6 @@ tbody tr:last-child td{border-bottom:none}
 .loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── AUTH ── */
 .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .auth-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3}
@@ -322,22 +304,13 @@ tbody tr:last-child td{border-bottom:none}
 .auth-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text3);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;border-radius:7px;transition:all .18s}
 .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.15)}
 
-/* ── AVATAR ── */
 .avatar-ring{width:80px;height:80px;border-radius:50%;margin:0 auto 12px;background:var(--surface2);border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s}
 .avatar-ring:hover{border-color:var(--p);transform:scale(1.05)}
 .avatar-ring img{width:100%;height:100%;object-fit:cover}
 .avatar-hint{text-align:center;font-size:10.5px;color:var(--text3);margin-bottom:14px}
 
-/* ── REPORT ── */
 .report-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);animation:flyInLeft .35s cubic-bezier(.22,1,.36,1) both}
-.report-row:nth-child(1){animation-delay:.04s}
-.report-row:nth-child(2){animation-delay:.08s}
-.report-row:nth-child(3){animation-delay:.12s}
-.report-row:nth-child(4){animation-delay:.16s}
-.report-row:nth-child(5){animation-delay:.20s}
-.report-row:nth-child(6){animation-delay:.24s}
-.report-row:nth-child(7){animation-delay:.28s}
-.report-row:nth-child(8){animation-delay:.32s}
+.report-row:nth-child(1){animation-delay:.04s}.report-row:nth-child(2){animation-delay:.08s}.report-row:nth-child(3){animation-delay:.12s}.report-row:nth-child(4){animation-delay:.16s}.report-row:nth-child(5){animation-delay:.20s}.report-row:nth-child(6){animation-delay:.24s}.report-row:nth-child(7){animation-delay:.28s}.report-row:nth-child(8){animation-delay:.32s}
 .report-row:last-child{border-bottom:none}
 .report-label{font-size:12.5px;color:var(--text2);font-weight:500}
 .report-val{font-family:var(--mono);font-size:13px;font-weight:700}
@@ -351,7 +324,6 @@ tbody tr:last-child td{border-bottom:none}
 .date-bar input{padding:6px 9px;border:1.5px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:12px;outline:none}
 .date-bar input:focus{border-color:var(--p)}
 
-/* ── APPROVAL PANEL ── */
 .approval-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:none;align-items:flex-start;justify-content:flex-end;z-index:650;padding:70px 14px 14px}
 .approval-overlay.open{display:flex}
 .approval-panel{background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);max-height:80dvh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--border2);animation:flyInRight .28s cubic-bezier(.22,1,.36,1)}
@@ -368,13 +340,11 @@ tbody tr:last-child td{border-bottom:none}
 .apv-btn.deny{background:var(--error);color:#fff}
 .apv-btn:hover{opacity:.82;transform:scale(.97)}
 
-/* ── STORE RECEIPT ── */
 .store-receipt-item{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:8px;animation:flyInLeft .3s cubic-bezier(.22,1,.36,1) both}
 .receipt-status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .receipt-detail{font-size:12px;color:var(--text2);line-height:1.6}
 .receipt-actions{display:flex;gap:8px;margin-top:10px}
 
-/* ── RECEIPT ── */
 .receipt-body{padding:0 24px 24px;font-family:var(--mono)}
 .rcpt-hdr{text-align:center;padding:20px 0 14px;border-bottom:2px dashed var(--border2);margin-bottom:14px}
 .rcpt-biz{font-family:var(--display);font-size:1.05rem;font-weight:800;color:var(--text)}
@@ -386,11 +356,9 @@ tbody tr:last-child td{border-bottom:none}
 .rcpt-total-val{font-size:1.3rem;font-weight:800;color:var(--p);font-family:var(--mono)}
 .rcpt-footer{text-align:center;color:var(--text3);font-size:9.5px;margin-top:14px;border-top:2px dashed var(--border2);padding-top:12px}
 
-/* ── STORE NOTIFICATION PULSE ── */
 .store-notif-pulse{animation:storePulse 2s ease infinite}
 @keyframes storePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
 
-/* ── PRINT ── */
 @media print{
   .app-header,.bottom-nav,.settings-drawer,.drawer-overlay,.approval-overlay,
   .toast-wrap,.confirm-overlay,.modal-overlay:not(#receipt-modal):not(#store-receipt-print-modal),
@@ -402,7 +370,6 @@ tbody tr:last-child td{border-bottom:none}
 }
 #print-area{display:none}
 
-/* ── MOBILE ── */
 @media(max-width:480px){
   .brand-text .t1{font-size:.82rem}
   .hdr-chip .name,.hdr-chip .role{display:none}
@@ -416,7 +383,6 @@ tbody tr:last-child td{border-bottom:none}
   .nav-item{flex:none;min-width:88px}
 }
 
-/* ── PERM ── */
 .perm-user-card{padding:16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border);animation:flyInUp .35s cubic-bezier(.22,1,.36,1) both}
 .perm-username{font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:13px}
 .perm-avatar-sm{width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
@@ -426,27 +392,25 @@ tbody tr:last-child td{border-bottom:none}
 .perm-perm-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:4px}
 .perm-perm-row label{font-size:12px;font-weight:600;color:var(--text2)}
 
-/* Store keeper pill badge */
 .role-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
 .role-badge.storekeeper{background:var(--store-glass);color:var(--store);border:1px solid rgba(16,185,129,.3)}
 .role-badge.regular{background:var(--p-glass);color:var(--p);border:1px solid rgba(59,130,246,.3)}
+
+/* Cloud auth status indicator */
+.cloud-auth-note{font-size:10px;color:var(--text3);text-align:center;margin-top:10px;padding:6px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
 <div class="page-loader" id="page-loader">
   <div class="loader-logo">📦</div>
   <div class="loader-text">POWER-IMS v5</div>
-  <div class="loader-sub">Initializing system…</div>
+  <div class="loader-sub" id="loader-sub-text">Initializing system…</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast-wrap" id="toast-wrap"></div>
-<!-- CTX MENU -->
 <div class="ctx-menu" id="ctx-menu" style="display:none"></div>
-<!-- PRINT AREA -->
 <div id="print-area"></div>
 
 <!-- AUTH -->
@@ -478,7 +442,8 @@ tbody tr:last-child td{border-bottom:none}
       <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
       <div class="modal-error" id="auth-error"></div>
       <div class="modal-success" id="auth-success"></div>
-      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="cloud-auth-note" id="cloud-auth-note">☁️ Accounts sync across all devices</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <button onclick="emergencyReset()" style="width:100%;padding:8px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-family:var(--font);font-size:11px;cursor:pointer">🔄 Reset defaults (emergency)</button>
       </div>
     </div>
@@ -495,7 +460,6 @@ tbody tr:last-child td{border-bottom:none}
     </div>
   </div>
   <div class="hdr-right">
-    <!-- Back button for owner dashboard -->
     <button class="back-btn no-print" id="owner-back-btn" onclick="exitOwnerDashboard()" style="display:none">← Back</button>
     <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">☁️<div class="sync-ring" id="sync-ring"></div></div>
     <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div></div>
@@ -517,7 +481,7 @@ tbody tr:last-child td{border-bottom:none}
   <div class="drawer-hdr" id="drawer-hdr"><h3>⚙️ Settings</h3><button class="modal-hdr-close" onclick="closeSettings()">✕</button></div>
   <div class="drawer-body">
     <div class="drawer-section">Navigation</div>
-    <button class="drawer-item" onclick="switchTab('ITEMS');closeSettings()">
+    <button class="drawer-item" id="drawer-items-btn" onclick="switchTab('ITEMS');closeSettings()">
       <span class="di-icon" style="background:var(--p-glass);color:var(--p)">📋</span>
       <div class="di-info"><div class="di-label">Add Items</div><div class="di-sub">Manage inventory catalog</div></div>
     </button>
@@ -570,7 +534,7 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- EXPORT MODAL -->
+<!-- MODALS (unchanged from original) -->
 <div class="modal-overlay" id="export-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">📤</span><div><h2>Export Data</h2><p>Download PDF or Excel reports</p></div><button class="modal-hdr-close" onclick="closeModal('export-modal')">✕</button></div>
@@ -589,7 +553,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- ADD ROW FORM MODAL -->
 <div class="modal-overlay" id="add-row-modal">
   <div class="modal-box wide">
     <div class="modal-hdr" id="add-form-hdr"><span class="modal-hdr-icon" id="add-form-icon">➕</span><div><h2 id="add-form-title">Add Entry</h2><p id="add-form-sub">Fill in the form below</p></div><button class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button></div>
@@ -597,7 +560,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- EDIT ROW MODAL -->
 <div class="modal-overlay" id="edit-row-modal">
   <div class="modal-box wide">
     <div class="modal-hdr"><span class="modal-hdr-icon">✏️</span><div><h2>Edit Entry</h2><p>Update the fields below</p></div><button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
@@ -605,7 +567,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- CHANGE PASSWORD -->
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🔑</span><div><h2>Change Password</h2></div><button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
@@ -620,7 +581,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- AVATAR -->
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🖼️</span><div><h2>Profile Photo</h2></div><button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
@@ -634,7 +594,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- PERMISSIONS -->
 <div class="modal-overlay" id="perm-modal">
   <div class="modal-box wide">
     <div class="modal-hdr"><span class="modal-hdr-icon">👥</span><div><h2>User Permissions</h2><p>Control access per user</p></div><button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
@@ -642,7 +601,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- ADD USER -->
 <div class="modal-overlay" id="add-user-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">👤</span><div><h2>Add User</h2><p>Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
@@ -663,7 +621,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- BRANCHES -->
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🏢</span><div><h2>Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
@@ -678,7 +635,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- CONFIRM -->
 <div class="confirm-overlay" id="confirm-modal">
   <div class="confirm-box">
     <div class="confirm-icon" id="confirm-icon">🗑️</div>
@@ -688,7 +644,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- APPROVALS PANEL (Owner approves users) -->
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
     <div class="apv-hdr"><span class="apv-title">🔔 Pending User Requests</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
@@ -696,7 +651,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- STORE RECEIPTS PANEL -->
 <div class="approval-overlay" id="store-receipt-overlay">
   <div class="approval-panel">
     <div class="apv-hdr"><span class="apv-title">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
@@ -704,7 +658,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- RECEIPT -->
 <div class="modal-overlay" id="receipt-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🧾</span><div><h2>Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
@@ -716,7 +669,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- STORE DISPATCH RECEIPT PRINT MODAL -->
 <div class="modal-overlay" id="store-receipt-print-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr store-hdr"><span class="modal-hdr-icon">🏪</span><div><h2>Store Dispatch Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
@@ -757,7 +709,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- SUBSCRIPTION MODAL -->
 <div class="modal-overlay" id="sub-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr owner-hdr"><span class="modal-hdr-icon">💎</span><div><h2>Subscription</h2><p id="sub-modal-user-name">User</p></div><button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button></div>
@@ -783,7 +734,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- DATALISTS -->
 <datalist id="party-list"></datalist>
 <datalist id="item-list"></datalist>
 <datalist id="branch-dl"></datalist>
@@ -805,13 +755,15 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')"><span class="ni-icon">🛒</span><span class="ni-label">Purchase</span></button>
-  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')"><span class="ni-icon">💰</span><span class="ni-label">Sales</span></button>
-  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')"><span class="ni-icon">⚖️</span><span class="ni-label">Balance</span></button>
+  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE"><span class="ni-icon">🛒</span><span class="ni-label">Purchase</span></button>
+  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES"><span class="ni-icon">💰</span><span class="ni-label">Sales</span></button>
+  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE"><span class="ni-icon">⚖️</span><span class="ni-label">Balance</span></button>
   <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
-  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
-  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
-  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')"><span class="ni-icon">📋</span><span class="ni-label">Items</span></button>
+  <!-- ★ NEW: Store Balance tab — visible only to storekeeper/owner -->
+  <button class="nav-item store-nav" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label">St.Balance</span></button>
+  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
+  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
+  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS"><span class="ni-icon">📋</span><span class="ni-label">Items</span></button>
 </div>
 
 <script>
@@ -821,15 +773,22 @@ tbody tr:last-child td{border-bottom:none}
 const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPORT'];
 const PERM_OPTS = [{v:'full',l:'Full'},{v:'add_only',l:'Add Only'},{v:'read',l:'Read Only'},{v:'none',l:'No Access'}];
 const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
+
+// ★ CHANGE 1: Added STOREBALANCE to TAB_META
 const TAB_META = {
   ITEMS:{icon:'📋',title:'Add Items',sub:'Manage inventory catalog'},
   PURCHASE:{icon:'🛒',title:'Purchase',sub:'Purchase records'},
   SALES:{icon:'💰',title:'Sales',sub:'Sales records'},
   BALANCE:{icon:'⚖️',title:'Balance',sub:'Inventory stock levels'},
   STORE:{icon:'🏪',title:'Store',sub:'Central store inventory & dispatch'},
+  STOREBALANCE:{icon:'📊',title:'Store Balance',sub:'Store stock levels & total value'},
   EXPENSE:{icon:'💸',title:'Expense',sub:'Expense tracking'},
   REPORT:{icon:'📊',title:'Report',sub:'Financial summary'}
 };
+
+// ★ CHANGE 2: Define which tabs storekeepers can see
+const STOREKEEPER_ALLOWED_TABS = ['STORE','STOREBALANCE'];
+
 const LANG={
   en:{date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount'},
   am:{date:'ቀን',supplier:'አቅርቦት',customer:'ደንበኛ',branch:'ቅርንጫፍ',partNo:'ቁጥር',itemName:'ስም',desc:'መግለጫ',qty:'ብዛት',unitPrice:'ዋጋ',total:'ድምር',payment:'ክፍያ',status:'ሁኔታ',price:'ዋጋ',totals:'ድምሮች',vat:'ተ.እ.ታ (15%)',wh3:'ምዝገባ 3%',vwh:'ተ.እ.ታ WH 7.5%',totalPrice:'ጠቅላላ ዋጋ',cash:'ጥሬ ገንዘብ',credit:'ክሬዲት',reason:'ምክንያት',amount:'መጠን'}
@@ -838,15 +797,13 @@ const L=k=>(LANG[S.lang]||LANG.en)[k]||k;
 
 const FIREBASE_CONFIG={apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',authDomain:'powerims.firebaseapp.com',projectId:'powerims',appId:'1:306983469410:web:d65eedf6eb78602a8e6c3b'};
 
-// SYSTEM OWNER credentials
 const OWNER_USERNAME = 'Mb';
 const OWNER_PASSWORD = '1194';
 
 const S={
-  user:null,ownerId:null,role:null, // role: 'system_owner'|'owner'|'storekeeper'|'user'
+  user:null,ownerId:null,role:null,
   tab:'ITEMS',theme:'dark',lang:'en',
   items:[],purchase:[],sales:[],expense:[],
-  // Store data is SEPARATE from inventory - managed only by storekeeper
   storeItems:[],storeDispatches:[],
   branchReceipts:[],
   beginBal:0,reportRange:{from:'',to:''},
@@ -855,7 +812,7 @@ const S={
   branches:['Main'],
   userBranch:null,
   db:null,dbConnected:false,_unsubscribe:null,
-  userMeta:{}, // {username:{sub,status,notes}}
+  userMeta:{},
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -876,38 +833,68 @@ function showToast(msg,type='',dur=2800){
 }
 
 /* ═══════════════════════════════════════════════════════
-   REGISTRY
-   ims_reg = {username:{password,ownerId,role,branch?,sub?,status?}}
-   Roles: 'system_owner'|'owner'|'storekeeper'|'user'
-   
-   Data is SEPARATED per ownerId namespace.
-   Owners manage their own users and see only their data.
-   Store data is separate from inventory data.
+   ★ REGISTRY — Cross-device via Firebase
+   Local registry is the primary store.
+   Cloud registry is synced on login and on save.
 ═══════════════════════════════════════════════════════ */
 const getRegistry=()=>JSON.parse(localStorage.getItem('ims_reg')||'{}');
-const saveRegistry=r=>localStorage.setItem('ims_reg',JSON.stringify(r));
+const saveRegistry=r=>{
+  localStorage.setItem('ims_reg',JSON.stringify(r));
+  // ★ CHANGE 3: Also push registry to cloud so any device can authenticate
+  saveRegistryToCloud(r);
+};
+
+// ★ NEW: Push registry to Firestore
+function saveRegistryToCloud(reg){
+  if(!S.db)return;
+  try{
+    S.db.collection('power_ims5').doc('_global_registry').set({
+      registry:JSON.stringify(reg),
+      updatedAt:new Date().toISOString()
+    },{merge:true}).catch(()=>{});
+  }catch(e){}
+}
+
+// ★ NEW: Pull registry from Firestore and merge with local
+async function loadRegistryFromCloud(){
+  if(!S.db)return getRegistry();
+  try{
+    const doc=await S.db.collection('power_ims5').doc('_global_registry').get();
+    if(doc.exists&&doc.data().registry){
+      const cloudReg=JSON.parse(doc.data().registry);
+      const localReg=getRegistry();
+      // Merge: cloud takes precedence for existing users, local for new local-only entries
+      const merged={...localReg};
+      Object.keys(cloudReg).forEach(u=>{
+        // Cloud wins if the entry is newer or local doesn't have it
+        if(!merged[u]||cloudReg[u].updatedAt>=(merged[u].updatedAt||'')){
+          merged[u]=cloudReg[u];
+        }
+      });
+      localStorage.setItem('ims_reg',JSON.stringify(merged));
+      return merged;
+    }
+  }catch(e){}
+  return getRegistry();
+}
 
 function ensureDefaults(){
   const reg=getRegistry();
-  // Default owner account
   if(!reg['owner']){
     reg['owner']={password:'owner123',ownerId:'owner',role:'owner'};
     saveRegistry(reg);
   }
 }
 
-// Namespace = ownerId (each owner has completely separate data)
 const ownerNS=()=>S.ownerId||'default';
 const lsKey=k=>`ims_${ownerNS()}_${k}`;
 
 function loadUserData(){
   const ns=ownerNS();
-  // Main inventory data (shared among owner+users)
   S.items=JSON.parse(localStorage.getItem(`ims_${ns}_items`)||'[]');
   S.purchase=JSON.parse(localStorage.getItem(`ims_${ns}_purchase`)||'[]');
   S.sales=JSON.parse(localStorage.getItem(`ims_${ns}_sales`)||'[]');
   S.expense=JSON.parse(localStorage.getItem(`ims_${ns}_expense`)||'[]');
-  // STORE data — separate namespace, only storekeeper writes
   S.storeItems=JSON.parse(localStorage.getItem(`ims_${ns}_storeItems`)||'[]');
   S.storeDispatches=JSON.parse(localStorage.getItem(`ims_${ns}_storeDispatches`)||'[]');
   S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
@@ -973,6 +960,8 @@ function syncToCloud(){
     });
     S.db.collection('power_ims5').doc(ns).set(payload,{merge:true})
       .then(()=>setSyncRing(true)).catch(()=>setSyncRing(false));
+    // ★ Also keep global registry in sync
+    saveRegistryToCloud(getRegistry());
   },1200);
 }
 function setSyncRing(ok){const r=document.getElementById('sync-ring');if(r)r.className='sync-ring'+(ok?' active':'');}
@@ -1007,42 +996,55 @@ function setAuthMode(m){
   hideMsg('auth-error');hideMsg('auth-success');
 }
 
-function submitAuth(){
+// ★ CHANGE 4: submitAuth now checks cloud registry for cross-device login
+async function submitAuth(){
   const u=document.getElementById('auth-user').value.trim();
   const p=document.getElementById('auth-pass').value;
   if(!u||!p){showMsg('auth-error','Please enter username and password');return;}
 
-  // SYSTEM OWNER — hardcoded
+  // System owner — hardcoded, no cloud check needed
   if(u===OWNER_USERNAME&&p===OWNER_PASSWORD){
     doLoginSystemOwner();return;
   }
 
-  ensureDefaults();
-  const reg=getRegistry();
+  // Show loading state
+  const btn=document.getElementById('auth-btn');
+  const origText=btn.innerHTML;
+  btn.innerHTML='<span class="loader"></span> Checking…';
+  btn.disabled=true;
 
-  if(authMode==='login'){
-    const entry=reg[u];
-    if(!entry){showMsg('auth-error','Username not found.');return;}
-    if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
-    // Check if account is suspended
-    const meta=entry.userMeta||{};
-    if(entry.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact your platform owner.');return;}
-    doLogin(u,entry.ownerId||u,entry.role||'user');
-  }else{
-    // Request Access flow — user signs up under an owner
-    const c=document.getElementById('auth-confirm').value;
-    const ownerTarget=document.getElementById('auth-admin-target').value.trim();
-    if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
-    if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
-    if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already exists.');return;}
-    if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
-    if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
-    // Add to owner's pending signups
-    const ns=reg[ownerTarget].ownerId||ownerTarget;
-    const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-    pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
-    localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
-    showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
+  try{
+    ensureDefaults();
+    // ★ Pull cloud registry first so credentials work on any device
+    const reg=await loadRegistryFromCloud();
+
+    if(authMode==='login'){
+      const entry=reg[u];
+      if(!entry){showMsg('auth-error','Username not found.');return;}
+      if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
+      if(entry.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact your platform owner.');return;}
+      doLogin(u,entry.ownerId||u,entry.role||'user');
+    }else{
+      const c=document.getElementById('auth-confirm').value;
+      const ownerTarget=document.getElementById('auth-admin-target').value.trim();
+      if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
+      if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
+      if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already exists.');return;}
+      if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
+      if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
+      const ns=reg[ownerTarget].ownerId||ownerTarget;
+      const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
+      pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
+      localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
+      // ★ Also push pending request to cloud
+      if(S.db){
+        S.db.collection('power_ims5').doc(ns).set({pending:JSON.stringify(pending)},{merge:true}).catch(()=>{});
+      }
+      showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
+    }
+  }finally{
+    btn.innerHTML=origText;
+    btn.disabled=false;
   }
 }
 
@@ -1068,27 +1070,65 @@ function doLogin(u,ownerId,role){
   const hdr=document.getElementById('app-header');
   hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
   document.getElementById('drawer-hdr').className='drawer-hdr'+(role==='storekeeper'?' store-drawer-hdr':'');
-  // Approvals for owner
   document.getElementById('notif-btn').style.display=isOwner()?'flex':'none';
-  // Store notifications for branch users
   document.getElementById('store-nav-btn').style.display=(isOwner()||isStorekeeper())?'':'none';
+  document.getElementById('nav-STOREBALANCE').style.display=(isOwner()||isStorekeeper())?'':'none';
   document.getElementById('btn-owner-perms').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
   document.getElementById('owner-back-btn').style.display='none';
   updateHdrAvatar();
+  // ★ CHANGE 5: Apply tab visibility rules per role
+  updateNavForRole();
   showUI();
   if(isOwner())loadPendingApprovals();
   updateStoreNotifBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
-  // Store keepers start on STORE tab
-  const startTab=isStorekeeper()?'STORE':(canRead(lastTab)?lastTab:'ITEMS');
+  // Storekeeper starts on STORE; regular users start on last visited allowed tab
+  let startTab;
+  if(isStorekeeper()){
+    startTab='STORE';
+  }else{
+    startTab=canRead(lastTab)?lastTab:'ITEMS';
+  }
   switchTab(startTab);
   initFirebase();
 }
 
 /* ═══════════════════════════════════════════════════════
-   SYSTEM OWNER (platform admin - the seller)
+   ★ CHANGE 5: updateNavForRole — hide/show nav tabs based on role
+   Storekeepers see ONLY: STORE, STOREBALANCE
+   All others see their normal tabs (subject to permissions)
+═══════════════════════════════════════════════════════ */
+function updateNavForRole(){
+  if(isStorekeeper()){
+    // Hide all regular tabs
+    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
+      const el=document.getElementById(`nav-${tab}`);
+      if(el)el.style.display='none';
+    });
+    // Show store tabs
+    document.getElementById('store-nav-btn').style.display='flex';
+    document.getElementById('nav-STOREBALANCE').style.display='flex';
+    // Hide ITEMS in drawer for storekeepers
+    const drawerItems=document.getElementById('drawer-items-btn');
+    if(drawerItems)drawerItems.style.display='none';
+  }else{
+    // Show all regular tabs (owner/user see everything they have permission for)
+    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
+      const el=document.getElementById(`nav-${tab}`);
+      if(el)el.style.display='';
+    });
+    // STORE and STOREBALANCE visible to owner only (not regular users)
+    document.getElementById('store-nav-btn').style.display=isOwner()?'flex':'none';
+    document.getElementById('nav-STOREBALANCE').style.display=isOwner()?'flex':'none';
+    const drawerItems=document.getElementById('drawer-items-btn');
+    if(drawerItems)drawerItems.style.display='flex';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SYSTEM OWNER (platform admin)
 ═══════════════════════════════════════════════════════ */
 function doLoginSystemOwner(){
   S.user=OWNER_USERNAME;S.ownerId='_system_';S.role='system_owner';
@@ -1118,24 +1158,17 @@ function doLoginSystemOwner(){
   renderSystemOwnerDashboard();
 }
 
-/* ═══════════════════════════════════════════════════════
-   SYSTEM OWNER DASHBOARD
-═══════════════════════════════════════════════════════ */
 function renderSystemOwnerDashboard(){
   const reg=getRegistry();
   const owners=Object.keys(reg).filter(u=>reg[u].role==='owner');
   const allUsers=Object.keys(reg).filter(u=>reg[u].role!=='system_owner');
-  
   document.getElementById('owner-stats').innerHTML=`
     <div class="owner-stat"><div class="stat-icon">👑</div><div class="stat-val">${owners.length}</div><div class="stat-lbl">Platform Owners</div></div>
     <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${allUsers.length}</div><div class="stat-lbl">Total Users</div></div>
     <div class="owner-stat"><div class="stat-icon">💎</div><div class="stat-val">${owners.filter(u=>['pro','enterprise'].includes(reg[u].sub)).length}</div><div class="stat-lbl">Premium</div></div>
     <div class="owner-stat"><div class="stat-icon">🚫</div><div class="stat-val">${allUsers.filter(u=>reg[u].status==='suspended').length}</div><div class="stat-lbl">Suspended</div></div>`;
-
   document.getElementById('user-list-body').innerHTML=owners.length?owners.map((u,i)=>{
-    const r=reg[u];
-    const sub=r.sub||'free';
-    const status=r.status||'active';
+    const r=reg[u];const sub=r.sub||'free';const status=r.status||'active';
     const subClass={free:'sub-free',basic:'sub-basic',pro:'sub-pro',enterprise:'sub-enterprise'}[sub]||'sub-free';
     const statusClass={active:'status-active',suspended:'status-suspended'}[status]||'status-active';
     return`<div class="user-card" style="animation-delay:${i*.06}s">
@@ -1148,23 +1181,16 @@ function renderSystemOwnerDashboard(){
       <button class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Sub</button>
       ${status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px">✅</button>`}
     </div>`;
-  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No owners yet. Add one with the button above.</div>`;
-
-  // Pending — global pending owners (users who signed up requesting to be owners)
+  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No owners yet.</div>`;
   const pendingOwners=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
   document.getElementById('pending-count').textContent=pendingOwners.length;
   document.getElementById('pending-user-list').innerHTML=pendingOwners.length?pendingOwners.map((p,i)=>`
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
-      <div class="user-info">
-        <div class="user-name">${esc(p.username)}</div>
-        <div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
-      </div>
+      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
       <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve</button>
       <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
-
-  // Branches list (global summary)
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
 }
 
@@ -1174,8 +1200,7 @@ function approveOwner(i){
   reg[p.username]={password:p.password,ownerId:p.username,role:'owner',sub:'free',status:'active'};
   saveRegistry(reg);pending.splice(i,1);
   localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
-  showToast(`✅ ${p.username} approved as platform owner!`,'success');
-  renderSystemOwnerDashboard();
+  showToast(`✅ ${p.username} approved!`,'success');renderSystemOwnerDashboard();
 }
 function denyOwner(i){
   const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
@@ -1213,9 +1238,7 @@ function saveSubscription(){
   closeModal('sub-modal');showToast('Subscription updated!','success');renderSystemOwnerDashboard();
 }
 
-/* Back button — exit system owner dashboard back to login */
 function exitOwnerDashboard(){
-  // Only for owner users (not system owner)
   document.getElementById('owner-screen').style.display='none';
   document.getElementById('content').style.display='block';
   document.getElementById('bottom-nav').style.display='flex';
@@ -1226,7 +1249,6 @@ function exitOwnerDashboard(){
 
 function handleBrandClick(){
   if(S.role==='owner'){
-    // Toggle to owner dashboard
     const ownerScreen=document.getElementById('owner-screen');
     const isShowing=ownerScreen.style.display!=='none';
     ownerScreen.style.display=isShowing?'none':'block';
@@ -1238,22 +1260,19 @@ function handleBrandClick(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   OWNER DASHBOARD (within the app — manages their own users)
+   OWNER DASHBOARD
 ═══════════════════════════════════════════════════════ */
 function renderOwnerDashboard(){
   const reg=getRegistry();
   const myUsers=Object.keys(reg).filter(u=>reg[u].ownerId===S.ownerId&&u!==S.user);
   const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
-
   document.getElementById('owner-stats').innerHTML=`
     <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${myUsers.length}</div><div class="stat-lbl">My Users</div></div>
     <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${pending.length}</div><div class="stat-lbl">Pending</div></div>
     <div class="owner-stat"><div class="stat-icon">🏢</div><div class="stat-val">${S.branches.length}</div><div class="stat-lbl">Branches</div></div>
     <div class="owner-stat"><div class="stat-icon">🏪</div><div class="stat-val">${myUsers.filter(u=>reg[u].role==='storekeeper').length}</div><div class="stat-lbl">Storekeepers</div></div>`;
-
   document.getElementById('user-list-body').innerHTML=myUsers.length?myUsers.map((u,i)=>{
-    const r=reg[u];
-    const roleClass=r.role==='storekeeper'?'storekeeper':'regular';
+    const r=reg[u];const roleClass=r.role==='storekeeper'?'storekeeper':'regular';
     const statusClass=r.status==='suspended'?'status-suspended':'status-active';
     return`<div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar">${u[0].toUpperCase()}</div>
@@ -1265,16 +1284,12 @@ function renderOwnerDashboard(){
       ${r.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:8px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
       <button class="btn btn-sm" onclick="deleteMyUser('${u}')" style="margin-left:4px;color:var(--error)">🗑️</button>
     </div>`;
-  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No users yet. Add a user or they can request access.</div>`;
-
+  }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No users yet.</div>`;
   document.getElementById('pending-count').textContent=pending.length;
   document.getElementById('pending-user-list').innerHTML=pending.length?pending.map((p,i)=>`
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar">${p.username[0].toUpperCase()}</div>
-      <div class="user-info">
-        <div class="user-name">${esc(p.username)}</div>
-        <div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div>
-      </div>
+      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
       <div style="display:flex;gap:6px;align-items:center">
         <select id="approve-role-${i}" style="padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
           <option value="user">👤 User</option>
@@ -1287,7 +1302,6 @@ function renderOwnerDashboard(){
         <button class="apv-btn deny" style="width:auto;padding:6px 12px" onclick="denyMyUser(${i})">❌</button>
       </div>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
-
   document.getElementById('owner-branch-list').innerHTML=S.branches.map(b=>`
     <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
       <span style="font-weight:600">🏢 ${esc(b)}</span>
@@ -1345,11 +1359,10 @@ const isUser=()=>S.role==='user';
 
 const getPerm=tab=>{
   if(isOwner()||isSystemOwner())return'full';
-  // Storekeepers: full access to STORE, read-only to ITEMS, no access to others by default
   if(isStorekeeper()){
-    if(tab==='STORE')return'full';
+    if(tab==='STORE'||tab==='STOREBALANCE')return'full';
     if(tab==='ITEMS')return'read';
-    return S.perms[S.user]?.[tab]??'none';
+    return'none';
   }
   return S.perms[S.user]?.[tab]??'full';
 };
@@ -1363,7 +1376,6 @@ const canEditRow=row=>isOwner()||isSystemOwner()||(!row._by)||(row._by===S.user)
 ═══════════════════════════════════════════════════════ */
 function toggleAddUserBranch(){
   const role=document.getElementById('nu-role').value;
-  // Storekeepers don't need a branch — they manage the central store
   document.getElementById('nu-branch-wrap').style.display=role==='storekeeper'?'none':'';
 }
 function openAddUserModal(){
@@ -1417,10 +1429,7 @@ function openApprovals(){
 function closeApprovals(){document.getElementById('approval-overlay').classList.remove('open');}
 
 /* ═══════════════════════════════════════════════════════
-   STORE — SEPARATE from inventory
-   Store has its own items list (S.storeItems)
-   Store uses the ITEMS catalog for part# lookup (like Sales/Purchase)
-   Only storekeeper can write; owner can read
+   STORE
 ═══════════════════════════════════════════════════════ */
 function dispatchToBranch(storeEntryIdx,toBranch,qty,price){
   const si=S.storeItems[storeEntryIdx];
@@ -1436,7 +1445,6 @@ function dispatchToBranch(storeEntryIdx,toBranch,qty,price){
   };
   S.storeDispatches.push(dispatch);
   S.storeItems[storeEntryIdx].qty-=qty;
-  // Add receipt to branch
   const branchReceipts=loadBranchReceipts(toBranch);
   branchReceipts.push({...dispatch,receiptId:'RCP-'+genCode()});
   saveBranchReceipts(toBranch,branchReceipts);
@@ -1499,11 +1507,7 @@ function approveStoreReceipt(branch,idx){
   receipts[idx].status='approved';receipts[idx].approvedBy=S.user;receipts[idx].approvedAt=new Date().toISOString();
   saveBranchReceipts(branch,receipts);
   const r=receipts[idx];
-  S.purchase.push({
-    date:r.date,party:'[STORE DISPATCH]',branch,
-    id:r.itemId,name:r.itemName,desc:r.itemDesc||'',
-    qty:r.qty,uPrice:r.price,payment:'STORE TRANSFER',_by:S.user
-  });
+  S.purchase.push({date:r.date,party:'[STORE DISPATCH]',branch,id:r.itemId,name:r.itemName,desc:r.itemDesc||'',qty:r.qty,uPrice:r.price,payment:'STORE TRANSFER',_by:S.user});
   S.branchReceipts=loadBranchReceipts(branch);
   saveUserData();
   showToast('✅ Receipt approved! Added to purchase records.','success');
@@ -1555,7 +1559,7 @@ function printStoreReceiptDirectly(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   STOCK (inventory only — separate from store)
+   STOCK
 ═══════════════════════════════════════════════════════ */
 function getStock(itemId){
   const inQ=S.purchase.filter(p=>p.id===itemId).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
@@ -1698,11 +1702,15 @@ function deleteRow(idx,listType){
    TAB SWITCHING
 ═══════════════════════════════════════════════════════ */
 function switchTab(tab){
-  if(!canRead(tab)&&tab!=='ITEMS'){showToast('No permission for this tab','error');return;}
+  // ★ CHANGE 6: Block tabs for storekeeper
+  if(isStorekeeper()&&!STOREKEEPER_ALLOWED_TABS.includes(tab)){
+    return; // silently block — no error needed since tabs are hidden
+  }
+  if(!canRead(tab)&&tab!=='ITEMS'&&tab!=='STOREBALANCE'){showToast('No permission for this tab','error');return;}
   S.tab=tab;
-  const meta=TAB_META[tab];
+  const meta=TAB_META[tab]||TAB_META['ITEMS'];
   document.getElementById('page-icon').textContent=meta.icon;
-  document.getElementById('page-icon').className='page-icon-wrap'+(tab==='STORE'?' store-icon':'');
+  document.getElementById('page-icon').className='page-icon-wrap'+(tab==='STORE'||tab==='STOREBALANCE'?' store-icon':'');
   document.getElementById('page-title').textContent=meta.title;
   document.getElementById('page-sub').textContent=meta.sub;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -1727,6 +1735,7 @@ function renderTab(){
   else if(S.tab==='PURCHASE'||S.tab==='SALES')renderTx();
   else if(S.tab==='BALANCE')renderBalance();
   else if(S.tab==='STORE')renderStore();
+  else if(S.tab==='STOREBALANCE')renderStoreBalance(); // ★ NEW
   else if(S.tab==='EXPENSE')renderExpense();
   else if(S.tab==='REPORT')renderReport();
 }
@@ -1734,7 +1743,7 @@ function renderHeadActions(){
   const ha=document.getElementById('head-actions');if(!ha)return;
   const rw=canWrite(S.tab);
   let html='';
-  if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'){
+  if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'&&S.tab!=='STOREBALANCE'){
     const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
     html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
   }
@@ -1778,7 +1787,6 @@ function openEditModal(idx,listType){
   openModal('edit-row-modal');
 }
 
-/* ── STORE ENTRY FORM (uses item catalog like Purchase/Sales) ── */
 function buildStoreEntryForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='🏪';
   document.getElementById('add-form-title').textContent=mode==='add'?'Add Store Stock':'Edit Store Stock';
@@ -1803,7 +1811,6 @@ function buildStoreEntryForm(row,mode,idx){
     <button class="modal-btn store-btn" onclick="submitStoreEntryForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
     <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
-  // Auto-fill if editing
   if(d.itemId&&mode==='edit'){
     document.getElementById('f-name').value=d.itemName||'';
     document.getElementById('f-desc').value=d.itemDesc||'';
@@ -1826,11 +1833,9 @@ function submitStoreEntryForm(mode,idx){
   const item=S.items.find(m=>m.id===itemId)||{name:'',desc:''};
   const row={date,itemId,itemName:item.name,itemDesc:item.desc,supplier,qty,cost,_by:S.user};
   if(mode==='add'){
-    // Check if item already in store — merge qty
     const existing=S.storeItems.findIndex(x=>x.itemId===itemId);
     if(existing>=0){
       S.storeItems[existing].qty+=qty;
-      // Update cost to latest
       S.storeItems[existing].cost=cost||S.storeItems[existing].cost;
     }else{
       S.storeItems.push(row);
@@ -1843,7 +1848,6 @@ function submitStoreEntryForm(mode,idx){
   showToast(mode==='add'?'Store stock added!':'Updated!','success');
 }
 
-/* ── DISPATCH MODAL ── */
 function openDispatchModal(){
   const storeItemOpts=S.storeItems.filter(s=>s.qty>0).map(s=>`<option value="${s.itemId}">${esc(s.itemId)} — ${esc(s.itemName)} (Stock: ${fmtQ(s.qty)})</option>`).join('');
   const branchOpts=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
@@ -1892,7 +1896,6 @@ function submitDispatch(){
   dispatchToBranch(idx,branch,qty,price);
 }
 
-/* ── ITEM FORM ── */
 function buildItemForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='📋';
   document.getElementById('add-form-title').textContent=mode==='add'?'Add Item':'Edit Item';
@@ -1920,7 +1923,6 @@ function submitItemForm(mode,idx){
   showToast(mode==='add'?'Item added!':'Item updated!','success');updateSuggestions();
 }
 
-/* ── TX FORM ── */
 function buildTxForm(row,mode,isP,idx){
   const icon=isP?'🛒':'💰';const t=isP?'Purchase':'Sales';
   document.getElementById('add-form-icon').textContent=icon;
@@ -2022,7 +2024,6 @@ function submitTxForm(mode,idx,isP){
   showToast(mode==='add'?'Record added!':'Updated!','success');
 }
 
-/* ── EXPENSE FORM ── */
 function buildExpenseForm(row,mode,idx){
   document.getElementById('add-form-icon').textContent='💸';
   document.getElementById('add-form-title').textContent=mode==='add'?'Add Expense':'Edit Expense';
@@ -2129,7 +2130,7 @@ function renderTx(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   RENDER BALANCE — hide items with 0 purchase AND 0 sales
+   RENDER BALANCE
 ═══════════════════════════════════════════════════════ */
 function renderBalance(){
   const filterBranch=S.userBranch||'';
@@ -2139,7 +2140,6 @@ function renderBalance(){
     const salFilter=filterBranch?S.sales.filter(s=>s.id===item.id&&s.branch===filterBranch):S.sales.filter(s=>s.id===item.id);
     const inQ=purFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
     const outQ=salFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-    // CHANGE 5: Skip items with zero purchase AND zero sales
     if(inQ===0&&outQ===0)return null;
     const stock=inQ-outQ;
     const cost=purFilter.reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
@@ -2165,16 +2165,102 @@ function renderBalance(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   RENDER STORE — Completely separate from inventory
-   Store has its OWN stock from storeItems
-   Only storekeeper can add stock; owner can view
+   ★ NEW: RENDER STORE BALANCE
+   Shows store stock levels by item — like BALANCE but for store
+═══════════════════════════════════════════════════════ */
+function renderStoreBalance(){
+  // Aggregate by itemId
+  const aggregated={};
+  S.storeItems.forEach(s=>{
+    if(!aggregated[s.itemId]){
+      aggregated[s.itemId]={itemId:s.itemId,itemName:s.itemName,itemDesc:s.itemDesc||'',totalQty:0,totalCost:0,latestDate:s.date||''};
+    }
+    aggregated[s.itemId].totalQty+=parseFloat(s.qty)||0;
+    aggregated[s.itemId].totalCost+=(parseFloat(s.qty)||0)*(parseFloat(s.cost)||0);
+    if((s.date||'')>(aggregated[s.itemId].latestDate||''))aggregated[s.itemId].latestDate=s.date||'';
+  });
+  // Subtract dispatched quantities
+  S.storeDispatches.forEach(d=>{
+    // Only approved dispatches reduce the balance
+    // (pending dispatches are already deducted from storeItems.qty in real-time)
+    // We show the current live qty from storeItems directly
+  });
+  const items=Object.values(aggregated);
+  let totalVal=0;
+  const rows=items.map((s,i)=>{
+    const val=s.totalCost;
+    totalVal+=val;
+    const unitCost=s.totalQty>0?s.totalCost/s.totalQty:0;
+    const stockClass=s.totalQty>0?'num-pos':s.totalQty===0?'num-zero':'num-neg';
+    return`<tr>
+      <td class="td-mono">${esc(s.itemId)}</td>
+      <td style="font-weight:600">${esc(s.itemName)}</td>
+      <td style="color:var(--text3)">${esc(s.itemDesc)}</td>
+      <td class="num td-mono ${stockClass}">${fmtQ(s.totalQty)}</td>
+      <td class="num td-mono">${fmt(unitCost)}</td>
+      <td class="num td-mono ${colorClass(val)}">${fmt(val)}</td>
+    </tr>`;
+  }).join('');
+
+  // Dispatch summary
+  const pendingDispatches=S.storeDispatches.filter(d=>d.status==='pending').length;
+  const approvedDispatches=S.storeDispatches.filter(d=>d.status==='approved').length;
+  const totalDispatched=S.storeDispatches.filter(d=>d.status!=='rejected').reduce((a,d)=>a+d.total,0);
+
+  document.getElementById('tab-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:18px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">📦</div>
+        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--store)">${items.length}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Item Types</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">💰</div>
+        <div style="font-family:var(--mono);font-size:1rem;font-weight:800;color:var(--store)">${fmt(totalVal)}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Total Store Value</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">📤</div>
+        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--warn)">${pendingDispatches}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Pending Dispatches</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+        <div style="font-size:22px;margin-bottom:6px">✅</div>
+        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--success)">${approvedDispatches}</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Approved Dispatches</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Part No.</th><th>Item Name</th><th>Description</th>
+          <th class="num">Current Stock</th><th class="num">Avg Unit Cost</th><th class="num">Total Value</th>
+        </tr></thead>
+        <tbody>
+          ${rows||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">No store stock yet. Add stock from the Store tab.</td></tr>'}
+          ${items.length?`<tr class="summary-row">
+            <td colspan="3" style="font-weight:700">TOTAL</td>
+            <td></td><td></td>
+            <td class="num td-mono num-pos">${fmt(totalVal)}</td>
+          </tr>`:''}
+        </tbody>
+      </table>
+    </div>`;
+
+  document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
+    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL DISPATCHED (excl. rejected)</span>
+    <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--p)">${fmt(totalDispatched)}</span>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER STORE
 ═══════════════════════════════════════════════════════ */
 function renderStore(){
   const items=S.storeItems;
   const dispatches=S.storeDispatches;
   const totalStoreVal=sum(items,s=>s.qty*(s.cost||0));
 
-  // Aggregate by itemId for display
   const storeRows=items.map((s,i)=>`
     <tr oncontextmenu="showCtxMenu(event,${i},'storeItems')" title="Right-click for options">
       <td class="td-mono">${esc(s.itemId)}</td>
@@ -2211,7 +2297,7 @@ function renderStore(){
     <div class="table-wrap">
       <table>
         <thead><tr><th>Part No.</th><th>Item Name</th><th>Desc</th><th>Supplier</th><th>Date Received</th><th class="num">Stock Qty</th><th class="num">Unit Cost</th><th class="num">Total Value</th></tr></thead>
-        <tbody>${storeRows||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">No store stock yet. Add stock to get started.</td></tr>'}</tbody>
+        <tbody>${storeRows||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">No store stock yet.</td></tr>'}</tbody>
       </table>
     </div>
     ${dispatches.length?`
@@ -2322,9 +2408,6 @@ function buildChart(PR,SR,ER){
   });
 }
 
-/* ═══════════════════════════════════════════════════════
-   PRINT REPORT
-═══════════════════════════════════════════════════════ */
 function printReport(){
   const content=document.getElementById('tab-content').innerHTML;
   const pa=document.getElementById('print-area');
@@ -2493,7 +2576,7 @@ function exportXL(tab){
     S.items.filter(m=>m.id).forEach(item=>{
       const inQ=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
       const outQ=S.sales.filter(s=>s.id===item.id).reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
-      if(inQ===0&&outQ===0)return; // skip zero items in export too
+      if(inQ===0&&outQ===0)return;
       const stock=inQ-outQ;const cost=S.purchase.filter(p=>p.id===item.id).reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
       const avg=inQ>0?cost/inQ:0;data.push([item.id,item.name,item.desc,inQ,outQ,stock,stock*avg]);
     });
@@ -2540,19 +2623,34 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ═══════════════════════════════════════════════════════
-   BOOT
+   ★ BOOT — now async to support cloud registry fetch
 ═══════════════════════════════════════════════════════ */
-function init(){
+async function init(){
   ensureDefaults();
+  // Init Firebase first so cloud registry fetch works
   initFirebase();
+
+  // Show loader while we fetch cloud registry
+  document.getElementById('loader-sub-text').textContent='Loading accounts from cloud…';
+
   setTimeout(()=>{
     const l=document.getElementById('page-loader');
     l.style.opacity='0';l.style.transition='opacity .4s';
     setTimeout(()=>l.style.display='none',400);
-  },900);
+  },1400); // slightly longer to allow cloud fetch
+
+  // ★ CHANGE 7: Pull cloud registry before attempting auto-login
+  // This ensures cross-device: if user was created on another device, they can log in here
+  try{
+    await loadRegistryFromCloud();
+  }catch(e){
+    // Cloud unavailable — use local registry only
+  }
+
   const savedUser=localStorage.getItem('ims_currentUser');
   const savedOwner=localStorage.getItem('ims_currentOwner');
   const savedRole=localStorage.getItem('ims_currentRole');
+
   if(savedUser&&savedOwner&&savedRole){
     if(savedUser===OWNER_USERNAME&&savedRole==='system_owner'){
       S.user=savedUser;S.ownerId=savedOwner;S.role=savedRole;
@@ -2560,7 +2658,9 @@ function init(){
     }
     ensureDefaults();
     const reg=getRegistry();
-    if(reg[savedUser]){doLogin(savedUser,savedOwner,savedRole);return;}
+    if(reg[savedUser]&&reg[savedUser].status!=='suspended'){
+      doLogin(savedUser,savedOwner,savedRole);return;
+    }
   }
   document.getElementById('auth-screen').style.display='flex';
 }

@@ -706,6 +706,14 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📦</span>
       <div class="di-info"><div class="di-label">Request from Store</div><div class="di-sub">Request items for your branch</div></div>
     </button>
+    <div id="danger-zone-wrap" style="display:none">
+      <div class="drawer-divider"></div>
+      <div class="drawer-section" style="color:var(--error)">Danger Zone</div>
+      <button class="drawer-item" onclick="requestDataReset();closeSettings()">
+        <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">🗑️</span>
+        <div class="di-info"><div class="di-label" style="color:var(--error)">Request Data Reset</div><div class="di-sub">Requires software owner approval</div></div>
+      </button>
+    </div>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Preferences</div>
     <div class="drawer-toggle-row">
@@ -940,8 +948,9 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🧾</span><div><h2>Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
     <div class="receipt-body" id="receipt-content"></div>
-    <div style="padding:0 24px 22px;display:flex;gap:8px">
+    <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="modal-btn" onclick="printReceiptDirectly()">🖨️ Print</button>
+      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportReceiptPDF()">📄 Export PDF (A6)</button>
       <button class="modal-btn secondary" onclick="closeModal('receipt-modal')">Close</button>
     </div>
   </div>
@@ -951,8 +960,9 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
   <div class="modal-box narrow">
     <div class="modal-hdr store-hdr"><span class="modal-hdr-icon">🏪</span><div><h2>Store Dispatch Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
     <div class="receipt-body" id="store-receipt-print-content"></div>
-    <div style="padding:0 24px 22px;display:flex;gap:8px">
+    <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="modal-btn store-btn" onclick="printStoreReceiptDirectly()">🖨️ Print</button>
+      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportStoreReceiptPDF()">📄 Export PDF (A6)</button>
       <button class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')">Close</button>
     </div>
   </div>
@@ -989,6 +999,13 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
     <div class="owner-section" style="animation-delay:.24s">
       <div class="owner-section-hdr"><h3>🏢 Branches</h3><button class="btn" onclick="openBranches()">Manage</button></div>
       <div id="owner-branch-list"></div>
+    </div>
+    <div class="owner-section" style="animation-delay:.30s;border:1.5px solid rgba(239,68,68,.3);border-radius:var(--radius)">
+      <div class="owner-section-hdr">
+        <h3 style="color:var(--error)">🗑️ Data Reset Requests</h3>
+        <span id="reset-req-count" style="background:rgba(239,68,68,.15);color:var(--error);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
+      </div>
+      <div id="reset-request-list"></div>
     </div>
   </div>
 </div>
@@ -1153,6 +1170,7 @@ const S={
   storeItems:[],storeDispatches:[],
   branchReceipts:[],
   beginBal:0,reportRange:{from:'',to:''},
+  branchBeginBal:{},reportBranch:'',
   perms:{},exportPerms:{},pendingSignups:[],
   avatarDataUrl:null,
   branches:['Main'],
@@ -1245,6 +1263,13 @@ function loadUserData(){
   S.storeItems=JSON.parse(localStorage.getItem(`ims_${ns}_storeItems`)||'[]');
   S.storeDispatches=JSON.parse(localStorage.getItem(`ims_${ns}_storeDispatches`)||'[]');
   S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
+  S.branchBeginBal=JSON.parse(localStorage.getItem(`ims_${ns}_branchBeginBal`)||'{}');
+  // Migrate legacy single beginBal → first branch if branchBeginBal is empty
+  if(S.beginBal&&Object.keys(S.branchBeginBal).length===0){
+    const firstBranch=(JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]'))[0]||'Main';
+    S.branchBeginBal[firstBranch]=S.beginBal;
+    localStorage.setItem(`ims_${ns}_branchBeginBal`,JSON.stringify(S.branchBeginBal));
+  }
   S.perms=JSON.parse(localStorage.getItem(`ims_${ns}_perms`)||'{}');
   S.exportPerms=JSON.parse(localStorage.getItem(`ims_${ns}_exportperms`)||'{}');
   S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
@@ -1264,6 +1289,7 @@ function saveUserData(){
   localStorage.setItem(`ims_${ns}_storeItems`,JSON.stringify(S.storeItems));
   localStorage.setItem(`ims_${ns}_storeDispatches`,JSON.stringify(S.storeDispatches));
   localStorage.setItem(`ims_${ns}_beginBal`,S.beginBal);
+  localStorage.setItem(`ims_${ns}_branchBeginBal`,JSON.stringify(S.branchBeginBal||{}));
   localStorage.setItem(`ims_${ns}_perms`,JSON.stringify(S.perms));
   localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
   localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
@@ -1312,7 +1338,8 @@ function syncToCloud(){
       items:JSON.stringify(S.items),purchase:JSON.stringify(S.purchase),
       sales:JSON.stringify(S.sales),expense:JSON.stringify(S.expense),
       storeItems:JSON.stringify(S.storeItems),storeDispatches:JSON.stringify(S.storeDispatches),
-      beginBal:S.beginBal,perms:JSON.stringify(S.perms),
+      beginBal:S.beginBal,branchBeginBal:JSON.stringify(S.branchBeginBal||{}),
+      perms:JSON.stringify(S.perms),
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
       storereqs:JSON.stringify(loadStoreRequests()),
@@ -1337,6 +1364,7 @@ function applyCloudSnapshot(ns,d){
   if(d.storeItems!==undefined) localStorage.setItem(`ims_${ns}_storeItems`,d.storeItems);
   if(d.storeDispatches!==undefined) localStorage.setItem(`ims_${ns}_storeDispatches`,d.storeDispatches);
   if(d.beginBal!==undefined) localStorage.setItem(`ims_${ns}_beginBal`,d.beginBal);
+  if(d.branchBeginBal!==undefined) localStorage.setItem(`ims_${ns}_branchBeginBal`,d.branchBeginBal);
   if(d.perms!==undefined) localStorage.setItem(`ims_${ns}_perms`,d.perms);
   if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
   if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
@@ -1344,6 +1372,10 @@ function applyCloudSnapshot(ns,d){
   if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
   const branches=d.branches?JSON.parse(d.branches):['Main'];
   branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
+  if(d.resetAt&&d.resetAt!==localStorage.getItem(`ims_${ns}_lastResetAt`)){
+    localStorage.setItem(`ims_${ns}_lastResetAt`,d.resetAt);
+    setTimeout(()=>showToast('⚠️ Your data has been reset by the software owner.','warn'),800);
+  }
 }
 
 function startRealtimeSync(){
@@ -1509,6 +1541,7 @@ async function doLogin(u,ownerId,role){
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-request-store').style.display=(isUser()&&S.userBranch)?'flex':'none';
+  document.getElementById('danger-zone-wrap').style.display=isOwner()?'block':'none';
   document.getElementById('owner-back-btn').style.display='none';
   updateHdrAvatar();
   // ★ CHANGE 5: Apply tab visibility rules per role
@@ -1667,6 +1700,19 @@ async function loadPendingOwnersFromCloud(){
       localStorage.setItem('ims_pending_owners',JSON.stringify(merged));
     }
   }catch(e){}
+  try{
+    const rdoc=await S.db.collection('power_ims5').doc('_reset_requests').get();
+    if(rdoc.exists&&rdoc.data().requests){
+      const cloudReqs=JSON.parse(rdoc.data().requests||'[]');
+      const localReqs=JSON.parse(localStorage.getItem('ims_reset_requests')||'[]');
+      const merged=[...localReqs];
+      cloudReqs.forEach(c=>{
+        const li=merged.findIndex(l=>l.ownerId===c.ownerId&&l.requestedAt===c.requestedAt);
+        if(li===-1)merged.push(c);else if(c.status!=='pending')merged[li]=c;
+      });
+      localStorage.setItem('ims_reset_requests',JSON.stringify(merged));
+    }
+  }catch(e){}
 }
 
 function deleteOwner(u){
@@ -1726,6 +1772,23 @@ function renderSystemOwnerDashboard(){
       <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
+  const resetReqs=_getResetRequests();
+  const pendingResets=resetReqs.filter(r=>r.status==='pending');
+  document.getElementById('reset-req-count').textContent=pendingResets.length;
+  document.getElementById('reset-request-list').innerHTML=resetReqs.length?resetReqs.map((r,i)=>{
+    const statusColor=r.status==='pending'?'var(--warn)':r.status==='approved'?'var(--success)':'var(--error)';
+    const statusIcon=r.status==='pending'?'⏳':r.status==='approved'?'✅':'❌';
+    return`<div class="user-card" style="animation-delay:${i*.06}s;border-left:3px solid ${statusColor}">
+      <div class="user-avatar" style="background:rgba(239,68,68,.2);color:var(--error)">🗑️</div>
+      <div class="user-info">
+        <div class="user-name">${esc(r.ownerUsername)} <span style="font-size:10px;color:${statusColor};font-weight:700;margin-left:6px">${statusIcon} ${r.status.toUpperCase()}</span></div>
+        <div class="user-meta">Requested: ${new Date(r.requestedAt).toLocaleString()}${r.respondedAt?` · Responded: ${new Date(r.respondedAt).toLocaleString()}`:''}</div>
+      </div>
+      ${r.status==='pending'?`
+        <button class="btn btn-sm btn-success" onclick="approveDataReset(${i})" style="margin-left:8px">✅ Approve</button>
+        <button class="btn btn-sm btn-danger" onclick="denyDataReset(${i})" style="margin-left:4px">❌ Deny</button>`:''}
+    </div>`;
+  }).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No reset requests 🎉</div>`;
 }
 
 function approveOwner(i){
@@ -2269,8 +2332,10 @@ function updateRequestBadge(){
   }
 }
 
+let _storeRcptRow=null;
 function viewStoreReceiptPrint(r){
   if(typeof r==='string')try{r=JSON.parse(r);}catch(e){return;}
+  _storeRcptRow=r;
   const statusLabel=r.status==='approved'?'✅ APPROVED':r.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
   document.getElementById('store-receipt-print-content').innerHTML=`
     <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS — STORE</div><div class="rcpt-sub">Dispatch Receipt</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
@@ -2298,6 +2363,187 @@ function printStoreReceiptDirectly(){
     .rcpt-footer{text-align:center;color:#64748b;font-size:9px;margin-top:10px;border-top:2px dashed #ccc;padding-top:10px}
   </style>${document.getElementById('store-receipt-print-content').innerHTML}`;
   window.print();setTimeout(()=>pa.innerHTML='',1200);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PDF RECEIPT EXPORT (A6)
+═══════════════════════════════════════════════════════ */
+function _pdfLine(doc,label,val,y,margin,W,bold){
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  doc.text(label,margin,y);
+  doc.setFont('helvetica',bold?'bold':'normal');
+  doc.text(val,W-margin,y,{align:'right'});
+}
+function exportReceiptPDF(){
+  if(!_rcptRow){showToast('No receipt open','error');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a6'});
+  const W=105,margin=8;let y=14;
+  const row=_rcptRow,isP=_rcptIsP;
+  const qty=parseFloat(row.qty)||0;
+  const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
+  const base=qty*price;
+  const vatAmt=!isP&&row.vatOn?base*0.15:0;
+  const wh3Amt=!isP&&row.wh3On?base*0.03:0;
+  const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
+  const grandTotal=base+vatAmt;
+  // Header
+  doc.setFont('helvetica','bold');doc.setFontSize(13);
+  doc.text('POWER-IMS',W/2,y,{align:'center'});y+=5.5;
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  doc.text(isP?'Purchase Receipt':'Sales Receipt',W/2,y,{align:'center'});y+=4.5;
+  doc.text(new Date().toLocaleString(),W/2,y,{align:'center'});y+=3;
+  doc.setDrawColor(180);doc.setLineWidth(0.25);doc.setLineDash([2,1]);
+  doc.line(margin,y,W-margin,y);y+=5;doc.setLineDash([]);
+  // Data lines
+  const lines=[
+    ['Date',(row.date||'').replace('T',' ')],
+    [isP?'Supplier':'Customer',row.party||'—'],
+    ['Branch',row.branch||'—'],
+    ['Part No.',row.id||'—'],
+    ['Item',row.name||'—'],
+    ['Qty',String(qty)],
+    ['Unit Price',fmt(price)],
+    ['Subtotal',fmt(base)],
+    ...(vatAmt?[['VAT (15%)','+'+fmt(vatAmt)]]:[]),
+    ...(wh3Amt?[['Withhold 3%','-'+fmt(wh3Amt)]]:[]),
+    ...(vwhAmt?[['VAT WH 7.5%','-'+fmt(vwhAmt)]]:[]),
+  ];
+  lines.forEach(([lbl,val])=>{_pdfLine(doc,lbl,val,y,margin,W,false);y+=5;});
+  // Total line
+  doc.setFont('helvetica','bold');doc.setFontSize(10);
+  doc.text('TOTAL',margin,y);doc.text(fmt(grandTotal),W-margin,y,{align:'right'});y+=5;
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  doc.text('Payment',margin,y);doc.text(row.payment||'CASH',W-margin,y,{align:'right'});y+=6;
+  // Amount due box
+  const boxH=16;
+  doc.setFillColor(239,246,255);doc.setDrawColor(30,64,175);doc.setLineWidth(0.5);
+  doc.roundedRect(margin,y,W-2*margin,boxH,2,2,'FD');
+  doc.setFontSize(7.5);doc.setTextColor(71,85,105);
+  doc.text('AMOUNT DUE',W/2,y+5,{align:'center'});
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(30,64,175);
+  doc.text(fmt(grandTotal),W/2,y+12,{align:'center'});
+  doc.setTextColor(0);doc.setLineWidth(0.25);y+=boxH+5;
+  // Footer
+  doc.setLineDash([2,1]);doc.line(margin,y,W-margin,y);y+=4;doc.setLineDash([]);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text('POWER-IMS — Thank you!',W/2,y,{align:'center'});y+=4;
+  doc.text('Printed: '+new Date().toLocaleString(),W/2,y,{align:'center'});
+  doc.save('receipt-'+Date.now()+'.pdf');
+}
+function exportStoreReceiptPDF(){
+  if(!_storeRcptRow){showToast('No receipt open','error');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a6'});
+  const W=105,margin=8;let y=14;
+  const r=_storeRcptRow;
+  const statusLabel=r.status==='approved'?'APPROVED':r.status==='rejected'?'REJECTED':'PENDING';
+  // Header
+  doc.setFont('helvetica','bold');doc.setFontSize(12);
+  doc.text('POWER-IMS — STORE',W/2,y,{align:'center'});y+=5.5;
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  doc.text('Dispatch Receipt',W/2,y,{align:'center'});y+=4.5;
+  doc.text(new Date().toLocaleString(),W/2,y,{align:'center'});y+=3;
+  doc.setDrawColor(180);doc.setLineWidth(0.25);doc.setLineDash([2,1]);
+  doc.line(margin,y,W-margin,y);y+=5;doc.setLineDash([]);
+  // Data lines
+  const lines=[
+    ['Receipt ID',r.receiptId||r.id||'—'],
+    ['Date',(r.date||'').replace('T',' ')],
+    ['To Branch',r.toBranch||'—'],
+    ['Part No.',r.itemId||'—'],
+    ['Item',r.itemName||'—'],
+    ['Qty',String(parseFloat(r.qty)||0)],
+    ['Unit Price',fmt(r.price||0)],
+  ];
+  lines.forEach(([lbl,val])=>{_pdfLine(doc,lbl,val,y,margin,W,false);y+=5;});
+  doc.setFont('helvetica','bold');doc.setFontSize(10);
+  doc.text('TOTAL',margin,y);doc.text(fmt(r.total||0),W-margin,y,{align:'right'});y+=6;
+  // Status box
+  const boxH=16;
+  doc.setFillColor(240,253,244);doc.setDrawColor(16,185,129);doc.setLineWidth(0.5);
+  doc.roundedRect(margin,y,W-2*margin,boxH,2,2,'FD');
+  doc.setFontSize(7.5);doc.setTextColor(71,85,105);
+  doc.text('STATUS',W/2,y+5,{align:'center'});
+  doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(16,185,129);
+  doc.text(statusLabel,W/2,y+12,{align:'center'});
+  doc.setTextColor(0);y+=boxH+5;
+  // Footer
+  doc.setLineWidth(0.25);doc.setLineDash([2,1]);doc.line(margin,y,W-margin,y);y+=4;doc.setLineDash([]);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  doc.text('POWER-IMS Store Dispatch',W/2,y,{align:'center'});y+=4;
+  doc.text('By: '+(r._by||r.fromStore||'—'),W/2,y,{align:'center'});y+=4;
+  doc.text('Printed: '+new Date().toLocaleString(),W/2,y,{align:'center'});
+  doc.save('store-receipt-'+Date.now()+'.pdf');
+}
+
+/* ═══════════════════════════════════════════════════════
+   DATA RESET (owner request + system owner approval)
+═══════════════════════════════════════════════════════ */
+function _getResetRequests(){return JSON.parse(localStorage.getItem('ims_reset_requests')||'[]');}
+function _saveResetRequests(reqs){
+  localStorage.setItem('ims_reset_requests',JSON.stringify(reqs));
+  if(S.db)S.db.collection('power_ims5').doc('_reset_requests')
+    .set({requests:JSON.stringify(reqs),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+}
+function requestDataReset(){
+  customConfirm(
+    '⚠️ Request Data Reset',
+    'This sends a request to the software owner to permanently erase ALL your inventory data (items, purchases, sales, expenses, store records). The reset only happens after the software owner approves.',
+    '🗑️','Send Request',
+    ()=>{
+      const reqs=_getResetRequests();
+      if(reqs.find(r=>r.ownerId===S.ownerId&&r.status==='pending')){
+        showToast('A reset request is already pending approval.','warn');return;
+      }
+      reqs.push({ownerId:S.ownerId,ownerUsername:S.user,requestedAt:new Date().toISOString(),status:'pending',respondedAt:null});
+      _saveResetRequests(reqs);
+      showToast('🔔 Reset request sent to software owner.','success');
+    }
+  );
+}
+function approveDataReset(idx){
+  const reqs=_getResetRequests();
+  const req=reqs[idx];
+  if(!req||req.status!=='pending')return;
+  customConfirm(
+    `Approve Reset for "${req.ownerUsername}"?`,
+    'This permanently clears ALL their inventory data — items, purchases, sales, expenses, store records. Cannot be undone.',
+    '🗑️','Approve & Reset',
+    ()=>{
+      req.status='approved';req.respondedAt=new Date().toISOString();
+      _saveResetRequests(reqs);
+      const ns=req.ownerId;
+      const empty='[]';
+      // Clear on this device
+      ['items','purchase','sales','expense','storeItems','storeDispatches'].forEach(k=>{
+        localStorage.setItem(`ims_${ns}_${k}`,empty);
+      });
+      localStorage.setItem(`ims_${ns}_beginBal`,'0');
+      localStorage.setItem(`ims_${ns}_branchBeginBal`,'{}');
+      // Push reset via Firestore for cross-device
+      if(S.db){
+        const now=new Date().toISOString();
+        S.db.collection('power_ims5').doc(ns).set({
+          items:empty,purchase:empty,sales:empty,expense:empty,
+          storeItems:empty,storeDispatches:empty,
+          beginBal:0,branchBeginBal:'{}',
+          resetAt:now,updatedAt:now
+        },{merge:true}).catch(()=>{});
+      }
+      showToast(`✅ Data reset approved for ${req.ownerUsername}`,'success');
+      renderSystemOwnerDashboard();
+    }
+  );
+}
+function denyDataReset(idx){
+  const reqs=_getResetRequests();
+  const req=reqs[idx];
+  if(!req||req.status!=='pending')return;
+  req.status='denied';req.respondedAt=new Date().toISOString();
+  _saveResetRequests(reqs);
+  showToast(`❌ Reset denied for ${req.ownerUsername}`,'warn');
+  renderSystemOwnerDashboard();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3221,11 +3467,15 @@ function renderExpense(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   RENDER REPORT
+   RENDER REPORT — per-branch & all-branches views
 ═══════════════════════════════════════════════════════ */
 let _reportChart=null;
-function renderReport(){
-  const filterBranch=S.userBranch||'';
+
+function _branchBal(branch){return parseFloat(S.branchBeginBal?.[branch])||0;}
+function _setBranchBal(branch,val){if(!S.branchBeginBal)S.branchBeginBal={};S.branchBeginBal[branch]=parseFloat(val)||0;saveUserData();}
+
+function _reportCalc(branch){
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0);};
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
     const d=r.date.slice(0,10);
@@ -3233,29 +3483,110 @@ function renderReport(){
     if(S.reportRange.to&&d>S.reportRange.to)return false;
     return true;
   });
-  const PR=inRange(filterBranch?S.purchase.filter(p=>p.branch===filterBranch):S.purchase);
-  const SR=inRange(filterBranch?S.sales.filter(s=>s.branch===filterBranch):S.sales);
+  const PR=inRange(branch?S.purchase.filter(p=>p.branch===branch):S.purchase);
+  const SR=inRange(branch?S.sales.filter(s=>s.branch===branch):S.sales);
   const ER=inRange(S.expense);
+  const initBal=branch?_branchBal(branch):S.branches.reduce((a,b)=>a+_branchBal(b),0);
   const tPC=PR.filter(p=>p.payment==='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
   const tPCr=PR.filter(p=>p.payment!=='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
-  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0);};
   const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcST(b),0);
   const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcST(b),0);
   const tE=ER.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
   const net=tSC+tSCr-tPC-tPCr-tE;
-  const coh=S.beginBal+tSC-tPC-tE;
+  const coh=initBal+tSC-tPC-tE;
+  return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh};
+}
+
+function renderReport(){
+  const activeBranch=S.userBranch||S.reportBranch||'';
+  const showBranchTabs=isOwner()&&S.branches.length>1;
+
+  const branchTabsHtml=showBranchTabs?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
+    <button class="btn btn-sm${activeBranch===''?' btn-primary':''}" onclick="S.reportBranch='';renderTab()">🌐 All Branches</button>
+    ${S.branches.map(b=>`<button class="btn btn-sm${activeBranch===b?' btn-primary':''}" onclick="S.reportBranch='${esc(b)}';renderTab()">${esc(b)}</button>`).join('')}
+  </div>`:'';
+
+  const datebar=`<div class="date-bar no-print">
+    <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
+    <label>To: <input type="date" value="${S.reportRange.to}" onchange="S.reportRange.to=this.value;renderTab()"></label>
+    <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">Clear</button>
+    <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">🖨️ Print</button>
+  </div>`;
+
+  if(isOwner()&&activeBranch===''){
+    _renderAllBranchesReport(branchTabsHtml,datebar);
+  }else{
+    _renderSingleBranchReport(activeBranch,branchTabsHtml,datebar);
+  }
+}
+
+function _renderAllBranchesReport(branchTabsHtml,datebar){
+  const rows=S.branches.map(b=>{
+    const c=_reportCalc(b);
+    const editable=isOwner()?`<input type="number" value="${_branchBal(b)}" oninput="_setBranchBal('${esc(b)}',this.value)" style="width:90px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;text-align:right">`:fmt(_branchBal(b));
+    return`<tr>
+      <td style="font-weight:700">${esc(b)}</td>
+      <td class="num">${isOwner()?editable:fmt(c.initBal)}</td>
+      <td class="num td-mono">${fmt(c.tPC)}</td>
+      <td class="num td-mono">${fmt(c.tPCr)}</td>
+      <td class="num td-mono">${fmt(c.tSC)}</td>
+      <td class="num td-mono">${fmt(c.tSCr)}</td>
+      <td class="num td-mono">${fmt(c.tE)}</td>
+      <td class="num td-mono ${c.net>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.net)}</td>
+      <td class="num td-mono ${c.coh>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.coh)}</td>
+    </tr>`;
+  }).join('');
+  const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCr+=c.tPCr;acc.tSC+=c.tSC;acc.tSCr+=c.tSCr;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCr:0,tSC:0,tSCr:0,tE:0,net:0,coh:0});
+  const totRow=`<tr class="summary-row">
+    <td>ALL BRANCHES</td>
+    <td class="num td-mono">${fmt(tot.ib)}</td>
+    <td class="num td-mono">${fmt(tot.tPC)}</td>
+    <td class="num td-mono">${fmt(tot.tPCr)}</td>
+    <td class="num td-mono">${fmt(tot.tSC)}</td>
+    <td class="num td-mono">${fmt(tot.tSCr)}</td>
+    <td class="num td-mono">${fmt(tot.tE)}</td>
+    <td class="num td-mono ${tot.net>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.net)}</td>
+    <td class="num td-mono ${tot.coh>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.coh)}</td>
+  </tr>`;
+  const {PR,SR,ER}=_reportCalc('');
+  document.getElementById('tab-content').innerHTML=`
+    ${branchTabsHtml}${datebar}
+    <div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em">📊 ALL BRANCHES SUMMARY</span>
+      ${isOwner()?'<span style="font-size:10px;color:var(--text3);margin-left:12px">Edit initial balance per branch inline in the table below</span>':''}
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Branch</th><th class="num">Init. Balance</th>
+          <th class="num">Purchase Cash</th><th class="num">Purchase Credit</th>
+          <th class="num">Sales Cash</th><th class="num">Sales Credit</th>
+          <th class="num">Expenses</th>
+          <th class="num">Net P/L</th><th class="num">Cash on Hand</th>
+        </tr></thead>
+        <tbody>${rows}${totRow}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW — ALL BRANCHES</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
+  setTimeout(()=>buildChart(PR,SR,ER),50);
+}
+
+function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
+  const c=_reportCalc(branch);
+  const {PR,SR,ER}=c;
+  const label=branch?`(${branch})`:'';
   const reportData=[
-    {l:'Initial Cash Balance',v:S.beginBal,edit:true},
-    {l:`Total Purchases — Cash${filterBranch?' ('+filterBranch+')':''}`,v:tPC},
-    {l:`Total Purchases — Credit${filterBranch?' ('+filterBranch+')':''}`,v:tPCr},
-    {l:`Total Sales — Cash${filterBranch?' ('+filterBranch+')':''}`,v:tSC},
-    {l:`Total Sales — Credit${filterBranch?' ('+filterBranch+')':''}`,v:tSCr},
-    {l:'Total Expenses',v:tE},
-    {l:'Net Profit / Loss',v:net,total:true},
-    {l:'Cash on Hand',v:coh,total:true},
+    {l:`Initial Cash Balance${label?` — ${label}`:''}`,v:c.initBal,edit:true,branch},
+    {l:`Total Purchases — Cash ${label}`,v:c.tPC},
+    {l:`Total Purchases — Credit ${label}`,v:c.tPCr},
+    {l:`Total Sales — Cash ${label}`,v:c.tSC},
+    {l:`Total Sales — Credit ${label}`,v:c.tSCr},
+    {l:'Total Expenses',v:c.tE},
+    {l:'Net Profit / Loss',v:c.net,total:true},
+    {l:'Cash on Hand',v:c.coh,total:true},
   ];
   const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
-    <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="S.beginBal=parseFloat(this.value)||0;saveUserData()" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
+    <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="_setBranchBal('${esc(r.branch||S.branches[0])}',this.value)" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
     <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
   </div>`).join('');
   const creditPurchases=PR.filter(p=>p.payment&&p.payment!=='CASH');
@@ -3277,12 +3608,7 @@ function renderReport(){
   const creditTotalP=creditPurchases.reduce((a,r)=>a+(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),0);
   const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0);},0);
   document.getElementById('tab-content').innerHTML=`
-    <div class="date-bar no-print">
-      <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
-      <label>To: <input type="date" value="${S.reportRange.to}" onchange="S.reportRange.to=this.value;renderTab()"></label>
-      <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">Clear</button>
-      <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">🖨️ Print</button>
-    </div>
+    ${branchTabsHtml}${datebar}
     ${rr(reportData)}
     <div class="credit-section">
       <div class="credit-section-hdr">
@@ -3306,7 +3632,7 @@ function renderReport(){
         <tbody>${csRows}</tbody>
       </table></div>
     </div>`;
-  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
+  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW${branch?' — '+branch:''}</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
   setTimeout(()=>buildChart(PR,SR,ER),50);
 }
 
@@ -3333,6 +3659,8 @@ function buildChart(PR,SR,ER){
 }
 
 function printReport(){
+  const branch=S.userBranch||S.reportBranch||'';
+  const branchLabel=branch?` — ${branch}`:isOwner()&&S.branches.length>1?' — All Branches':'';
   const content=document.getElementById('tab-content').innerHTML;
   const pa=document.getElementById('print-area');
   pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
@@ -3343,18 +3671,25 @@ function printReport(){
     .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}
     .report-total-row .report-label{font-weight:700;color:#0f172a}.report-total-row .report-val{color:#10b981}
     .num-pos{color:#10b981}.num-neg{color:#ef4444}.date-bar,.no-print{display:none!important}input{border:none;background:transparent}
-  </style><h2>📊 POWER-IMS — Financial Report</h2><p>Generated: ${new Date().toLocaleString()} | User: ${S.user}${S.userBranch?' | Branch: '+S.userBranch:''}</p>${content}`;
+    table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:7px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:left}th{font-weight:700;background:#f8faff}td.num{text-align:right;font-family:monospace}
+    .summary-row td{font-weight:700;background:#f0fdf4;border-top:2px solid #10b981}
+    .credit-section{margin-top:16px}.credit-section-hdr{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f0fdf4;border-radius:8px 8px 0 0}
+    .credit-section-title{font-size:12px;font-weight:700}.credit-section-count{margin-left:auto;font-size:11px}.credit-empty{text-align:center;color:#94a3b8;padding:16px}
+    .td-badge{padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700}.badge-credit{background:#fef3c7;color:#b45309}
+  </style><h2>📊 POWER-IMS — Financial Report${esc(branchLabel)}</h2><p>Generated: ${new Date().toLocaleString()} | User: ${S.user}</p>${content}`;
   window.print();setTimeout(()=>pa.innerHTML='',1200);
 }
 
 /* ═══════════════════════════════════════════════════════
    RECEIPT
 ═══════════════════════════════════════════════════════ */
+let _rcptRow=null,_rcptIsP=false;
 function openRowReceipt(idx,listType){
   hideCtxMenu();
   const isP=listType==='purchase';
   const row=isP?S.purchase[idx]:S.sales[idx];
   if(!row){showToast('No row found','error');return;}
+  _rcptRow=row;_rcptIsP=isP;
   const qty=parseFloat(row.qty)||0;
   const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
   const base=qty*price;

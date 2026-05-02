@@ -507,6 +507,54 @@ tbody tr:last-child td{border-bottom:none}
 .credit-table td{padding:7px 10px;color:var(--text)}
 .credit-table td.num{text-align:right;font-family:var(--mono);font-weight:600}
 .credit-empty{padding:16px;text-align:center;color:var(--text3);font-size:12px}
+
+/* ════════════════════════════════════════════════════════
+   MOBILE VIEW MODE
+════════════════════════════════════════════════════════ */
+html[data-view="mobile"] body{font-size:14px}
+html[data-view="mobile"] table{min-width:360px!important;font-size:13px}
+html[data-view="mobile"] tbody td{padding:11px 10px}
+html[data-view="mobile"] thead th{padding:9px 10px;font-size:9px}
+html[data-view="mobile"] .field-row,html[data-view="mobile"] .field-row-3{grid-template-columns:1fr!important}
+html[data-view="mobile"] .modal-overlay{align-items:flex-end;padding:0}
+html[data-view="mobile"] .modal-box{width:100%!important;max-width:100%!important;border-radius:24px 24px 0 0!important;max-height:96dvh}
+html[data-view="mobile"] .field input,html[data-view="mobile"] .field select,html[data-view="mobile"] .field textarea{padding:13px 14px;font-size:16px;border-radius:10px}
+html[data-view="mobile"] .btn{min-height:42px;padding:9px 14px}
+html[data-view="mobile"] .modal-btn{min-height:50px;font-size:14px;border-radius:12px}
+html[data-view="mobile"] .apv-btn{min-height:44px;font-size:13px;border-radius:10px}
+html[data-view="mobile"] .nav-item{padding:10px 4px}
+html[data-view="mobile"] .nav-item .ni-icon{font-size:22px}
+html[data-view="mobile"] .nav-item .ni-label{font-size:10px}
+html[data-view="mobile"] .bottom-nav{padding:10px 8px calc(12px + env(safe-area-inset-bottom));gap:2px}
+html[data-view="mobile"] .content{padding:10px}
+html[data-view="mobile"] .page-card-head{padding:12px 14px;gap:8px}
+html[data-view="mobile"] .page-card{border-radius:16px}
+html[data-view="mobile"] .approval-overlay{padding:66px 0 0}
+html[data-view="mobile"] .approval-panel{width:100%!important;border-radius:24px 24px 0 0;max-height:90dvh}
+html[data-view="mobile"] .ctx-item{padding:15px 18px;font-size:14px}
+html[data-view="mobile"] .td-badge{padding:5px 10px;font-size:11px}
+html[data-view="mobile"] .owner-stats{grid-template-columns:1fr 1fr}
+html[data-view="mobile"] .owner-hero{padding:20px}
+html[data-view="mobile"] .owner-hero h1{font-size:1.2rem}
+html[data-view="mobile"] .owner-screen{padding:12px}
+html[data-view="mobile"] .user-card{flex-wrap:wrap;gap:8px;padding:14px}
+html[data-view="mobile"] .sub-plan-cards{grid-template-columns:1fr 1fr}
+html[data-view="mobile"] .exp-format-cards{grid-template-columns:1fr 1fr}
+html[data-view="mobile"] .exp-sheets{gap:9px}
+html[data-view="mobile"] .exp-sheet-pill{padding:8px 16px;font-size:12px}
+html[data-view="mobile"] .perm-grid{grid-template-columns:1fr!important}
+html[data-view="mobile"] .head-actions .btn{padding:8px 12px;font-size:12px}
+html[data-view="mobile"] .icon-btn{width:40px;height:40px}
+html[data-view="mobile"] .hdr-chip{padding:5px 8px}
+html[data-view="mobile"] .store-receipt-item{margin-bottom:10px}
+html[data-view="mobile"] .receipt-actions{flex-wrap:wrap;gap:8px}
+html[data-view="mobile"] .receipt-actions .apv-btn{flex:1 1 40%}
+html[data-view="mobile"] .confirm-box{border-radius:24px}
+html[data-view="mobile"] .table-wrap{-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+html[data-view="mobile"] .perm-user-card{padding:14px}
+html[data-view="mobile"] .drawer-item{padding:13px 18px}
+html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
+#view-mode-btn.mobile-active{background:var(--store-glass);color:var(--store);border-color:rgba(16,185,129,.4)}
 </style>
 </head>
 <body>
@@ -579,6 +627,7 @@ tbody tr:last-child td{border-bottom:none}
   </div>
   <div class="hdr-right">
     <button class="back-btn no-print" id="owner-back-btn" onclick="exitOwnerDashboard()" style="display:none">← Back</button>
+    <div class="icon-btn no-print" id="view-mode-btn" onclick="toggleViewMode()" title="Switch to Mobile View">📱</div>
     <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">☁️<div class="sync-ring" id="sync-ring"></div></div>
     <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div></div>
     <div class="icon-btn no-print" id="store-notif-btn" onclick="openStoreReceipts()" style="display:none" title="Store Receipts">🏪<div class="notif-dot" id="store-notif-dot" style="display:none;background:var(--success)">0</div></div>
@@ -636,6 +685,10 @@ tbody tr:last-child td{border-bottom:none}
     <div class="drawer-toggle-row">
       <label>☀️ Light Mode</label>
       <label class="toggle-sw"><input type="checkbox" id="dark-toggle" onchange="setTheme(this.checked?'light':'dark')"><span></span></label>
+    </div>
+    <div class="drawer-toggle-row">
+      <label>📱 Mobile View</label>
+      <label class="toggle-sw"><input type="checkbox" id="mobile-toggle" onchange="setViewMode(this.checked?'mobile':'desktop')"><span></span></label>
     </div>
     <div class="drawer-toggle-row">
       <label>🌐 Language</label>
@@ -2034,9 +2087,27 @@ function setLang(l){
   if(document.getElementById('lang-select'))document.getElementById('lang-select').value=l;
   if(S.tab)renderTab();
 }
+function setViewMode(mode){
+  document.documentElement.setAttribute('data-view',mode==='mobile'?'mobile':'desktop');
+  const tog=document.getElementById('mobile-toggle');if(tog)tog.checked=(mode==='mobile');
+  const btn=document.getElementById('view-mode-btn');
+  if(btn){
+    btn.textContent=mode==='mobile'?'🖥️':'📱';
+    btn.title=mode==='mobile'?'Switch to Desktop View':'Switch to Mobile View';
+    btn.className='icon-btn no-print'+(mode==='mobile'?' mobile-active':'');
+  }
+  if(S.user)localStorage.setItem(`ims_${S.user}_view`,mode);
+}
+function toggleViewMode(){
+  const cur=document.documentElement.getAttribute('data-view');
+  const next=cur==='mobile'?'desktop':'mobile';
+  setViewMode(next);
+  showToast(next==='mobile'?'📱 Mobile view on':'🖥️ Desktop view on');
+}
 function loadPrefs(){
   setTheme(localStorage.getItem(`ims_${S.user}_theme`)||'dark');
   setLang(localStorage.getItem(`ims_${S.user}_lang`)||'en');
+  setViewMode(localStorage.getItem(`ims_${S.user}_view`)||'desktop');
 }
 
 /* ═══════════════════════════════════════════════════════

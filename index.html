@@ -935,9 +935,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
 #view-mode-btn.mobile-active{background:var(--store-glass);color:var(--store);border-color:rgba(16,185,129,.35)}
 </style>
 </head>
-<body style="background-color: rgb(2, 39, 150);">
+<body style="background-color: rgb(2, 20, 75);">
 
-<div class="page-loader" id="page-loader" style="opacity: 0; transition: opacity 0.4s; display: none;">
+<div class="page-loader" id="page-loader">
   <div class="loader-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
   <image x="0" y="0" width="100" height="100"></image>
 </svg></div>
@@ -999,7 +999,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 </div>
 
 <!-- HEADER -->
-<div class="app-header owner-mode" id="app-header" style="display: flex;">
+<div class="app-header owner-mode" id="app-header" style="display: none;">
   <div class="brand" onclick="handleBrandClick()">
     <div class="brand-logo" id="brand-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
   <image x="0" y="0" width="100" height="100"></image>
@@ -2013,6 +2013,7 @@ async function doLogin(u,ownerId,role){
     startTab=canRead(lastTab)?lastTab:'ITEMS';
   }
   switchTab(startTab);
+  hideLoader();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2133,6 +2134,7 @@ function doLoginSystemOwner(){
   document.getElementById('owner-back-btn').style.display='none';
   document.getElementById('drawer-hdr').className='drawer-hdr owner-drawer-hdr';
   initFirebase();
+  hideLoader();
   loadPendingOwnersFromCloud().then(()=>renderSystemOwnerDashboard());
 }
 
@@ -3070,6 +3072,12 @@ function updateHdrAvatar(){
 /* ═══════════════════════════════════════════════════════
    UI
 ═══════════════════════════════════════════════════════ */
+function hideLoader(){
+  const l=document.getElementById('page-loader');
+  if(!l||l.style.display==='none')return;
+  l.style.opacity='0';l.style.transition='opacity .35s';
+  setTimeout(()=>l.style.display='none',350);
+}
 function showUI(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-header').style.display='flex';
@@ -4379,12 +4387,6 @@ async function init(){
   // Show loader while we fetch cloud registry
   document.getElementById('loader-sub-text').textContent='Loading accounts from cloud…';
 
-  setTimeout(()=>{
-    const l=document.getElementById('page-loader');
-    l.style.opacity='0';l.style.transition='opacity .4s';
-    setTimeout(()=>l.style.display='none',400);
-  },1400); // slightly longer to allow cloud fetch
-
   // ★ CHANGE 7: Pull cloud registry before attempting auto-login
   // This ensures cross-device: if user was created on another device, they can log in here
   try{
@@ -4408,6 +4410,7 @@ async function init(){
       doLogin(savedUser,savedOwner,savedRole);return;
     }
   }
+  hideLoader();
   document.getElementById('auth-screen').style.display='flex';
 }
 init();

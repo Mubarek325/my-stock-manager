@@ -702,8 +702,6 @@ tbody tr:last-child td{border-bottom:none}
 .report-total-row{background:linear-gradient(90deg,rgba(16,185,129,.08),var(--surface2));border-top:1.5px solid var(--success)!important}
 .report-total-row .report-label{font-weight:700;color:var(--text)}
 .report-total-row .report-val{color:var(--success)}
-.chart-wrap{padding:16px;background:var(--surface2);border-top:1px solid var(--border)}
-.chart-canvas{max-height:240px}
 .date-bar{
   display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;
   background:var(--surface2);border-bottom:1px solid var(--border);align-items:center
@@ -935,7 +933,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 #view-mode-btn.mobile-active{background:var(--store-glass);color:var(--store);border-color:rgba(16,185,129,.35)}
 </style>
 </head>
-<body style="background-color: rgb(2, 20, 75);">
+<body style="background-color: rgb(1, 7, 26);">
 
 <div class="page-loader" id="page-loader">
   <div class="loader-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
@@ -980,6 +978,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
         </div>
         <div id="auth-type-hint" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center">Register your business for a 14-day free trial</div>
       </div>
+      <div class="field" id="auth-shopname-wrap" style="display:none"><label>Business / Shop Name *</label><input id="auth-shopname" placeholder="e.g. Abebe General Trading"></div>
       <div class="field"><label>Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
       <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
       <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
@@ -991,9 +990,6 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="modal-error" id="auth-error"></div>
       <div class="modal-success" id="auth-success"></div>
       <div class="cloud-auth-note" id="cloud-auth-note">☁️ Accounts sync across all devices</div>
-      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-        <button onclick="emergencyReset()" style="width:100%;padding:8px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-family:var(--font);font-size:11px;cursor:pointer">🔄 Reset defaults (emergency)</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1052,67 +1048,91 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeSettings()"></div>
 <div class="settings-drawer" id="settings-drawer">
   <div class="drawer-hdr owner-drawer-hdr" id="drawer-hdr">
-    <h3>Settings</h3>
+    <h3 data-i18n="settingsTitle">Settings</h3>
     <button class="modal-hdr-close" onclick="closeSettings()" style="background:var(--surface3)">✕</button>
   </div>
   <div class="drawer-body">
-    <div class="drawer-section">Navigation</div>
+    <div class="drawer-section" data-i18n="settingsNav">Navigation</div>
     <button class="drawer-item" id="drawer-items-btn" onclick="switchTab('ITEMS');closeSettings()">
       <span class="di-icon" style="background:var(--p-glass);color:var(--p)">📋</span>
-      <div class="di-info"><div class="di-label">Add Items</div><div class="di-sub">Manage inventory catalog</div></div>
+      <div class="di-info"><div class="di-label" data-i18n="settingsAddItems">Add Items</div><div class="di-sub" data-i18n="settingsAddItemsSub">Manage inventory catalog</div></div>
     </button>
-    <div class="drawer-divider"></div>
-    <div class="drawer-section">Export Data</div>
-    <button class="drawer-item" onclick="openExportModal();closeSettings()">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📤</span>
-      <div class="di-info"><div class="di-label">Export (PDF &amp; Excel)</div></div>
-    </button>
-    <div class="drawer-divider"></div>
-    <div class="drawer-section">Account</div>
-    <button class="drawer-item" onclick="openChangePass();closeSettings()">
-      <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">🔑</span>
-      <div class="di-info"><div class="di-label">Change Password</div></div>
-    </button>
-    <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
-      <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼️</span>
-      <div class="di-info"><div class="di-label">Profile Photo</div></div>
-    </button>
-    <button class="drawer-item" id="btn-owner-perms" onclick="openPermissions();closeSettings()" style="display:none">
-      <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
-      <div class="di-info"><div class="di-label">User Permissions</div><div class="di-sub">Owner only</div></div>
-    </button>
-    <button class="drawer-item" id="btn-owner-branches" onclick="openBranches();closeSettings()" style="display:none">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">🏢</span>
-      <div class="di-info"><div class="di-label">Manage Branches</div><div class="di-sub">Owner only</div></div>
-    </button>
-    <button class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
-      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
-      <div class="di-info"><div class="di-label">Add User</div><div class="di-sub">Create user for a branch</div></div>
-    </button>
-    <button class="drawer-item" id="btn-request-store" onclick="openRequestItemModal();closeSettings()" style="display:none">
-      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📦</span>
-      <div class="di-info"><div class="di-label">Request from Store</div><div class="di-sub">Request items for your branch</div></div>
-    </button>
-    <div id="danger-zone-wrap" style="display:none">
+    <div id="store-settings-section" style="display:none">
       <div class="drawer-divider"></div>
-      <div class="drawer-section" style="color:var(--error)">Danger Zone</div>
-      <button class="drawer-item" onclick="requestDataReset();closeSettings()">
-        <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">🗑️</span>
-        <div class="di-info"><div class="di-label" style="color:var(--error)">Request Data Reset</div><div class="di-sub">Requires software owner approval</div></div>
+      <div class="drawer-section" data-i18n="settingsStore">Store</div>
+      <button class="drawer-item" onclick="switchTab('STORE');closeSettings()">
+        <span class="di-icon" style="background:var(--store-glass);color:var(--store)">🏪</span>
+        <div class="di-info"><div class="di-label" data-i18n="settingsStore">Store</div><div class="di-sub" data-i18n="settingsStoreSub">Manage store inventory</div></div>
+      </button>
+      <button class="drawer-item" onclick="switchTab('STOREBALANCE');closeSettings()">
+        <span class="di-icon" style="background:var(--store-glass);color:var(--store)">📊</span>
+        <div class="di-info"><div class="di-label" data-i18n="settingsStoreBalance">Store Balance</div><div class="di-sub" data-i18n="settingsStoreBalanceSub">Store stock levels</div></div>
+      </button>
+      <button class="drawer-item" onclick="switchTab('STOREREPORT');closeSettings()">
+        <span class="di-icon" style="background:var(--store-glass);color:var(--store)">📋</span>
+        <div class="di-info"><div class="di-label" data-i18n="settingsStoreReport">Store Report</div><div class="di-sub" data-i18n="settingsStoreReportSub">Store financial summary</div></div>
+      </button>
+      <button class="drawer-item" onclick="switchTab('EXPENSE');closeSettings()">
+        <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">💸</span>
+        <div class="di-info"><div class="di-label" data-i18n="settingsStoreExpense">Store Expense</div><div class="di-sub" data-i18n="settingsStoreExpenseSub">Manage store expenses</div></div>
       </button>
     </div>
     <div class="drawer-divider"></div>
-    <div class="drawer-section">Preferences</div>
+    <div class="drawer-section" data-i18n="settingsExport">Export Data</div>
+    <button class="drawer-item" onclick="openExportModal();closeSettings()">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📤</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsExportBtn">Export (PDF &amp; Excel)</div></div>
+    </button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section" data-i18n="settingsAccount">Account</div>
+    <button class="drawer-item" onclick="openChangePass();closeSettings()">
+      <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">🔑</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsChangePass">Change Password</div></div>
+    </button>
+    <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
+      <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼️</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsPhoto">Profile Photo</div></div>
+    </button>
+    <button class="drawer-item" id="btn-owner-shopname" onclick="openShopNameModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">🏪</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsShopName">Shop Name</div><div class="di-sub" data-i18n="settingsShopNameSub">Edit your business name</div></div>
+    </button>
+    <button class="drawer-item" id="btn-owner-perms" onclick="openPermissions();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsPerms">User Permissions</div><div class="di-sub" data-i18n="settingsPermsSub">Owner only</div></div>
+    </button>
+    <button class="drawer-item" id="btn-owner-branches" onclick="openBranches();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">🏢</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsBranches">Manage Branches</div><div class="di-sub" data-i18n="settingsPermsSub">Owner only</div></div>
+    </button>
+    <button class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsAddUser">Add User</div><div class="di-sub" data-i18n="settingsAddUserSub">Create user for a branch</div></div>
+    </button>
+    <button class="drawer-item" id="btn-request-store" onclick="openRequestItemModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📦</span>
+      <div class="di-info"><div class="di-label" data-i18n="settingsReqStore">Request from Store</div><div class="di-sub" data-i18n="settingsReqStoreSub">Request items for your branch</div></div>
+    </button>
+    <div id="danger-zone-wrap" style="display:none">
+      <div class="drawer-divider"></div>
+      <div class="drawer-section" style="color:var(--error)" data-i18n="settingsDanger">Danger Zone</div>
+      <button class="drawer-item" onclick="requestDataReset();closeSettings()">
+        <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">🗑️</span>
+        <div class="di-info"><div class="di-label" style="color:var(--error)" data-i18n="settingsResetReq">Request Data Reset</div><div class="di-sub" data-i18n="settingsResetReqSub">Requires software owner approval</div></div>
+      </button>
+    </div>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section" data-i18n="settingsPrefs">Preferences</div>
     <div class="drawer-toggle-row">
-      <label>☀️ Light Mode</label>
+      <label data-i18n="settingsLight">☀️ Light Mode</label>
       <label class="toggle-sw"><input type="checkbox" id="dark-toggle" onchange="setTheme(this.checked?'light':'dark')"><span></span></label>
     </div>
     <div class="drawer-toggle-row">
-      <label>📱 Mobile View</label>
+      <label data-i18n="settingsMobile">📱 Mobile View</label>
       <label class="toggle-sw"><input type="checkbox" id="mobile-toggle" onchange="setViewMode(this.checked?'mobile':'desktop')"><span></span></label>
     </div>
     <div class="drawer-toggle-row">
-      <label>🌐 Language</label>
+      <label data-i18n="settingsLang">🌐 Language</label>
       <select class="drawer-select" id="lang-select" onchange="setLang(this.value)">
         <option value="en">🇬🇧 English</option>
         <option value="am">🇪🇹 አማርኛ</option>
@@ -1121,7 +1141,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="drawer-divider"></div>
     <button class="drawer-item" onclick="logout()" style="color:var(--error)">
       <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">🚪</span>
-      <div class="di-info"><div class="di-label" style="color:var(--error)">Log Out</div></div>
+      <div class="di-info"><div class="di-label" style="color:var(--error)" data-i18n="settingsLogout">Log Out</div></div>
     </button>
   </div>
 </div>
@@ -1133,30 +1153,30 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="exp-modal-hdr-row">
         <div>
           <div class="exp-modal-icon">📤</div>
-          <div class="exp-modal-title">Export Report</div>
-          <div class="exp-modal-sub">Download as PDF or Excel spreadsheet</div>
+          <div class="exp-modal-title" data-i18n="expTitle">Export Report</div>
+          <div class="exp-modal-sub" data-i18n="expSub">Download as PDF or Excel spreadsheet</div>
         </div>
         <button class="exp-close" onclick="closeModal('export-modal')">✕</button>
       </div>
     </div>
     <div class="exp-body">
-      <div class="exp-section-label">Format</div>
+      <div class="exp-section-label" data-i18n="expFormat">Format</div>
       <div class="exp-format-cards">
         <div class="exp-format-card active" id="exp-card-PDF" onclick="selectExpFormat('PDF')">
           <div class="exp-check">✓</div>
           <div class="exp-format-card-icon">📄</div>
-          <div class="exp-format-card-name">PDF</div>
-          <div class="exp-format-card-desc">Download .pdf file</div>
+          <div class="exp-format-card-name" data-i18n="expPdf">PDF</div>
+          <div class="exp-format-card-desc" data-i18n="expPdfSub">Download .pdf file</div>
         </div>
         <div class="exp-format-card" id="exp-card-XL" onclick="selectExpFormat('XL')">
           <div class="exp-check">✓</div>
           <div class="exp-format-card-icon">📊</div>
-          <div class="exp-format-card-name">Excel</div>
-          <div class="exp-format-card-desc">Download .xlsx file</div>
+          <div class="exp-format-card-name" data-i18n="expExcel">Excel</div>
+          <div class="exp-format-card-desc" data-i18n="expExcelSub">Download .xlsx file</div>
         </div>
       </div>
       <div class="exp-divider"></div>
-      <div class="exp-section-label">Sheet</div>
+      <div class="exp-section-label" data-i18n="expSheet">Sheet</div>
       <div class="exp-sheets">
         <div class="exp-sheet-pill active" id="exp-pill-PURCHASE" onclick="selectExpSheet('PURCHASE')">🛒 Purchase</div>
         <div class="exp-sheet-pill" id="exp-pill-SALES" onclick="selectExpSheet('SALES')">💰 Sales</div>
@@ -1167,7 +1187,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="exp-divider"></div>
       <button class="exp-export-btn" onclick="doExport()">
         <span id="exp-btn-icon">📄</span>
-        <span id="exp-btn-label">Download PDF</span>
+        <span id="exp-btn-label" data-i18n="expBtnPdf">Download PDF</span>
       </button>
     </div>
   </div>
@@ -1177,7 +1197,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
   <div class="modal-box wide">
     <div class="modal-hdr" id="add-form-hdr">
     <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon" id="add-form-icon">➕</span></div>
-    <div><h2 id="add-form-title">Add Entry</h2><p id="add-form-sub">Fill in the form below</p></div>
+    <div><h2 id="add-form-title" data-i18n="addEntryTitle">Add Entry</h2><p id="add-form-sub" data-i18n="addEntrySub">Fill in the form below</p></div>
     <button class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button>
   </div>
     <div class="modal-body" id="add-form-body"></div>
@@ -1186,20 +1206,32 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="edit-row-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2>Edit Entry</h2><p>Update the fields below</p></div><button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editEntryTitle">Edit Entry</h2><p data-i18n="editEntrySub">Update the fields below</p></div><button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
     <div class="modal-body" id="edit-form-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shopname-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2 data-i18n="shopNameTitle">Shop Name</h2></div><button class="modal-hdr-close" onclick="closeModal('shopname-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="shopNameLabel">Business / Shop Name</label><input id="sn-input" data-i18n="shopNamePh" data-i18n-attr="placeholder" placeholder="e.g. Abebe General Trading"></div>
+      <button class="modal-btn" onclick="saveShopName()">💾 <span data-i18n="btnSave">Save</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('shopname-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <div class="modal-error" id="sn-error"></div>
+    </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🔑</span></div><div><h2>Change Password</h2></div><button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🔑</span></div><div><h2 data-i18n="changePassTitle">Change Password</h2></div><button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Current Password</label><input id="cp-current" type="password"></div>
-      <div class="field"><label>New Password</label><input id="cp-new" type="password"></div>
-      <div class="field"><label>Confirm New</label><input id="cp-confirm" type="password"></div>
-      <button class="modal-btn" onclick="submitChangePass()">💾 Save Password</button>
-      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px">Cancel</button>
+      <div class="field"><label data-i18n="changePassCurrent">Current Password</label><input id="cp-current" type="password"></div>
+      <div class="field"><label data-i18n="changePassNew">New Password</label><input id="cp-new" type="password"></div>
+      <div class="field"><label data-i18n="changePassConfirm">Confirm New</label><input id="cp-confirm" type="password"></div>
+      <button class="modal-btn" onclick="submitChangePass()">💾 <span data-i18n="changePassBtn">Save Password</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="cp-error"></div>
     </div>
   </div>
@@ -1207,39 +1239,39 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🖼️</span></div><div><h2>Profile Photo</h2></div><button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🖼️</span></div><div><h2 data-i18n="photoTitle">Profile Photo</h2></div><button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
     <div class="modal-body">
       <div class="avatar-ring" id="avatar-modal-preview" onclick="document.getElementById('avatar-modal-file').click()">👤</div>
-      <div class="avatar-hint">Click to choose a photo</div>
+      <div class="avatar-hint" data-i18n="photoPh">Click to choose a photo</div>
       <input type="file" id="avatar-modal-file" accept="image/*" style="display:none" onchange="previewModalAvatar(this)">
-      <button class="modal-btn" onclick="saveAvatar()">💾 Save Photo</button>
-      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:5px">Cancel</button>
+      <button class="modal-btn" onclick="saveAvatar()">💾 <span data-i18n="photoBtn">Save Photo</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="perm-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👥</span></div><div><h2>User Permissions</h2><p>Control access per user</p></div><button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👥</span></div><div><h2 data-i18n="permsTitle">User Permissions</h2><p data-i18n="permsSub">Control access per user</p></div><button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
     <div class="modal-body" id="perm-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="add-user-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👤</span></div><div><h2>Add User</h2><p>Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👤</span></div><div><h2 data-i18n="addUserTitle">Add User</h2><p data-i18n="addUserSub">Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Username *</label><input id="nu-username" placeholder="Enter username"></div>
-      <div class="field"><label>Password *</label><input id="nu-password" type="password" placeholder="Set password"></div>
-      <div class="field"><label>Role *</label>
+      <div class="field"><label data-i18n="addUsernameLbl">Username *</label><input id="nu-username" data-i18n="addUsernamePh" data-i18n-attr="placeholder" placeholder="Enter username"></div>
+      <div class="field"><label data-i18n="addPassLbl">Password *</label><input id="nu-password" type="password" data-i18n="addPassPh" data-i18n-attr="placeholder" placeholder="Set password"></div>
+      <div class="field"><label data-i18n="addRoleLbl">Role *</label>
         <select id="nu-role" onchange="toggleAddUserBranch()">
-          <option value="user">👤 Regular User</option>
-          <option value="storekeeper">🏪 Store Keeper</option>
+          <option value="user" data-i18n="roleUser">👤 Regular User</option>
+          <option value="storekeeper" data-i18n="roleStorekeeper">🏪 Store Keeper</option>
         </select>
       </div>
-      <div class="field" id="nu-branch-wrap"><label>Assigned Branch *</label><select id="nu-branch"></select></div>
-      <button class="modal-btn" onclick="submitAddUser()">✅ Create User</button>
-      <button class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px">Cancel</button>
+      <div class="field" id="nu-branch-wrap"><label data-i18n="addBranchLbl">Assigned Branch *</label><select id="nu-branch"></select></div>
+      <button class="modal-btn" onclick="submitAddUser()">✅ <span data-i18n="addUserBtn">Create User</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="nu-error"></div>
     </div>
   </div>
@@ -1247,19 +1279,19 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="edit-user-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2>Edit User</h2><p>Update user details</p></div><button class="modal-hdr-close" onclick="closeModal('edit-user-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editUserTitle">Edit User</h2><p data-i18n="editUserSub">Update user details</p></div><button class="modal-hdr-close" onclick="closeModal('edit-user-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Username</label><input id="eu-username" disabled="" style="background:var(--surface3);cursor:not-allowed;opacity:.7"></div>
-      <div class="field"><label>New Password <span style="color:var(--text3);font-size:9px">(leave blank to keep current)</span></label><input id="eu-password" type="password" placeholder="Enter new password (optional)"></div>
-      <div class="field"><label>Role *</label>
+      <div class="field"><label data-i18n="addUsernameLbl">Username *</label><input id="eu-username" disabled="" style="background:var(--surface3);cursor:not-allowed;opacity:.7"></div>
+      <div class="field"><label data-i18n="changePassNew">New Password</label> <span style="color:var(--text3);font-size:9px" data-i18n="editUserPassSub">(leave blank to keep current)</span><input id="eu-password" type="password" data-i18n="editUserPassPh" data-i18n-attr="placeholder" placeholder="Enter new password (optional)"></div>
+      <div class="field"><label data-i18n="addRoleLbl">Role *</label>
         <select id="eu-role" onchange="toggleEditUserBranch()">
-          <option value="user">👤 Regular User</option>
-          <option value="storekeeper">🏪 Store Keeper</option>
+          <option value="user" data-i18n="roleUser">👤 Regular User</option>
+          <option value="storekeeper" data-i18n="roleStorekeeper">🏪 Store Keeper</option>
         </select>
       </div>
-      <div class="field" id="eu-branch-wrap"><label>Assigned Branch *</label><select id="eu-branch"></select></div>
-      <button class="modal-btn" onclick="submitEditUser()">💾 Save Changes</button>
-      <button class="modal-btn secondary" onclick="closeModal('edit-user-modal')" style="margin-top:5px">Cancel</button>
+      <div class="field" id="eu-branch-wrap"><label data-i18n="addBranchLbl">Assigned Branch *</label><select id="eu-branch"></select></div>
+      <button class="modal-btn" onclick="submitEditUser()">💾 <span data-i18n="editUserBtn">Save Changes</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('edit-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="eu-error"></div>
     </div>
   </div>
@@ -1268,24 +1300,24 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <!-- REQUEST FROM STORE MODAL -->
 <div class="modal-overlay" id="request-item-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📦</span></div><div><h2>Request from Store</h2><p>Submit a request for branch supplies</p></div><button class="modal-hdr-close" onclick="closeModal('request-item-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📦</span></div><div><h2 data-i18n="reqStoreTitle">Request from Store</h2><p data-i18n="reqStoreSub">Submit a request for branch supplies</p></div><button class="modal-hdr-close" onclick="closeModal('request-item-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label>Item from Catalog</label>
+      <div class="field"><label data-i18n="reqCatalogLbl">Item from Catalog</label>
         <select id="req-item" onchange="onReqItemChange()">
-          <option value="">— Select a store item (optional) —</option>
+          <option value="" data-i18n="reqCatalogPh">— Select a store item (optional) —</option>
         </select>
       </div>
-      <div class="field"><label>Or type item name *</label>
-        <input id="req-custom-item" placeholder="Enter item name if not in list above">
+      <div class="field"><label data-i18n="reqNameLbl">Or type item name *</label>
+        <input id="req-custom-item" data-i18n="reqNamePh" data-i18n-attr="placeholder" placeholder="Enter item name if not in list above">
       </div>
-      <div class="field"><label>Quantity *</label>
-        <input id="req-qty" type="number" min="1" placeholder="e.g. 5">
+      <div class="field"><label data-i18n="reqQtyLbl">Quantity *</label>
+        <input id="req-qty" type="number" min="1" data-i18n="reqQtyPh" data-i18n-attr="placeholder" placeholder="e.g. 5">
       </div>
-      <div class="field"><label>Note / Reason</label>
-        <input id="req-note" placeholder="Optional reason for request…">
+      <div class="field"><label data-i18n="reqNoteLbl">Note / Reason</label>
+        <input id="req-note" data-i18n="reqNotePh" data-i18n-attr="placeholder" placeholder="Optional reason for request…">
       </div>
-      <button class="modal-btn" onclick="submitItemRequest()">📨 Submit Request</button>
-      <button class="modal-btn secondary" onclick="closeModal('request-item-modal')" style="margin-top:5px">Cancel</button>
+      <button class="modal-btn" onclick="submitItemRequest()">📨 <span data-i18n="reqSubmitBtn">Submit Request</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('request-item-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="req-error"></div>
     </div>
   </div>
@@ -1293,14 +1325,14 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏢</span></div><div><h2>Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏢</span></div><div><h2 data-i18n="branchTitle">Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
     <div class="modal-body">
       <div id="branch-list-ui"></div>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <input id="new-branch-input" style="flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;outline:none" placeholder="New branch name…">
-        <button class="btn btn-primary" onclick="addBranch()">+ Add</button>
+        <input id="new-branch-input" style="flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;outline:none" data-i18n="branchPh" data-i18n-attr="placeholder" placeholder="New branch name…">
+        <button class="btn btn-primary" onclick="addBranch()" data-i18n="branchAdd">+ Add</button>
       </div>
-      <button class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:12px">Close</button>
+      <button class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:12px" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
@@ -1308,29 +1340,42 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <div class="confirm-overlay" id="confirm-modal">
   <div class="confirm-box">
     <div class="confirm-icon" id="confirm-icon">🗑️</div>
-    <div class="confirm-title" id="confirm-title">Delete?</div>
-    <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
-    <div class="confirm-actions"><button onclick="cancelConfirm()">Cancel</button><button id="confirm-ok-btn" onclick="doConfirm()">Delete</button></div>
+    <div class="confirm-title" id="confirm-title" data-i18n="confirmDelete">Delete?</div>
+    <div class="confirm-msg" id="confirm-msg" data-i18n="confirmUndone">This action cannot be undone.</div>
+    <div class="confirm-actions"><button onclick="cancelConfirm()" data-i18n="btnCancel">Cancel</button><button id="confirm-ok-btn" onclick="doConfirm()" data-i18n="confirmDeleteBtn">Delete</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dispatch-approve-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✅</span></div><div><h2 data-i18n="approveTitle">Approve & Dispatch</h2></div><button class="modal-hdr-close" onclick="closeModal('dispatch-approve-modal')">✕</button></div>
+    <div class="modal-body">
+      <div id="dispatch-approve-info" style="padding:10px 0 14px;font-size:12.5px;color:var(--text2);line-height:1.7"></div>
+      <div class="field"><label data-i18n="approvePriceLbl">Dispatch Price (per unit) *</label><input type="number" id="dispatch-approve-price" placeholder="0.00" step="any" min="0"></div>
+      <div class="modal-error" id="dispatch-approve-error"></div>
+      <button class="modal-btn" style="background:var(--success);border-color:var(--success)" onclick="confirmApproveItemRequest()">✅ <span data-i18n="approveBtn">Approve & Dispatch</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('dispatch-approve-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+    </div>
   </div>
 </div>
 
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title">🔔 Pending User Requests</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifPendingUsers">🔔 Pending User Requests</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
     <div id="approval-list"></div>
   </div>
 </div>
 
 <div class="approval-overlay" id="store-receipt-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifStoreReceipts">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
     <div id="store-receipt-list"></div>
   </div>
 </div>
 
 <div class="approval-overlay" id="store-requests-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title">🛒 Branch Store Requests</span><button class="apv-close" onclick="closeStoreRequestsPanel()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifBranchRequests">🛒 Branch Store Requests</span><button class="apv-close" onclick="closeStoreRequestsPanel()">✕</button></div>
     <div id="store-requests-list"></div>
   </div>
 </div>
@@ -1340,9 +1385,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🧾</span></div><div><h2>Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
     <div class="receipt-body" id="receipt-content"></div>
     <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="modal-btn" onclick="printReceiptDirectly()">🖨️ Print</button>
-      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportReceiptPDF()">📄 Export PDF (A6)</button>
-      <button class="modal-btn secondary" onclick="closeModal('receipt-modal')">Close</button>
+      <button class="modal-btn" onclick="printReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
+      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('receipt-modal')" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
@@ -1352,9 +1397,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr store-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2>Store Dispatch Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
     <div class="receipt-body" id="store-receipt-print-content"></div>
     <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="modal-btn store-btn" onclick="printStoreReceiptDirectly()">🖨️ Print</button>
-      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportStoreReceiptPDF()">📄 Export PDF (A6)</button>
-      <button class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')">Close</button>
+      <button class="modal-btn store-btn" onclick="printStoreReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
+      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportStoreReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
+      <button class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
@@ -1546,32 +1591,15 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE"><span class="ni-icon">🛒</span><span class="ni-label">Purchase</span></button>
-  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES"><span class="ni-icon">💰</span><span class="ni-label">Sales</span></button>
-  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE"><span class="ni-icon">⚖️</span><span class="ni-label">Balance</span></button>
-  <!-- Combined Store button — owner only -->
-  <div class="nav-store-combo" id="store-combo-wrap" style="display:none;position:relative;flex:1">
-    <button class="nav-item store-nav" id="store-combo-btn" onclick="toggleStoreMenu(event)" style="width:100%">
-      <span class="ni-icon" id="store-combo-icon">🏪</span>
-      <span class="ni-label" id="store-combo-label">Store</span>
-      <span id="store-combo-arrow" style="font-size:6px;opacity:.55;margin-top:1px;line-height:1">▲</span>
-    </button>
-    <div class="store-sub-menu" id="store-sub-menu" style="display:none">
-      <button class="store-sub-item" data-tab="STORE" onclick="switchTab('STORE');closeStoreMenu()">
-        <span>🏪</span><span>Store</span>
-      </button>
-      <button class="store-sub-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE');closeStoreMenu()">
-        <span>📊</span><span>St. Balance</span>
-      </button>
-    </div>
-  </div>
-  <!-- Separate buttons kept for storekeepers -->
-  <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
-  <button class="nav-item store-nav" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label">St.Balance</span></button>
-  <button class="nav-item store-nav" data-tab="STOREREPORT" onclick="switchTab('STOREREPORT')" id="nav-STOREREPORT" style="display:none"><span class="ni-icon">📋</span><span class="ni-label">St.Report</span></button>
-  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
-  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
-  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS"><span class="ni-icon">📋</span><span class="ni-label">Items</span></button>
+  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE"><span class="ni-icon">🛒</span><span class="ni-label" data-i18n="navPurchase">Purchase</span></button>
+  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES"><span class="ni-icon">💰</span><span class="ni-label" data-i18n="navSales">Sales</span></button>
+  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE"><span class="ni-icon">⚖️</span><span class="ni-label" data-i18n="navBalance">Balance</span></button>
+  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label" data-i18n="navExpense">Expense</span></button>
+  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label" data-i18n="navReport">Report</span></button>
+  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS"><span class="ni-icon">📋</span><span class="ni-label" data-i18n="navItems">Items</span></button>
+  <button class="nav-item" data-tab="STORE" onclick="switchTab('STORE')" id="nav-STORE" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label" data-i18n="navStore">Store</span></button>
+  <button class="nav-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label" data-i18n="navStoreBalance">Balance</span></button>
+  <button class="nav-item" data-tab="STOREREPORT" onclick="switchTab('STOREREPORT')" id="nav-STOREREPORT" style="display:none"><span class="ni-icon">📋</span><span class="ni-label" data-i18n="navStoreReport">Report</span></button>
 </div>
 
 <script>
@@ -1584,23 +1612,103 @@ const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
 
 // ★ CHANGE 1: Added STOREBALANCE to TAB_META
 const TAB_META = {
-  ITEMS:{icon:'📋',title:'Add Items',sub:'Manage inventory catalog'},
-  PURCHASE:{icon:'🛒',title:'Purchase',sub:'Purchase records'},
-  SALES:{icon:'💰',title:'Sales',sub:'Sales records'},
-  BALANCE:{icon:'⚖️',title:'Balance',sub:'Inventory stock levels'},
-  STORE:{icon:'🏪',title:'Store',sub:'Central store inventory & dispatch'},
-  STOREBALANCE:{icon:'📊',title:'Store Balance',sub:'Store stock levels & total value'},
-  EXPENSE:{icon:'💸',title:'Expense',sub:'Expense tracking'},
-  REPORT:{icon:'📊',title:'Report',sub:'Financial summary'},
-  STOREREPORT:{icon:'📋',title:'Store Report',sub:'Store financial summary'}
+  ITEMS:{icon:'📋',get title(){return L('titleItems')},get sub(){return L('subItems')}},
+  PURCHASE:{icon:'🛒',get title(){return L('titlePurchase')},get sub(){return L('subPurchase')}},
+  SALES:{icon:'💰',get title(){return L('titleSales')},get sub(){return L('subSales')}},
+  BALANCE:{icon:'⚖️',get title(){return L('titleBalance')},get sub(){return L('subBalance')}},
+  STORE:{icon:'🏪',get title(){return L('titleStore')},get sub(){return L('subStore')}},
+  STOREBALANCE:{icon:'📊',get title(){return L('titleStoreBalance')},get sub(){return L('subStoreBalance')}},
+  EXPENSE:{icon:'💸',get title(){return L('titleExpense')},get sub(){return L('subExpense')}},
+  REPORT:{icon:'📊',get title(){return L('titleReport')},get sub(){return L('subReport')}},
+  STOREREPORT:{icon:'📋',get title(){return L('titleStoreReport')},get sub(){return L('subStoreReport')}}
 };
 
 // ★ CHANGE 2: Define which tabs storekeepers can see
 const STOREKEEPER_ALLOWED_TABS = ['STORE','STOREBALANCE','EXPENSE','STOREREPORT'];
 
 const LANG={
-  en:{date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount'},
-  am:{date:'ቀን',supplier:'አቅርቦት',customer:'ደንበኛ',branch:'ቅርንጫፍ',partNo:'ቁጥር',itemName:'ስም',desc:'መግለጫ',qty:'ብዛት',unitPrice:'ዋጋ',total:'ድምር',payment:'ክፍያ',status:'ሁኔታ',price:'ዋጋ',totals:'ድምሮች',vat:'ተ.እ.ታ (15%)',wh3:'ምዝገባ 3%',vwh:'ተ.እ.ታ WH 7.5%',totalPrice:'ጠቅላላ ዋጋ',cash:'ጥሬ ገንዘብ',credit:'ክሬዲት',reason:'ምክንያት',amount:'መጠን'}
+  en:{
+    date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount',
+    navPurchase:'Purchase',navSales:'Sales',navBalance:'Balance',navExpense:'Expense',navReport:'Report',navItems:'Items',navStore:'Store',navStoreBalance:'Balance',navStoreReport:'Report',
+    titleItems:'Add Items',subItems:'Manage inventory catalog',titlePurchase:'Purchase',subPurchase:'Purchase records',titleSales:'Sales',subSales:'Sales records',titleBalance:'Balance',subBalance:'Inventory stock levels',titleStore:'Store',subStore:'Central store inventory & dispatch',titleStoreBalance:'Store Balance',subStoreBalance:'Store stock levels & total value',titleExpense:'Expense',subExpense:'Expense tracking',titleReport:'Report',subReport:'Financial summary',titleStoreReport:'Store Report',subStoreReport:'Store financial summary',
+    settingsTitle:'Settings',settingsNav:'Navigation',settingsAddItems:'Add Items',settingsAddItemsSub:'Manage inventory catalog',settingsStore:'Store',settingsStoreSub:'Manage store inventory',settingsStoreBalance:'Store Balance',settingsStoreBalanceSub:'Store stock levels',settingsStoreReport:'Store Report',settingsStoreReportSub:'Store financial summary',settingsStoreExpense:'Store Expense',settingsStoreExpenseSub:'Manage store expenses',settingsExport:'Export Data',settingsExportBtn:'Export (PDF & Excel)',settingsAccount:'Account',settingsChangePass:'Change Password',settingsPhoto:'Profile Photo',settingsShopName:'Shop Name',settingsShopNameSub:'Edit your business name',settingsPerms:'User Permissions',settingsPermsSub:'Owner only',settingsBranches:'Manage Branches',settingsAddUser:'Add User',settingsAddUserSub:'Create user for a branch',settingsReqStore:'Request from Store',settingsReqStoreSub:'Request items for your branch',settingsDanger:'Danger Zone',settingsResetReq:'Request Data Reset',settingsResetReqSub:'Requires software owner approval',settingsPrefs:'Preferences',settingsLight:'☀️ Light Mode',settingsMobile:'📱 Mobile View',settingsLang:'🌐 Language',settingsLogout:'Log Out',
+    authLogin:'Log In',authRequest:'Request Access',authNewBiz:'🏢 New Business',authEmployee:'👤 Employee',authBizHint:'Register your business for a 14-day free trial',authBizName:'Business / Shop Name *',authBizNamePh:'e.g. Abebe General Trading',authUsername:'Username',authUsernamePh:'Enter your username',authPassword:'Password',authPasswordPh:'Enter your password',authConfirmPass:'Confirm Password',authConfirmPassPh:'Re-enter password',authOwnerUser:'Platform Owner Username',authOwnerUserSub:'(who manages your account)',authOwnerUserPh:"Enter the platform owner's username",authLoginBtn:'🔐 Log In',authCloudNote:'☁️ Accounts sync across all devices',authPhotoPh:'Click to add photo (optional)',
+    expTitle:'Export Report',expSub:'Download as PDF or Excel spreadsheet',expFormat:'Format',expPdf:'PDF',expPdfSub:'Download .pdf file',expExcel:'Excel',expExcelSub:'Download .xlsx file',expSheet:'Sheet',expBtnPdf:'Download PDF',expBtnXlsx:'Download Excel',
+    addEntryTitle:'Add Entry',addEntrySub:'Fill in the form below',editEntryTitle:'Edit Entry',editEntrySub:'Update the fields below',
+    shopNameTitle:'Shop Name',shopNameLabel:'Business / Shop Name',shopNamePh:'e.g. Abebe General Trading',
+    changePassTitle:'Change Password',changePassCurrent:'Current Password',changePassNew:'New Password',changePassConfirm:'Confirm New',changePassBtn:'Save Password',
+    photoTitle:'Profile Photo',photoPh:'Click to choose a photo',photoBtn:'Save Photo',
+    permsTitle:'User Permissions',permsSub:'Control access per user',
+    addUserTitle:'Add User',addUserSub:'Create a user under your account',addUsernameLbl:'Username *',addUsernamePh:'Enter username',addPassLbl:'Password *',addPassPh:'Set password',addRoleLbl:'Role *',roleUser:'👤 Regular User',roleStorekeeper:'🏪 Store Keeper',addBranchLbl:'Assigned Branch *',addUserBtn:'Create User',
+    editUserTitle:'Edit User',editUserSub:'Update user details',editUserPassSub:'(leave blank to keep current)',editUserPassPh:'Enter new password (optional)',editUserBtn:'Save Changes',
+    reqStoreTitle:'Request from Store',reqStoreSub:'Submit a request for branch supplies',reqCatalogLbl:'Item from Catalog',reqCatalogPh:'— Select a store item (optional) —',reqNameLbl:'Or type item name *',reqNamePh:'Enter item name if not in list above',reqQtyLbl:'Quantity *',reqQtyPh:'e.g. 5',reqNoteLbl:'Note / Reason',reqNotePh:'Optional reason for request…',reqSubmitBtn:'Submit Request',
+    branchTitle:'Manage Branches',branchPh:'New branch name…',branchAdd:'+ Add',
+    confirmDelete:'Delete?',confirmUndone:'This action cannot be undone.',confirmDeleteBtn:'Delete',
+    approveTitle:'Approve & Dispatch',approvePriceLbl:'Dispatch Price (per unit) *',approveBtn:'Approve & Dispatch',
+    subTitle:'Manage Subscription',subPlan:'Plan',subTrial:'Trial',subTrialPrice:'14 days free',subBasic:'Basic',subBasicPrice:'Up to 2 users',subPro:'Pro',subProPrice:'Up to 10 users',subEnterprise:'Enterprise',subEnterprisePrice:'Unlimited users',subRecordPay:'Record Payment',subAmountPaid:'Amount Paid',subAmountPaidPh:'e.g. 500',subActiveUntil:'Active Until',subNote:'Note (optional)',subNotePh:'e.g. Bank transfer ref #123',subSaveBtn:'Save',subPayHistory:'Payment History',
+    gateTitle:'Subscription Expired',gateSub:'Your subscription has expired. Please contact the platform administrator to renew your access.',gateContact:'Contact your',gateBold:'POWER-IMS Administrator',gateContactSuf:'to renew your subscription and restore access to the platform.',gateReturn:'← Return to Login',
+    dashTitle:'👑 Platform Dashboard',dashSub:'POWER-IMS — Full visibility over all users on your platform',dashLogout:'Log Out',dashOwners:'Platform Owners',dashPaid:'Paid Active',dashTrial:'On Trial',dashExpired:'Expired/Sus',dashAllUsers:'👤 All Users',dashAddUser:'➕ Add User',dashPending:'⏳ Pending Access Requests',dashBranches:'🏢 Branches',dashReset:'🗑️ Data Reset Requests',dashNoPending:'No pending requests 🎉',
+    btnSave:'Save',btnCancel:'Cancel',btnClose:'Close',btnPrint:'🖨️ Print',btnExportPdf:'Export PDF (A6)',btnClear:'Clear',
+    permFull:'Full',permAddOnly:'Add Only',permRead:'Read Only',permNone:'No Access',
+    dateReceived:'Date Received',stockQty:'Stock Qty',unitCost:'Unit Cost',totalValue:'Total Value',purchaseQty:'Purchase Qty',salesQty:'Sales Qty',receivedQty:'Received Qty',dispatchedQty:'Dispatched Qty',storeValue:'Store Value',method:'Method',item:'Item',subtotal:'Subtotal',amountDue:'AMOUNT DUE',
+    dateLabel:'Date *',selectItem:'— Select item —',storeItemLbl:'Store Item *',noStoreItems:'No items in store',dispatchQtyLbl:'Quantity *',dispatchPriceLbl:'Dispatch Price (per unit) *',toBranchLbl:'To Branch *',dispatchTotal:'DISPATCH TOTAL',partNoLbl:'Part Number *',partNoPh:'e.g. P001',itemNameLbl:'Item Name *',itemNamePh:'Product name',descLbl:'Description',descPh:'Optional',taxOptions:'TAX OPTIONS',totalAmountLbl:'TOTAL AMOUNT',reasonLbl:'Reason *',reasonPh:'What was this expense for?',amountLbl:'Amount *',
+    initBalance:'Initial Cash Balance',totalPurchCash:'Total Purchases — Cash',totalPurchCredit:'Total Purchases — Credit',totalSalesCash:'Total Sales — Cash',totalSalesCredit:'Total Sales — Credit',totalExpenses:'Total Expenses',netProfitLoss:'Net Profit / Loss',cashOnHand:'Cash on Hand',creditPurchTitle:'Pending Purchase on Credit',creditSalesTitle:'Sales on Credit',initBalShort:'Init. Balance',purchCashShort:'Purchase Cash',purchCreditShort:'Purchase Credit',salesCashShort:'Sales Cash',salesCreditShort:'Sales Credit',expensesShort:'Expenses',netPLShort:'Net P/L',allBranches:'ALL BRANCHES',allBranchesBtn:'All Branches',editBalanceHint:'Edit initial balance per branch inline in the table below',
+    storeInventory:'🏪 CENTRAL STORE INVENTORY',storeDispatchHistory:'📤 DISPATCH HISTORY (last 30)',storeKeeperMode:'Store Keeper Mode',dispatchLog:'Dispatch Log',noDispatchRange:'No dispatches in range',noStorePending:'No pending requests 🎉',storeStockReceived:'Total Store Stock Received',storeDispatchedBranches:'Total Dispatched to Branches',storeNetValue:'Net Store Value',
+    emptyItems:'No items yet. Click "Add Items" to get started.',emptyRecords:'No records yet.',emptyActivity:'No activity recorded yet.',emptyExpense:'No expenses yet.',emptyStore:'No store stock yet.',emptyStoreBalance:'No store activity yet. Add stock from the Store tab.',emptyRequests:'No requests yet.',emptyOwners:'No owners yet.',
+    toastItemNotFound:'Item not found',toastInsufficientStock:'Insufficient store stock',toastNoPermTab:'No permission for this tab',toastRowDeleted:'Row deleted',toastRecordAdded:'Record added!',toastUpdated:'Updated!',toastItemAdded:'Item added!',toastItemUpdated:'Item updated!',toastPassUpdated:'Password updated!',toastExpenseAdded:'Expense added!',toastStoreTransferNoEdit:'Store transfer rows cannot be edited',toastStoreTransferNoDelete:'Store transfer rows cannot be deleted',toastBalancePdf:'Balance PDF downloaded ✓',toastResetPending:'A reset request is already pending approval.',toastResetSent:'🔔 Reset request sent to software owner.',
+    receiptPurchase:'Purchase Receipt',receiptSales:'Sales Receipt',receiptPartNo:'Part No.',receiptItem:'Item',receiptDesc:'Description',receiptQty:'Qty',receiptUnitPrice:'Unit Price',receiptSubtotal:'Subtotal',receiptTotal:'TOTAL',receiptAmountDue:'AMOUNT DUE',receiptThankYou:'POWER-IMS — Thank you!',receiptPrinted:'Printed:',
+    storeReceiptTitle:'📦 POWER-IMS — STORE',storeReceiptSub:'Dispatch Receipt',storeReceiptId:'Receipt ID',storeReceiptDate:'Date',storeReceiptBranch:'To Branch',storeReceiptPartNo:'Part No.',storeReceiptItem:'Item',storeReceiptQty:'Qty',storeReceiptPrice:'Unit Price',storeReceiptTotal:'Total',storeReceiptBy:'Dispatched by:',storeReceiptPrinted:'Printed:',storeReceiptApproved:'✅ APPROVED',storeReceiptRejected:'❌ REJECTED',storeReceiptPending:'⏳ PENDING',
+    notifPendingUsers:'🔔 Pending User Requests',notifStoreReceipts:'🏪 Store Receipts',notifBranchRequests:'🛒 Branch Store Requests',noStoreReceiptsYet:'No store receipts for your branch yet.',
+    ctxEdit:'Edit Row',ctxDelete:'Delete Row',ctxPrint:'Print Receipt',ctxStoreTransfer:'Store Transfer — read only',ctxBy:'By:',
+    storeKeeperLabel:'Store Keeper',
+    totalInventoryValue:'TOTAL INVENTORY VALUE',exportPdfBtn:'📄 Export PDF',
+    back:'Back',syncBtn:'Cloud Sync',storeReceiptsBtn:'Store Receipts',branchReqBtn:'Branch Store Requests',settingsBtn:'Settings',systemOwner:'SYSTEM OWNER',searchPh:'Search…',rows:'rows',
+    valUsername:'Please enter username and password',valPassMatch:'Passwords do not match.',valPassLen:'Password must be at least 4 characters.',valUserTaken:'Username already taken. Choose a different username.',valBizName:'Please enter your business/shop name.',valPendingReq:'A request with this username is already pending.',valSelectItem:'Please select or enter an item name',valQtyMin:'Quantity must be at least 1',valPartExists:'Part Number already exists — choose a unique one',valPassCurrent:'Current password incorrect',valPassMin:'Min 4 characters',valPassMatchShort:'Passwords do not match',valUserExists:'Username already exists',valPassRequired:'Password min 4 characters',valUsernameReq:'Please enter username and password required',valDispatchPrice:'Please enter a valid price',
+    confirmSuspendTitle:'Suspend User?',confirmDeleteUserTitle:'Delete User?',confirmDeleteBranchTitle:'Delete Branch?',confirmDeleteOwnerTitle:'Delete Owner?',confirmDeleteOwnerMsg:'This removes their account. Inventory data stays intact.',confirmResetTitle:'⚠️ Request Data Reset',confirmApproveResetTitle:'Approve Reset?',
+    branchLabel:'Branch:',exportPermLabel:'Export Permission',
+    subStatusTrial:'Trial · 14d left',subStatusActive:'Active',subStatusExpired:'Expired',subStatusSuspended:'Suspended',
+  },
+  am:{
+    date:'ቀን',supplier:'አቅርቦት',customer:'ደንበኛ',branch:'ቅርንጫፍ',partNo:'ቁጥር',itemName:'ዕቃ ስም',desc:'መግለጫ',qty:'ብዛት',unitPrice:'የአንድ ዋጋ',total:'ድምር',payment:'ክፍያ',status:'ሁኔታ',price:'ዋጋ',totals:'ድምሮች',vat:'ተ.እ.ታ (15%)',wh3:'ምዝገባ 3%',vwh:'ተ.እ.ታ WH 7.5%',totalPrice:'ጠቅላላ ዋጋ',cash:'ጥሬ ገንዘብ',credit:'ክሬዲት',reason:'ምክንያት',amount:'መጠን',
+    navPurchase:'ግዥ',navSales:'ሽያጭ',navBalance:'ሚዛን',navExpense:'ወጪ',navReport:'ሪፖርት',navItems:'ዕቃዎች',navStore:'ስቶር',navStoreBalance:'ሚዛን',navStoreReport:'ሪፖርት',
+    titleItems:'ዕቃዎች ጨምር',subItems:'ክምችት ካታሎጅ ያስተዳድሩ',titlePurchase:'ግዥ',subPurchase:'የግዥ መዝገቦች',titleSales:'ሽያጭ',subSales:'የሽያጭ መዝገቦች',titleBalance:'ሚዛን',subBalance:'የክምችት ደረጃዎች',titleStore:'ስቶር',subStore:'ማዕከላዊ ስቶር ክምችት እና ስርጭት',titleStoreBalance:'የስቶር ሚዛን',subStoreBalance:'የስቶር ክምችት ደረጃ እና ጠቅላላ ዋጋ',titleExpense:'ወጪ',subExpense:'ወጪ ክትትል',titleReport:'ሪፖርት',subReport:'የፋይናንስ ማጠቃለያ',titleStoreReport:'የስቶር ሪፖርት',subStoreReport:'የስቶር ፋይናንስ ማጠቃለያ',
+    settingsTitle:'ቅንብሮች',settingsNav:'አሰሳ',settingsAddItems:'ዕቃዎች ጨምር',settingsAddItemsSub:'ክምችት ካታሎጅ ያስተዳድሩ',settingsStore:'ስቶር',settingsStoreSub:'የስቶር ክምችት ያስተዳድሩ',settingsStoreBalance:'የስቶር ሚዛን',settingsStoreBalanceSub:'የስቶር ክምችት ደረጃ',settingsStoreReport:'የስቶር ሪፖርት',settingsStoreReportSub:'የስቶር ፋይናንስ ማጠቃለያ',settingsStoreExpense:'የስቶር ወጪ',settingsStoreExpenseSub:'የስቶር ወጪዎችን ያስተዳድሩ',settingsExport:'ዳታ ወደ ውጭ ላክ',settingsExportBtn:'ወደ ውጭ ላክ (PDF & Excel)',settingsAccount:'መለያ',settingsChangePass:'የይለፍ ቃል ቀይር',settingsPhoto:'የፕሮፋይል ፎቶ',settingsShopName:'የሱቅ ስም',settingsShopNameSub:'የንግድ ስምዎን ያስተካክሉ',settingsPerms:'የተጠቃሚ ፈቃዶች',settingsPermsSub:'ለባለቤቶች ብቻ',settingsBranches:'ቅርንጫፎችን ያስተዳድሩ',settingsAddUser:'ተጠቃሚ ጨምር',settingsAddUserSub:'ለቅርንጫፍ ተጠቃሚ ፍጠር',settingsReqStore:'ከስቶር ጠይቅ',settingsReqStoreSub:'ለቅርንጫፍዎ ዕቃዎች ጠይቅ',settingsDanger:'አደገኛ ቦታ',settingsResetReq:'የዳታ ዳግም ማስጀመር ጠይቅ',settingsResetReqSub:'የሶፍትዌር ባለቤት ፈቃድ ይፈልጋል',settingsPrefs:'ምርጫዎች',settingsLight:'☀️ ብርሃን ሁነታ',settingsMobile:'📱 ሞባይል እይታ',settingsLang:'🌐 ቋንቋ',settingsLogout:'ውጣ',
+    authLogin:'ግባ',authRequest:'መዳረሻ ጠይቅ',authNewBiz:'🏢 አዲስ ንግድ',authEmployee:'👤 ሠራተኛ',authBizHint:'ንግድዎን ለ14 ቀናት ነፃ ሙከራ ያስመዝግቡ',authBizName:'የንግድ / ሱቅ ስም *',authBizNamePh:'ለምሳ፤ አበበ ጠቅላላ ንግድ',authUsername:'የተጠቃሚ ስም',authUsernamePh:'የተጠቃሚ ስምዎን ያስገቡ',authPassword:'የይለፍ ቃል',authPasswordPh:'የይለፍ ቃልዎን ያስገቡ',authConfirmPass:'የይለፍ ቃሉን ያረጋግጡ',authConfirmPassPh:'የይለፍ ቃሉን እንደገና ያስገቡ',authOwnerUser:'የፕላትፎርም ባለቤት ስም',authOwnerUserSub:'(መለያዎን የሚያስተዳድረው)',authOwnerUserPh:'የፕላትፎርም ባለቤቱን ስም ያስገቡ',authLoginBtn:'🔐 ግባ',authCloudNote:'☁️ ሁሉም መሳሪያዎች ላይ ይሳሙናል',authPhotoPh:'ፎቶ ለማከል ጠቅ ያድርጉ (አማራጭ)',
+    expTitle:'ሪፖርት ወደ ውጭ ላክ',expSub:'እንደ PDF ወይም Excel አውርድ',expFormat:'ቅርጸት',expPdf:'PDF',expPdfSub:'.pdf ፋይል አውርድ',expExcel:'Excel',expExcelSub:'.xlsx ፋይል አውርድ',expSheet:'ሉህ',expBtnPdf:'PDF አውርድ',expBtnXlsx:'Excel አውርድ',
+    addEntryTitle:'ግቤት ጨምር',addEntrySub:'ከዚህ በታች ያለውን ቅጽ ሙሉ',editEntryTitle:'ግቤት አስተካክል',editEntrySub:'ከዚህ በታች ያሉ መስኮችን ያዘምኑ',
+    shopNameTitle:'የሱቅ ስም',shopNameLabel:'የንግድ / ሱቅ ስም',shopNamePh:'ለምሳ፤ አበበ ጠቅላላ ንግድ',
+    changePassTitle:'የይለፍ ቃል ቀይር',changePassCurrent:'የአሁኑ የይለፍ ቃል',changePassNew:'አዲስ የይለፍ ቃል',changePassConfirm:'አዲሱን ያረጋግጡ',changePassBtn:'የይለፍ ቃሉን አስቀምጥ',
+    photoTitle:'የፕሮፋይል ፎቶ',photoPh:'ፎቶ ለመምረጥ ጠቅ ያድርጉ',photoBtn:'ፎቶ አስቀምጥ',
+    permsTitle:'የተጠቃሚ ፈቃዶች',permsSub:'ለእያንዳንዱ ተጠቃሚ መዳረሻ ቆጣጠሩ',
+    addUserTitle:'ተጠቃሚ ጨምር',addUserSub:'ስር መለያዎ ተጠቃሚ ፍጠር',addUsernameLbl:'የተጠቃሚ ስም *',addUsernamePh:'ስም ያስገቡ',addPassLbl:'የይለፍ ቃል *',addPassPh:'የይለፍ ቃል ያስቀምጡ',addRoleLbl:'ሚና *',roleUser:'👤 መደበኛ ተጠቃሚ',roleStorekeeper:'🏪 ስቶር ጠባቂ',addBranchLbl:'የተወሰነ ቅርንጫፍ *',addUserBtn:'ተጠቃሚ ፍጠር',
+    editUserTitle:'ተጠቃሚ አስተካክል',editUserSub:'የተጠቃሚ ዝርዝሮችን ያዘምኑ',editUserPassSub:'(ባዶ ትቶ ቢሰዱ ያለው ይቆያል)',editUserPassPh:'አዲስ የይለፍ ቃል ያስገቡ (አማራጭ)',editUserBtn:'ለውጦቹን አስቀምጥ',
+    reqStoreTitle:'ከስቶር ጠይቅ',reqStoreSub:'ለቅርንጫፍ አቅርቦቶች ጥያቄ ያስገቡ',reqCatalogLbl:'ከካታሎጅ ዕቃ',reqCatalogPh:'— ዕቃ ይምረጡ (አማራጭ) —',reqNameLbl:'ወይም ዕቃ ስም ያስገቡ *',reqNamePh:'ዕቃው ከዝርዝሩ ካልተገኘ ስሙን ያስገቡ',reqQtyLbl:'ብዛት *',reqQtyPh:'ለምሳ፤ 5',reqNoteLbl:'ማስታወሻ / ምክንያት',reqNotePh:'አማራጭ ምክንያት…',reqSubmitBtn:'ጥያቄ ያስገቡ',
+    branchTitle:'ቅርንጫፎችን ያስተዳድሩ',branchPh:'አዲስ ቅርንጫፍ ስም…',branchAdd:'+ ጨምር',
+    confirmDelete:'ሰርዝ?',confirmUndone:'ይህ ድርጊት ሊቀለበስ አይችልም።',confirmDeleteBtn:'ሰርዝ',
+    approveTitle:'አፅድቅ እና ላክ',approvePriceLbl:'የስርጭት ዋጋ (በአንድ ክፍል) *',approveBtn:'አፅድቅ እና ላክ',
+    subTitle:'ደንብ ያስተዳድሩ',subPlan:'እቅድ',subTrial:'ሙከራ',subTrialPrice:'14 ቀናት ነፃ',subBasic:'መሰረታዊ',subBasicPrice:'እስከ 2 ተጠቃሚዎች',subPro:'ፕሮ',subProPrice:'እስከ 10 ተጠቃሚዎች',subEnterprise:'ድርጅት',subEnterprisePrice:'ያልተወሰነ ተጠቃሚዎች',subRecordPay:'ክፍያ መዝግብ',subAmountPaid:'የተከፈለ መጠን',subAmountPaidPh:'ለምሳ፤ 500',subActiveUntil:'ንቁ እስከ',subNote:'ማስታወሻ (አማራጭ)',subNotePh:'ለምሳ፤ የባንክ ዝውውር ቁጥር #123',subSaveBtn:'አስቀምጥ',subPayHistory:'የክፍያ ታሪክ',
+    gateTitle:'ደንቡ ጊዜ አልፎበታል',gateSub:'ደንብዎ ጊዜ አልፎበታል። ለታደሰ መዳረሻ የፕላትፎርም አስተዳዳሪውን ያነጋግሩ።',gateContact:'ያነጋግሩ',gateBold:'POWER-IMS አስተዳዳሪ',gateContactSuf:'ደንብዎን ለማደስ እና ወደ ፕላትፎርሙ ለመዳረሻ።',gateReturn:'← ወደ ግቤት ተመለስ',
+    dashTitle:'👑 የፕላትፎርም ዳሽቦርድ',dashSub:'POWER-IMS — ሁሉም ተጠቃሚዎችዎ ሙሉ እይታ',dashLogout:'ውጣ',dashOwners:'የፕላትፎርም ባለቤቶች',dashPaid:'ተከፍሎ ንቁ',dashTrial:'በሙከራ ላይ',dashExpired:'ጊዜ ያለፈ/ታግዷል',dashAllUsers:'👤 ሁሉም ተጠቃሚዎች',dashAddUser:'➕ ተጠቃሚ ጨምር',dashPending:'⏳ በሂደት ላይ ያሉ ጥያቄዎች',dashBranches:'🏢 ቅርንጫፎች',dashReset:'🗑️ ዳታ ዳግም ማስጀመር ጥያቄዎች',dashNoPending:'ምንም ጥያቄዎች የሉም 🎉',
+    btnSave:'አስቀምጥ',btnCancel:'ሰርዝ',btnClose:'ዝጋ',btnPrint:'🖨️ አትም',btnExportPdf:'PDF አውርድ (A6)',btnClear:'አጽዳ',
+    permFull:'ሙሉ',permAddOnly:'መጨመር ብቻ',permRead:'ማንበብ ብቻ',permNone:'መዳረሻ የለም',
+    dateReceived:'የተቀበሉበት ቀን',stockQty:'የክምችት ብዛት',unitCost:'የአንድ ዋጋ',totalValue:'ጠቅላላ ዋጋ',purchaseQty:'የግዥ ብዛት',salesQty:'የሽያጭ ብዛት',receivedQty:'የተቀበሉ ብዛት',dispatchedQty:'የተላኩ ብዛት',storeValue:'የስቶር ዋጋ',method:'ዘዴ',item:'ዕቃ',subtotal:'ንዑስ ድምር',amountDue:'ሊከፈል ያለው',
+    dateLabel:'ቀን *',selectItem:'— ዕቃ ይምረጡ —',storeItemLbl:'የስቶር ዕቃ *',noStoreItems:'ምንም የስቶር ዕቃዎች የሉም',dispatchQtyLbl:'ብዛት *',dispatchPriceLbl:'የስርጭት ዋጋ (በአንድ ክፍል) *',toBranchLbl:'ወደ ቅርንጫፍ *',dispatchTotal:'የስርጭት ጠቅላላ',partNoLbl:'ቁጥር *',partNoPh:'ለምሳ፤ P001',itemNameLbl:'ዕቃ ስም *',itemNamePh:'የዕቃ ስም',descLbl:'መግለጫ',descPh:'አማራጭ',taxOptions:'የቀረጥ አማራጮች',totalAmountLbl:'ጠቅላላ መጠን',reasonLbl:'ምክንያት *',reasonPh:'ይህ ወጪ ለምን ነበር?',amountLbl:'መጠን *',
+    initBalance:'የመጀመሪያ ጥሬ ገንዘብ ሂሳብ',totalPurchCash:'ጠቅላላ ግዥዎች — ጥሬ ገንዘብ',totalPurchCredit:'ጠቅላላ ግዥዎች — ክሬዲት',totalSalesCash:'ጠቅላላ ሽያጭ — ጥሬ ገንዘብ',totalSalesCredit:'ጠቅላላ ሽያጭ — ክሬዲት',totalExpenses:'ጠቅላላ ወጪዎች',netProfitLoss:'ጠቅላላ ትርፍ / ኪሳራ',cashOnHand:'ያለ ጥሬ ገንዘብ',creditPurchTitle:'በሂደት ላይ ክሬዲት ግዥ',creditSalesTitle:'ክሬዲት ሽያጭ',initBalShort:'ቀዳሚ ሂሳብ',purchCashShort:'ግዥ ጥሬ ገንዘብ',purchCreditShort:'ግዥ ክሬዲት',salesCashShort:'ሽያጭ ጥሬ ገንዘብ',salesCreditShort:'ሽያጭ ክሬዲት',expensesShort:'ወጪዎች',netPLShort:'ትርፍ/ኪሳራ',allBranches:'ሁሉም ቅርንጫፎች',allBranchesBtn:'ሁሉም ቅርንጫፎች',editBalanceHint:'ከዚህ በታች ባለው ሠንጠረዥ የቀዳሚ ሂሳቡን ያስተካክሉ',
+    storeInventory:'🏪 ማዕከላዊ ስቶር ክምችት',storeDispatchHistory:'📤 የስርጭት ታሪክ (ባለፉ 30)',storeKeeperMode:'ስቶር ጠባቂ ሁነታ',dispatchLog:'የስርጭት መዝገብ',noDispatchRange:'ምንም ስርጭቶች የሉም',noStorePending:'ምንም ጥያቄዎች የሉም 🎉',storeStockReceived:'ጠቅላላ ወደ ስቶር የተቀበሉ',storeDispatchedBranches:'ጠቅላላ ወደ ቅርንጫፍ የተላኩ',storeNetValue:'ጠቅላላ የስቶር ዋጋ',
+    emptyItems:'ዕቃዎች የሉም። ለመጀመር "ዕቃዎች ጨምር" ጠቅ ያድርጉ።',emptyRecords:'ምንም መዝገቦች የሉም።',emptyActivity:'ምንም ንቅናቄ አልተመዘገበም።',emptyExpense:'ምንም ወጪዎች የሉም።',emptyStore:'ምንም የስቶር ክምችት የለም።',emptyStoreBalance:'ምንም የስቶር ንቅናቄ የለም። ከስቶር ትር ክምችት ይጨምሩ።',emptyRequests:'ምንም ጥያቄዎች የሉም።',emptyOwners:'ምንም ባለቤቶች የሉም።',
+    toastItemNotFound:'ዕቃ አልተገኘም',toastInsufficientStock:'በቂ ስቶር ክምችት የለም',toastNoPermTab:'ለዚህ ትር ፈቃድ የለም',toastRowDeleted:'ረድፍ ተሰርዟል',toastRecordAdded:'መዝገብ ታክሏል!',toastUpdated:'ተዘምኗል!',toastItemAdded:'ዕቃ ታክሏል!',toastItemUpdated:'ዕቃ ተዘምኗል!',toastPassUpdated:'የይለፍ ቃሉ ተዘምኗል!',toastExpenseAdded:'ወጪ ታክሏል!',toastStoreTransferNoEdit:'የስቶር ዝውውር ረድፎች ሊስተካከሉ አይችሉም',toastStoreTransferNoDelete:'የስቶር ዝውውር ረድፎች ሊሰረዙ አይችሉም',toastBalancePdf:'የሚዛን PDF ወርዷል ✓',toastResetPending:'ቀደም ብሎ ያስገቡ ጥያቄ ይጠብቃል።',toastResetSent:'🔔 ጥያቄ ለሶፍትዌር ባለቤት ተልኳል።',
+    receiptPurchase:'የግዥ ደረሰኝ',receiptSales:'የሽያጭ ደረሰኝ',receiptPartNo:'ቁጥር',receiptItem:'ዕቃ',receiptDesc:'መግለጫ',receiptQty:'ብዛት',receiptUnitPrice:'የአንድ ዋጋ',receiptSubtotal:'ንዑስ ድምር',receiptTotal:'ጠቅላላ',receiptAmountDue:'ሊከፈል ያለው',receiptThankYou:'POWER-IMS — እናመሰግናለን!',receiptPrinted:'ታትሞ:',
+    storeReceiptTitle:'📦 POWER-IMS — ስቶር',storeReceiptSub:'የስርጭት ደረሰኝ',storeReceiptId:'የደረሰኝ ቁጥር',storeReceiptDate:'ቀን',storeReceiptBranch:'ወደ ቅርንጫፍ',storeReceiptPartNo:'ቁጥር',storeReceiptItem:'ዕቃ',storeReceiptQty:'ብዛት',storeReceiptPrice:'የአንድ ዋጋ',storeReceiptTotal:'ጠቅላላ',storeReceiptBy:'የላከው:',storeReceiptPrinted:'ታትሞ:',storeReceiptApproved:'✅ ጸድቋል',storeReceiptRejected:'❌ ተቀባይነት አልተሰጠም',storeReceiptPending:'⏳ በሂደት ላይ',
+    notifPendingUsers:'🔔 የሚጠባበቁ ጥያቄዎች',notifStoreReceipts:'🏪 የስቶር ደረሰኞች',notifBranchRequests:'🛒 የቅርንጫፍ ጥያቄዎች',noStoreReceiptsYet:'ለቅርንጫፍዎ ምንም የስቶር ደረሰኞች የሉም።',
+    ctxEdit:'ረድፍ አስተካክል',ctxDelete:'ረድፍ ሰርዝ',ctxPrint:'ደረሰኝ አትም',ctxStoreTransfer:'የስቶር ዝውውር — ማንበብ ብቻ',ctxBy:'የሠራው:',
+    storeKeeperLabel:'ስቶር ጠባቂ',
+    totalInventoryValue:'ጠቅላላ ክምችት ዋጋ',exportPdfBtn:'📄 PDF አውርድ',
+    back:'ተመለስ',syncBtn:'የደመና ዝምጥ',storeReceiptsBtn:'የስቶር ደረሰኞች',branchReqBtn:'የቅርንጫፍ ጥያቄዎች',settingsBtn:'ቅንብሮች',systemOwner:'ሲስተም ባለቤት',searchPh:'ፈልግ…',rows:'ረድፎች',
+    valUsername:'የተጠቃሚ ስም እና የይለፍ ቃል ያስገቡ',valPassMatch:'የይለፍ ቃሎቹ አይዛመዱም።',valPassLen:'የይለፍ ቃሉ ቢያንስ 4 ቁምፊዎች መሆን አለበት።',valUserTaken:'ይህ ስም ቀድሞ ተወስዷል። ሌላ ይምረጡ።',valBizName:'የንግድ/ሱቅ ስም ያስገቡ።',valPendingReq:'ቀደም ብሎ ባቀረቡት ስም ጥያቄ አለ።',valSelectItem:'ዕቃ ይምረጡ ወይም ስም ያስገቡ',valQtyMin:'ብዛቱ ቢያንስ 1 መሆን አለበት',valPartExists:'ቁጥሩ ቀድሞ አለ — ሌላ ይምረጡ',valPassCurrent:'አሁኑ የይለፍ ቃሉ ትክክል አይደለም',valPassMin:'ቢያንስ 4 ቁምፊዎች',valPassMatchShort:'የይለፍ ቃሎቹ አይዛመዱም',valUserExists:'ስሙ ቀድሞ አለ',valPassRequired:'የይለፍ ቃሉ ቢያንስ 4 ቁምፊዎች',valUsernameReq:'የተጠቃሚ ስም እና የይለፍ ቃል ያስገቡ',valDispatchPrice:'ትክክለኛ ዋጋ ያስገቡ',
+    confirmSuspendTitle:'ተጠቃሚ ታግድ?',confirmDeleteUserTitle:'ተጠቃሚ ሰርዝ?',confirmDeleteBranchTitle:'ቅርንጫፍ ሰርዝ?',confirmDeleteOwnerTitle:'ባለቤት ሰርዝ?',confirmDeleteOwnerMsg:'መለያቸው ይሰረዛል። የክምችት ዳታ ይቆያል።',confirmResetTitle:'⚠️ ዳታ ዳግም ማስጀመር ጠይቅ',confirmApproveResetTitle:'ዳግም ማስጀመር ይፈቀድ?',
+    branchLabel:'ቅርንጫፍ:',exportPermLabel:'የወደ ውጭ ፈቃድ',
+    subStatusTrial:'ሙከራ · 14 ቀናት',subStatusActive:'ንቁ',subStatusExpired:'ጊዜ አልፏል',subStatusSuspended:'ታግዷል',
+  }
 };
 const L=k=>(LANG[S.lang]||LANG.en)[k]||k;
 
@@ -1871,6 +1979,7 @@ function setAuthSubMode(m){
   document.getElementById('auth-type-biz').classList.toggle('active',m==='business');
   document.getElementById('auth-type-emp').classList.toggle('active',m==='employee');
   document.getElementById('auth-admin-target-wrap').style.display=m==='employee'?'':'none';
+  document.getElementById('auth-shopname-wrap').style.display=m==='business'?'':'none';
   const hint=document.getElementById('auth-type-hint');
   if(hint)hint.textContent=m==='business'?'Register your business for a 14-day free trial':'Request access under an existing business account';
   document.getElementById('auth-btn').innerHTML=m==='business'?'🏢 Register Business':'📝 Request Access';
@@ -1923,9 +2032,11 @@ async function submitAuth(){
       if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already taken. Choose a different username.');return;}
       if(authSubMode==='business'){
         // New subscriber/owner registration — goes to system owner's pending queue
+        const shopName=document.getElementById('auth-shopname')?.value.trim()||'';
+        if(!shopName){showMsg('auth-error','Please enter your business/shop name.');return;}
         const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
         if(pending.find(x=>x.username===u)){showMsg('auth-error','A request with this username is already pending.');return;}
-        pending.push({username:u,password:p,requestedAt:new Date().toISOString()});
+        pending.push({username:u,password:p,shopName,requestedAt:new Date().toISOString()});
         localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
         // Push to cloud so system owner sees it on any device
         if(S.db){
@@ -1980,7 +2091,8 @@ async function doLogin(u,ownerId,role){
   const logo=document.getElementById('brand-logo');
   logo.className='brand-logo'+(role==='storekeeper'?' store-logo':'');
   logo.innerHTML=LOGO_SVG;
-  document.getElementById('brand-sub').textContent=role==='storekeeper'?'Store Keeper':'Inventory System';
+  const shopName=role==='owner'?(getRegistry()[ownerId]?.shopName||''):'';
+  document.getElementById('brand-sub').textContent=role==='storekeeper'?'Store Keeper':(shopName||'Inventory System');
   const hdr=document.getElementById('app-header');
   hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
   document.getElementById('drawer-hdr').className='drawer-hdr'+(role==='storekeeper'?' store-drawer-hdr':'');
@@ -1988,6 +2100,7 @@ async function doLogin(u,ownerId,role){
   document.getElementById('btn-owner-perms').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
+  document.getElementById('btn-owner-shopname').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-request-store').style.display=(isUser()&&S.userBranch)?'flex':'none';
   document.getElementById('danger-zone-wrap').style.display=isOwner()?'block':'none';
   document.getElementById('owner-back-btn').style.display='none';
@@ -2022,30 +2135,26 @@ async function doLogin(u,ownerId,role){
    All others see their normal tabs (subject to permissions)
 ═══════════════════════════════════════════════════════ */
 function updateNavForRole(){
-  // Always hide the separate store buttons and combo by default
-  document.getElementById('store-nav-btn').style.display='none';
-  document.getElementById('nav-STOREBALANCE').style.display='none';
-  const _srBtn=document.getElementById('nav-STOREREPORT');if(_srBtn)_srBtn.style.display='none';
-  document.getElementById('store-combo-wrap').style.display='none';
   if(isStorekeeper()){
     ['PURCHASE','SALES','BALANCE','REPORT','ITEMS'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
     });
-    // Storekeepers get store buttons, expense, and store report
-    document.getElementById('store-nav-btn').style.display='flex';
-    document.getElementById('nav-STOREBALANCE').style.display='flex';
-    document.getElementById('nav-EXPENSE').style.display='flex';
-    const srBtn=document.getElementById('nav-STOREREPORT');if(srBtn)srBtn.style.display='flex';
+    ['STORE','STOREBALANCE','STOREREPORT','EXPENSE'].forEach(tab=>{
+      const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='flex';
+    });
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='none';
+    document.getElementById('store-settings-section').style.display='none';
   }else{
     ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='';
     });
-    // Owners get the single combined Store button
-    if(isOwner())document.getElementById('store-combo-wrap').style.display='flex';
+    ['STORE','STOREBALANCE','STOREREPORT'].forEach(tab=>{
+      const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
+    });
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='flex';
+    if(isOwner())document.getElementById('store-settings-section').style.display='';
   }
 }
 
@@ -2246,6 +2355,7 @@ function approveOwner(i){
   const p=pending[i];const reg=getRegistry();
   reg[p.username]={
     password:p.password,ownerId:p.username,role:'owner',
+    shopName:p.shopName||'',
     sub:'trial',status:'trial',
     trialStart:new Date().toISOString().slice(0,10),trialDays:14,
     payHistory:[]
@@ -2597,7 +2707,7 @@ function openStoreReceipts(){
         </div>
         <div class="receipt-detail">
           📦 <strong>${esc(r.itemName)}</strong> (${esc(r.itemId)})<br>
-          Qty: ${fmtQ(r.qty)} × ${fmt(r.price)} = <strong>${fmt(r.total)}</strong><br>
+          ${r.desc?`📝 ${esc(r.desc)}<br>`:''}Qty: ${fmtQ(r.qty)} × ${fmt(r.price)} = <strong>${fmt(r.total)}</strong><br>
           Date: ${(r.date||'').replace('T',' ')} | Branch: ${esc(r.toBranch)}
         </div>
         ${r.status==='pending'?`<div class="receipt-actions">
@@ -2734,6 +2844,7 @@ function renderStoreRequestsPanel(){
   }).join('');
 }
 
+let _pendingApproveIdx=-1;
 function approveItemRequest(idx){
   const reqs=loadStoreRequests();
   const r=reqs[idx];
@@ -2742,15 +2853,32 @@ function approveItemRequest(idx){
   if(storeIdx<0){showToast(`"${r.itemName}" not found in store catalog`,'error');return;}
   const si=S.storeItems[storeIdx];
   if(si.qty<r.qty){showToast(`Insufficient stock — available: ${fmtQ(si.qty)}`,'error');return;}
-  dispatchToBranch(storeIdx,r.branch,r.qty,si.cost||0);
-  reqs[idx].status='approved';
-  reqs[idx].respondedAt=new Date().toISOString();
-  reqs[idx].respondedBy=S.user;
-  saveStoreRequests(reqs);
-  syncToCloud();
+  _pendingApproveIdx=idx;
+  document.getElementById('dispatch-approve-info').innerHTML=
+    `📦 <b>${esc(r.itemName)}</b> &times;${r.qty}<br>`+
+    `🏢 Branch: <b>${esc(r.branch||'—')}</b><br>`+
+    `👤 Requested by: <b>${esc(r.requestedBy)}</b><br>`+
+    `📋 Store cost price: <b>${fmt(si.cost||0)}</b>`;
+  document.getElementById('dispatch-approve-price').value=si.cost||'';
+  hideMsg('dispatch-approve-error');
+  openModal('dispatch-approve-modal');
+}
+function confirmApproveItemRequest(){
+  const price=parseFloat(document.getElementById('dispatch-approve-price').value);
+  if(!price||price<=0){showMsg('dispatch-approve-error','Please enter a valid price');return;}
+  const reqs=loadStoreRequests();
+  const r=reqs[_pendingApproveIdx];
+  if(!r||r.status!=='pending'){closeModal('dispatch-approve-modal');return;}
+  const storeIdx=S.storeItems.findIndex(s=>s.itemName===r.itemName);
+  if(storeIdx<0){showToast(`"${r.itemName}" not found in store catalog`,'error');closeModal('dispatch-approve-modal');return;}
+  dispatchToBranch(storeIdx,r.branch,r.qty,price);
+  reqs[_pendingApproveIdx].status='approved';
+  reqs[_pendingApproveIdx].respondedAt=new Date().toISOString();
+  reqs[_pendingApproveIdx].respondedBy=S.user;
+  saveStoreRequests(reqs);syncToCloud();
+  closeModal('dispatch-approve-modal');
   showToast(`✅ Approved & dispatched to ${r.branch}!`,'success');
-  updateRequestBadge();
-  renderStoreRequestsPanel();
+  updateRequestBadge();renderStoreRequestsPanel();
 }
 
 function rejectItemRequest(idx){
@@ -2786,19 +2914,20 @@ let _storeRcptRow=null;
 function viewStoreReceiptPrint(r){
   if(typeof r==='string')try{r=JSON.parse(r);}catch(e){return;}
   _storeRcptRow=r;
-  const statusLabel=r.status==='approved'?'✅ APPROVED':r.status==='rejected'?'❌ REJECTED':'⏳ PENDING';
+  const statusLabel=r.status==='approved'?L('storeReceiptApproved'):r.status==='rejected'?L('storeReceiptRejected'):L('storeReceiptPending');
   document.getElementById('store-receipt-print-content').innerHTML=`
-    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS — STORE</div><div class="rcpt-sub">Dispatch Receipt</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
-    <div class="rcpt-line"><span>Receipt ID</span><span>${esc(r.receiptId||r.id)}</span></div>
-    <div class="rcpt-line"><span>Date</span><span>${(r.date||'').replace('T',' ')}</span></div>
-    <div class="rcpt-line"><span>To Branch</span><span>${esc(r.toBranch)}</span></div>
-    <div class="rcpt-line"><span>Part No.</span><span>${esc(r.itemId)}</span></div>
-    <div class="rcpt-line"><span>Item</span><span>${esc(r.itemName)}</span></div>
-    <div class="rcpt-line"><span>Qty</span><span>${fmtQ(r.qty)}</span></div>
-    <div class="rcpt-line"><span>Unit Price</span><span>${fmt(r.price)}</span></div>
-    <div class="rcpt-line bold"><span>TOTAL</span><span>${fmt(r.total)}</span></div>
-    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">STATUS</div><div style="font-size:1rem;font-weight:800;color:var(--p)">${statusLabel}</div></div>
-    <div class="rcpt-footer">POWER-IMS Store Dispatch<br>Dispatched by: ${esc(r._by||r.fromStore)}<br>Printed: ${new Date().toLocaleString()}</div>`;
+    <div class="rcpt-hdr"><div class="rcpt-biz">${L('storeReceiptTitle')}</div><div class="rcpt-sub">${L('storeReceiptSub')}</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
+    <div class="rcpt-line"><span>${L('storeReceiptId')}</span><span>${esc(r.receiptId||r.id)}</span></div>
+    <div class="rcpt-line"><span>${L('storeReceiptDate')}</span><span>${(r.date||'').replace('T',' ')}</span></div>
+    <div class="rcpt-line"><span>${L('storeReceiptBranch')}</span><span>${esc(r.toBranch)}</span></div>
+    <div class="rcpt-line"><span>${L('storeReceiptPartNo')}</span><span>${esc(r.itemId)}</span></div>
+    <div class="rcpt-line"><span>${L('storeReceiptItem')}</span><span>${esc(r.itemName)}</span></div>
+    ${r.desc?`<div class="rcpt-line"><span>${L('receiptDesc')}</span><span>${esc(r.desc)}</span></div>`:''}
+    <div class="rcpt-line"><span>${L('storeReceiptQty')}</span><span>${fmtQ(r.qty)}</span></div>
+    <div class="rcpt-line"><span>${L('storeReceiptPrice')}</span><span>${fmt(r.price)}</span></div>
+    <div class="rcpt-line bold"><span>${L('storeReceiptTotal')}</span><span>${fmt(r.total)}</span></div>
+    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">${L('status').toUpperCase()}</div><div style="font-size:1rem;font-weight:800;color:var(--p)">${statusLabel}</div></div>
+    <div class="rcpt-footer">${L('storeReceiptTitle')}<br>${L('storeReceiptBy')} ${esc(r._by||r.fromStore)}<br>${L('storeReceiptPrinted')} ${new Date().toLocaleString()}</div>`;
   openModal('store-receipt-print-modal');
 }
 function printStoreReceiptDirectly(){
@@ -2836,7 +2965,7 @@ function exportReceiptPDF(){
   const vatAmt=!isP&&row.vatOn?base*0.15:0;
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
-  const grandTotal=base+vatAmt;
+  const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
   // Header
   doc.setFont('helvetica','bold');doc.setFontSize(13);
   doc.text('POWER-IMS',W/2,y,{align:'center'});y+=5.5;
@@ -2852,6 +2981,7 @@ function exportReceiptPDF(){
     ['Branch',row.branch||'—'],
     ['Part No.',row.id||'—'],
     ['Item',row.name||'—'],
+    ...(row.desc?[['Description',row.desc]]:[]),
     ['Qty',String(qty)],
     ['Unit Price',fmt(price)],
     ['Subtotal',fmt(base)],
@@ -2903,6 +3033,7 @@ function exportStoreReceiptPDF(){
     ['To Branch',r.toBranch||'—'],
     ['Part No.',r.itemId||'—'],
     ['Item',r.itemName||'—'],
+    ...(r.desc?[['Description',r.desc]]:[]),
     ['Qty',String(parseFloat(r.qty)||0)],
     ['Unit Price',fmt(r.price||0)],
   ];
@@ -3016,9 +3147,19 @@ function setTheme(th){
   const tog=document.getElementById('dark-toggle');if(tog)tog.checked=(th==='light');
   if(S.user)localStorage.setItem(`ims_${S.user}_theme`,th);
 }
+function translatePage(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    const attr=el.getAttribute('data-i18n-attr');
+    const val=L(k);
+    if(attr)el.setAttribute(attr,val);
+    else el.textContent=val;
+  });
+}
 function setLang(l){
   S.lang=l;if(S.user)localStorage.setItem(`ims_${S.user}_lang`,l);
   if(document.getElementById('lang-select'))document.getElementById('lang-select').value=l;
+  translatePage();
   if(S.tab)renderTab();
 }
 function setViewMode(mode){
@@ -3136,19 +3277,21 @@ let _ctxRow={};
 function showCtxMenu(e,idx,listType){
   e.preventDefault();_ctxRow={idx,listType};
   const list=getList(listType);const row=list[idx];
-  const editable=canEditRow(row)||isOwner();
+  const isStoreTransfer=row&&row.payment==='STORE TRANSFER';
+  const editable=!isStoreTransfer&&(canEditRow(row)||isOwner());
   const rw=canWrite(S.tab);
   const menu=document.getElementById('ctx-menu');
   let html='';
   if(rw&&editable){
-    html+=`<div class="ctx-item" onclick="openEditModal(${idx},'${listType}')"><span class="ctx-icon">✏️</span>Edit Row</div>`;
-    html+=`<div class="ctx-item danger" onclick="deleteRow(${idx},'${listType}')"><span class="ctx-icon">🗑️</span>Delete Row</div>`;
+    html+=`<div class="ctx-item" onclick="openEditModal(${idx},'${listType}')"><span class="ctx-icon">✏️</span>${L('ctxEdit')}</div>`;
+    html+=`<div class="ctx-item danger" onclick="deleteRow(${idx},'${listType}')"><span class="ctx-icon">🗑️</span>${L('ctxDelete')}</div>`;
   }
+  if(isStoreTransfer){html+=`<div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">🔒</span>${L('ctxStoreTransfer')}</div>`;}
   if((S.tab==='PURCHASE'||S.tab==='SALES')&&row){
     html+=`<div class="ctx-divider"></div>`;
-    html+=`<div class="ctx-item" onclick="openRowReceipt(${idx},'${listType}')"><span class="ctx-icon">🧾</span>Print Receipt</div>`;
+    html+=`<div class="ctx-item" onclick="openRowReceipt(${idx},'${listType}')"><span class="ctx-icon">🧾</span>${L('ctxPrint')}</div>`;
   }
-  if(isOwner()&&row?._by){html+=`<div class="ctx-divider"></div><div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>By: <strong>${esc(row._by)}</strong></div>`;}
+  if(isOwner()&&row?._by){html+=`<div class="ctx-divider"></div><div class="ctx-item" style="cursor:default;color:var(--text3)"><span class="ctx-icon">👤</span>${L('ctxBy')} <strong>${esc(row._by)}</strong></div>`;}
   menu.innerHTML=html||'<div class="ctx-item" style="color:var(--text3)">No actions available</div>';
   const x=Math.min(e.clientX,window.innerWidth-200);
   const y=Math.min(e.clientY,window.innerHeight-160);
@@ -3166,30 +3309,16 @@ function getList(type){
 function deleteRow(idx,listType){
   hideCtxMenu();
   const list=getList(listType);const row=list[idx];
+  if(row&&row.payment==='STORE TRANSFER'){showToast(L('toastStoreTransferNoDelete'),'error');return;}
   const label=row.itemId||row.id||row.reason||row.name||'this row';
-  customConfirm('Delete Row?',`"${label}" will be removed.`,'🗑️','Delete',()=>{
-    list.splice(idx,1);saveUserData();renderTab();showToast('Row deleted','success');
+  customConfirm(L('confirmDelete'),`"${label}" will be removed.`,'🗑️',L('confirmDeleteBtn'),()=>{
+    list.splice(idx,1);saveUserData();renderTab();showToast(L('toastRowDeleted'),'success');
   });
 }
 
 /* ═══════════════════════════════════════════════════════
    STORE COMBO MENU
 ═══════════════════════════════════════════════════════ */
-function toggleStoreMenu(e){
-  e&&e.stopPropagation();
-  const menu=document.getElementById('store-sub-menu');
-  const arrow=document.getElementById('store-combo-arrow');
-  const isOpen=menu.style.display!=='none';
-  menu.style.display=isOpen?'none':'block';
-  if(arrow)arrow.textContent=isOpen?'▲':'▼';
-}
-function closeStoreMenu(){
-  const menu=document.getElementById('store-sub-menu');
-  const arrow=document.getElementById('store-combo-arrow');
-  if(menu)menu.style.display='none';
-  if(arrow)arrow.textContent='▲';
-}
-document.addEventListener('click',e=>{if(!e.target.closest('#store-combo-wrap'))closeStoreMenu();});
 
 /* ═══════════════════════════════════════════════════════
    TAB SWITCHING
@@ -3199,7 +3328,7 @@ function switchTab(tab){
   if(isStorekeeper()&&!STOREKEEPER_ALLOWED_TABS.includes(tab)){
     return; // silently block — no error needed since tabs are hidden
   }
-  if(!canRead(tab)&&tab!=='ITEMS'&&tab!=='STOREBALANCE'){showToast('No permission for this tab','error');return;}
+  if(!canRead(tab)&&tab!=='ITEMS'&&tab!=='STOREBALANCE'){showToast(L('toastNoPermTab'),'error');return;}
   S.tab=tab;
   const meta=TAB_META[tab]||TAB_META['ITEMS'];
   document.getElementById('page-icon').textContent=meta.icon;
@@ -3207,17 +3336,6 @@ function switchTab(tab){
   document.getElementById('page-title').textContent=meta.title;
   document.getElementById('page-sub').textContent=meta.sub;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  // Combo store button: highlight when STORE or STOREBALANCE is active
-  const comboBtn=document.getElementById('store-combo-btn');
-  if(comboBtn){
-    const isStore=tab==='STORE'||tab==='STOREBALANCE';
-    comboBtn.classList.toggle('active',isStore);
-    if(isStore){
-      document.getElementById('store-combo-icon').textContent=tab==='STORE'?'🏪':'📊';
-      document.getElementById('store-combo-label').textContent=tab==='STORE'?'Store':'St.Balance';
-    }
-  }
-  document.querySelectorAll('.store-sub-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(S.user)localStorage.setItem(`ims_${S.user}_lastTab`,tab);
   updateSuggestions();renderTab();
 }
@@ -3284,6 +3402,7 @@ function openAddModal(){
 function openEditModal(idx,listType){
   hideCtxMenu();
   const list=getList(listType);const row=list[idx];
+  if(row&&row.payment==='STORE TRANSFER'){showToast(L('toastStoreTransferNoEdit'),'error');return;}
   if(listType==='items')buildItemForm(row,'edit',idx);
   else if(listType==='purchase')buildTxForm(row,'edit',true,idx);
   else if(listType==='sales')buildTxForm(row,'edit',false,idx);
@@ -3350,7 +3469,7 @@ function submitStoreEntryForm(mode,idx){
   }
   saveUserData();renderTab();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Store stock added!':'Updated!','success');
+  showToast(mode==='add'?L('toastRecordAdded'):L('toastUpdated'),'success');
 }
 
 function openDispatchModal(){
@@ -3427,7 +3546,7 @@ function submitItemForm(mode,idx){
   if(mode==='add')S.items.push({id,name,desc,_by:S.user});
   else S.items[idx]={...S.items[idx],id,name,desc,_by:S.user};
   saveUserData();renderTab();closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Item added!':'Item updated!','success');updateSuggestions();
+  showToast(mode==='add'?L('toastItemAdded'):L('toastItemUpdated'),'success');updateSuggestions();
 }
 
 function buildTxForm(row,mode,isP,idx){
@@ -3435,8 +3554,8 @@ function buildTxForm(row,mode,isP,idx){
   document.getElementById('add-form-icon').textContent=icon;
   document.getElementById('add-form-title').textContent=mode==='add'?`Add ${t} Record`:`Edit ${t} Record`;
   document.getElementById('add-form-sub').textContent='Fill in the transaction details';
-  const d=row||(isP?{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',uPrice:'',payment:'CASH'}:{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',sPrice:'',vatOn:true,wh3On:false,vwhOn:false,payment:'CASH'});
-  const vatChk=d.vatOn===undefined?true:d.vatOn;
+  const d=row||(isP?{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',uPrice:'',vatOn:false,payment:'CASH'}:{date:nowDt(),party:'',branch:S.userBranch||S.branches[0]||'Main',id:'',name:'',desc:'',qty:'',sPrice:'',vatOn:true,wh3On:false,vwhOn:false,payment:'CASH'});
+  const vatChk=isP?(d.vatOn||false):(d.vatOn===undefined?true:d.vatOn);
   const wh3Chk=d.wh3On||false;const vwhChk=d.vwhOn||false;
   const itemOpts=S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}" ${m.id===d.id?'selected':''}>${esc(m.id)} — ${esc(m.name)}</option>`).join('');
   const availBranches=S.userBranch?[S.userBranch]:S.branches;
@@ -3460,15 +3579,15 @@ function buildTxForm(row,mode,isP,idx){
       <div class="field"><label>${isP?'Unit Purchase Price *':'Unit Selling Price *'}</label><input type="number" id="f-price" value="${price}" placeholder="0.00" step="any" oninput="recalcFormTotals(${isP})"></div>
     </div>
     <div class="field"><label>Payment Method</label><select id="f-payment">${pmOpts}</select></div>
-    ${!isP?`<div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
+    <div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
       <div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:10px">TAX OPTIONS</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vat" ${vatChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vat')}</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-wh3" ${wh3Chk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('wh3')}</label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vwh" ${vwhChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vwh')}</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vat" ${vatChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(${isP})">${L('vat')}</label>
+        ${!isP?`<label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-wh3" ${wh3Chk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('wh3')}</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:600"><input type="checkbox" id="f-vwh" ${vwhChk?'checked':''} style="width:15px;height:15px;accent-color:var(--p)" onchange="recalcFormTotals(false)">${L('vwh')}</label>`:''}
       </div>
       <div id="f-tax-display" style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--text3)"></div>
-    </div>`:''}
+    </div>
     <div style="padding:12px;background:var(--p-glass);border-radius:var(--radius-sm);margin-bottom:14px;border:1px solid rgba(59,130,246,.2)">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL AMOUNT</span>
@@ -3492,14 +3611,15 @@ function recalcFormTotals(isP){
   const qty=parseFloat(document.getElementById('f-qty')?.value)||0;
   const price=parseFloat(document.getElementById('f-price')?.value)||0;
   const base=qty*price;let total=base;
+  let taxHtml='';
+  const vatEl=document.getElementById('f-vat');
+  if(vatEl?.checked){const v=base*0.15;total+=v;taxHtml+=`<span style="margin-right:12px">VAT: +${fmt(v)}</span>`;}
   if(!isP){
-    let taxHtml='';
-    const vatEl=document.getElementById('f-vat');const wh3El=document.getElementById('f-wh3');const vwhEl=document.getElementById('f-vwh');
-    if(vatEl?.checked){const v=base*0.15;total+=v;taxHtml+=`<span style="margin-right:12px">VAT: +${fmt(v)}</span>`;}
-    if(wh3El?.checked){const v=base*0.03;taxHtml+=`<span style="margin-right:12px">WH 3%: -${fmt(v)}</span>`;}
-    if(vwhEl?.checked){const v=base*0.075;taxHtml+=`<span>VAT WH 7.5%: -${fmt(v)}</span>`;}
-    const td=document.getElementById('f-tax-display');if(td)td.innerHTML=taxHtml||'<span>No tax</span>';
+    const wh3El=document.getElementById('f-wh3');const vwhEl=document.getElementById('f-vwh');
+    if(wh3El?.checked){const v=base*0.03;total-=v;taxHtml+=`<span style="margin-right:12px">WH 3%: -${fmt(v)}</span>`;}
+    if(vwhEl?.checked){const v=base*0.075;total-=v;taxHtml+=`<span>VAT WH 7.5%: -${fmt(v)}</span>`;}
   }
+  const txd=document.getElementById('f-tax-display');if(txd)txd.innerHTML=taxHtml||'<span>No tax</span>';
   const td=document.getElementById('f-total-display');if(td)td.textContent=fmt(total);
 }
 function submitTxForm(mode,idx,isP){
@@ -3517,7 +3637,8 @@ function submitTxForm(mode,idx,isP){
   if(!price){showMsg('f-error','Price required');return;}
   const item=S.items.find(m=>m.id===itemId)||{name:'',desc:''};
   if(isP){
-    const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,uPrice:price,payment,_by:S.user};
+    const vatOn=document.getElementById('f-vat')?.checked??false;
+    const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,uPrice:price,payment,vatOn,_by:S.user};
     if(mode==='add')S.purchase.push(row);else S.purchase[idx]={...S.purchase[idx],...row};
   }else{
     const vatOn=document.getElementById('f-vat')?.checked??true;
@@ -3528,7 +3649,7 @@ function submitTxForm(mode,idx,isP){
   }
   saveUserData();renderTab();updateSuggestions();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Record added!':'Updated!','success');
+  showToast(mode==='add'?L('toastRecordAdded'):L('toastUpdated'),'success');
 }
 
 function buildExpenseForm(row,mode,idx){
@@ -3559,7 +3680,7 @@ function submitExpenseForm(mode,idx){
   if(mode==='add')S.expense.push(row);else S.expense[idx]={...S.expense[idx],...row};
   saveUserData();renderTab();
   closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
-  showToast(mode==='add'?'Expense added!':'Updated!','success');
+  showToast(mode==='add'?L('toastExpenseAdded'):L('toastUpdated'),'success');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3576,7 +3697,7 @@ function renderItems(){
             <td style="font-weight:600" data-label="Item Name">${esc(row.name)}</td>
             <td style="color:var(--text3)" data-label="Description">${esc(row.desc)}</td>
           </tr>`).join('')}
-        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Items" to get started.</td></tr>`:''}
+        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">${L('emptyItems')}</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
@@ -3597,15 +3718,11 @@ function renderTx(){
     const qty=parseFloat(row.qty)||0;
     const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
     const base=qty*price;let total=base;
-    if(!isP&&row.vatOn)total+=base*0.15;
+    if(row.vatOn)total+=base*0.15;
+    if(!isP){if(row.wh3On)total-=base*0.03;if(row.vwhOn)total-=base*0.075;}
     totQty+=qty;totVal+=total;
     const pmBadge=m=>`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
-    let taxCells='';
-    if(!isP){
-      taxCells=`<td class="num td-mono" data-label="Price">${fmt(price)}</td>
-        <td class="num" data-label="Tax">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>
-        <td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(total)}</td>`;
-    }
+    const taxCell=`<td class="num" data-label="Tax">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>`;
     return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit/delete/print">
       <td class="td-mono" data-label="Date" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
       <td data-label="${isP?'Supplier':'Customer'}" style="font-weight:500">${esc(row.party||'—')}</td>
@@ -3614,21 +3731,22 @@ function renderTx(){
       <td data-label="Item Name" style="font-weight:500">${esc(row.name||'—')}</td>
       <td data-label="Description" style="color:var(--text3)">${esc(row.desc||'')}</td>
       <td class="num td-mono" data-label="Qty">${fmtQ(qty)}</td>
-      ${isP?`<td class="num td-mono" data-label="Unit Price">${fmt(price)}</td><td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(base)}</td>`:taxCells}
+      <td class="num td-mono" data-label="${isP?'Unit Price':'Price'}">${fmt(price)}</td>
+      ${taxCell}
+      <td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(total)}</td>
       <td data-label="Payment">${pmBadge(row.payment||'CASH')}</td>
     </tr>`;
   }).join('');
-  const colsP=`<th>${L('date')}</th><th>${isP?L('supplier'):L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${L('unitPrice')}</th><th class="num">${L('total')}</th><th>${L('payment')}</th>`;
-  const colsS=`<th>${L('date')}</th><th>${L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${L('price')}</th><th>Tax</th><th class="num">${L('totalPrice')}</th><th>${L('payment')}</th>`;
+  const cols=`<th>${L('date')}</th><th>${isP?L('supplier'):L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${isP?L('unitPrice'):L('price')}</th><th>${L('vat').split(' ')[0]}</th><th class="num">${L('totalPrice')}</th><th>${L('payment')}</th>`;
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
-      <thead><tr>${isP?colsP:colsS}</tr></thead>
+      <thead><tr>${cols}</tr></thead>
       <tbody>
-        ${rows||`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:32px">No records yet.</td></tr>`}
+        ${rows||`<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:32px">${L('emptyRecords')}</td></tr>`}
         ${visible.length?`<tr class="summary-row">
-          <td colspan="6" data-label="">TOTALS</td>
+          <td colspan="6" data-label="">${L('totals').toUpperCase()}</td>
           <td class="num td-mono" data-label="Qty">${fmtQ(totQty)}</td>
-          ${isP?'<td data-label=""></td>':'<td data-label=""></td><td data-label=""></td>'}
+          <td data-label=""></td><td data-label=""></td>
           <td class="num td-mono ${colorClass(totVal)}" data-label="Total">${fmt(totVal)}</td><td data-label=""></td>
         </tr>`:''}
       </tbody>
@@ -3663,14 +3781,70 @@ function renderBalance(){
   }).filter(Boolean).join('');
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
-      <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">Purchase Qty</th><th class="num">Sales Qty</th><th class="num">Balance</th><th class="num">Inv. Value</th></tr></thead>
-      <tbody>${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No activity recorded yet.</td></tr>`}</tbody>
+      <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('purchaseQty')}</th><th class="num">${L('salesQty')}</th><th class="num">${L('balance')}</th><th class="num">${L('totalValue')}</th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">${L('emptyActivity')}</td></tr>`}</tbody>
     </table>
   </div>`;
   document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
-    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL INVENTORY VALUE${filterBranch?` — ${filterBranch}`:''}</span>
-    <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalV)}</span>
+    <span style="font-size:11px;font-weight:700;color:var(--text3)">${L('totalInventoryValue')}${filterBranch?` — ${filterBranch}`:''}</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalV)}</span>
+      <button class="btn btn-sm no-print" onclick="exportBalancePDF()" style="background:var(--error);color:#fff;border-color:var(--error)">${L('exportPdfBtn')}</button>
+    </div>
   </div>`;
+}
+
+function exportBalancePDF(){
+  if(typeof window.jspdf==='undefined'||!window.jspdf.jsPDF){showToast('PDF library not loaded','error');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+  const pageW=doc.internal.pageSize.getWidth();
+  const filterBranch=S.userBranch||'';
+  const branchLabel=filterBranch?` — ${filterBranch}`:'';
+  // Header bar
+  doc.setFillColor(16,185,129);doc.rect(0,0,pageW,48,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text('POWER-IMS',24,30);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text(`Inventory Balance${branchLabel}`,24,43);
+  doc.setFontSize(9);
+  doc.text(`Generated: ${new Date().toLocaleString()}   User: ${S.user}`,pageW-24,30,{align:'right'});
+  doc.text(`Branch: ${filterBranch||'All'}`,pageW-24,43,{align:'right'});
+  doc.setTextColor(0,0,0);
+  const headers=[['Part No.','Item Name','Description','Purchase Qty','Sales Qty','Balance','Avg Cost','Inventory Value']];
+  const rows=[];let totalV=0;
+  S.items.filter(m=>m.id).forEach(item=>{
+    const purFilter=filterBranch?S.purchase.filter(p=>p.id===item.id&&p.branch===filterBranch):S.purchase.filter(p=>p.id===item.id);
+    const salFilter=filterBranch?S.sales.filter(s=>s.id===item.id&&s.branch===filterBranch):S.sales.filter(s=>s.id===item.id);
+    const inQ=purFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    const outQ=salFilter.reduce((a,b)=>a+(parseFloat(b.qty)||0),0);
+    if(inQ===0&&outQ===0)return;
+    const stock=inQ-outQ;
+    const cost=purFilter.reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+    const avg=inQ>0?cost/inQ:0;const val=stock*avg;totalV+=val;
+    rows.push([item.id,item.name,item.desc||'',fmtN(inQ),fmtN(outQ),fmtN(stock),fmtN(avg),fmtN(val)]);
+  });
+  rows.push(['','','','','','TOTAL','',fmtN(totalV)]);
+  doc.autoTable({
+    startY:56,head:headers,body:rows,theme:'grid',
+    headStyles:{fillColor:[16,185,129],textColor:255,fontStyle:'bold',fontSize:9},
+    bodyStyles:{fontSize:9},
+    alternateRowStyles:{fillColor:[240,253,244]},
+    columnStyles:{3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'}},
+    margin:{left:20,right:20},
+    didParseCell:d=>{
+      if(d.row.index===rows.length-1){
+        d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[209,250,229];
+      }
+      if(d.section==='body'&&d.column.index===5){
+        const v=parseFloat((d.cell.raw+'').replace(/,/g,'')||0);
+        if(v<0)d.cell.styles.textColor=[239,68,68];
+        else if(v>0)d.cell.styles.textColor=[16,185,129];
+      }
+    }
+  });
+  doc.save(`POWER-IMS_Balance${filterBranch?'_'+filterBranch:''}_${new Date().toISOString().slice(0,10)}.pdf`);
+  showToast('Balance PDF downloaded ✓','success');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3714,14 +3888,14 @@ function renderStoreBalance(){
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
       <thead><tr>
-        <th>Part No.</th><th>Item Name</th><th>Description</th>
-        <th class="num">Received Qty</th><th class="num">Dispatched Qty</th>
-        <th class="num">Balance</th><th class="num">Store Value</th>
+        <th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th>
+        <th class="num">${L('receivedQty')}</th><th class="num">${L('dispatchedQty')}</th>
+        <th class="num">${L('navBalance')}</th><th class="num">${L('storeValue')}</th>
       </tr></thead>
       <tbody>
-        ${rows||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No store activity yet. Add stock from the Store tab.</td></tr>'}
+        ${rows||`<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">${L('emptyStoreBalance')}</td></tr>`}
         ${items.length?`<tr class="summary-row">
-          <td colspan="3">TOTAL</td>
+          <td colspan="3">${L('totals').toUpperCase()}</td>
           <td></td><td></td><td></td>
           <td class="num td-mono num-pos">${fmt(totalVal)}</td>
         </tr>`:''}
@@ -3729,7 +3903,7 @@ function renderStoreBalance(){
     </table>
   </div>`;
   document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
-    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL STORE VALUE</span>
+    <span style="font-size:11px;font-weight:700;color:var(--text3)">${L('totalValue').toUpperCase()} — ${L('navStore').toUpperCase()}</span>
     <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalVal)}</span>
   </div>`;
 }
@@ -3737,7 +3911,6 @@ function renderStoreBalance(){
 /* ═══════════════════════════════════════════════════════
    RENDER STORE REPORT
 ═══════════════════════════════════════════════════════ */
-let _storeReportChart=null;
 function renderStoreReport(){
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
@@ -3754,10 +3927,10 @@ function renderStoreReport(){
   const totalExpense=ER.reduce((a,e)=>a+(parseFloat(e.amt)||0),0);
   const netValue=totalReceived-totalDispatched-totalExpense;
   const summaryData=[
-    {l:'Total Store Stock Received',v:totalReceived,icon:'📦'},
-    {l:'Total Dispatched to Branches',v:totalDispatched,icon:'📤'},
-    {l:'Total Expenses',v:totalExpense,icon:'💸'},
-    {l:'Net Store Value',v:netValue,total:true,icon:'💹'},
+    {l:L('storeStockReceived'),v:totalReceived,icon:'📦'},
+    {l:L('storeDispatchedBranches'),v:totalDispatched,icon:'📤'},
+    {l:L('totalExpenses'),v:totalExpense,icon:'💸'},
+    {l:L('storeNetValue'),v:netValue,total:true,icon:'💹'},
   ];
   const dispatchRows=SD.map(d=>`<tr>
     <td class="td-mono" data-label="Date" style="font-size:11px">${(d.date||'').slice(0,10)}</td>
@@ -3772,8 +3945,8 @@ function renderStoreReport(){
     <div class="date-bar no-print">
       <label>From: <input type="date" value="${S.storeReportRange.from}" onchange="S.storeReportRange.from=this.value;renderTab()"></label>
       <label>To: <input type="date" value="${S.storeReportRange.to}" onchange="S.storeReportRange.to=this.value;renderTab()"></label>
-      <button class="btn btn-sm" onclick="S.storeReportRange.from='';S.storeReportRange.to='';renderTab()">Clear</button>
-      <button class="btn btn-sm no-print" onclick="printStoreReport()" style="margin-left:auto">🖨️ Print</button>
+      <button class="btn btn-sm" onclick="S.storeReportRange.from='';S.storeReportRange.to='';renderTab()">${L('btnClear')}</button>
+      <button class="btn btn-sm no-print" onclick="printStoreReport()" style="margin-left:auto">${L('btnPrint')}</button>
     </div>
     ${summaryData.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
       <div class="report-label">${r.icon} ${r.l}</div>
@@ -3782,38 +3955,15 @@ function renderStoreReport(){
     <div class="credit-section" style="margin-top:16px">
       <div class="credit-section-hdr">
         <div class="credit-section-hdr-icon" style="background:var(--store-gradient)">📤</div>
-        <span class="credit-section-title">Dispatch Log</span>
-        <span class="credit-section-count" style="background:rgba(16,185,129,.15);color:var(--store)">${SD.length} dispatch${SD.length!==1?'es':''}</span>
+        <span class="credit-section-title">${L('dispatchLog')}</span>
+        <span class="credit-section-count" style="background:rgba(16,185,129,.15);color:var(--store)">${SD.length}</span>
       </div>
       <div class="credit-table-wrap"><table class="credit-table">
-        <thead><tr><th>Date</th><th>Item</th><th>Description</th><th>Branch</th><th class="num">Qty</th><th class="num">Value</th><th>Status</th></tr></thead>
-        <tbody>${dispatchRows||'<tr><td colspan="7" class="credit-empty">No dispatches in range</td></tr>'}</tbody>
+        <thead><tr><th>${L('date')}</th><th>${L('item')}</th><th>${L('desc')}</th><th>${L('branch')}</th><th class="num">${L('qty')}</th><th class="num">${L('totalValue')}</th><th>${L('status')}</th></tr></thead>
+        <tbody>${dispatchRows||`<tr><td colspan="7" class="credit-empty">${L('noDispatchRange')}</td></tr>`}</tbody>
       </table></div>
     </div>`;
-  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY STORE OVERVIEW</div><canvas id="store-report-chart" class="chart-canvas"></canvas></div>`;
-  setTimeout(()=>buildStoreChart(SI,SD,ER),50);
-}
-
-function buildStoreChart(SI,SD,ER){
-  const canvas=document.getElementById('store-report-chart');if(!canvas)return;
-  if(_storeReportChart){_storeReportChart.destroy();_storeReportChart=null;}
-  const months={};
-  const add=(arr,type,fn)=>arr.forEach(r=>{if(!r.date)return;const m=r.date.slice(0,7);if(!months[m])months[m]={r:0,d:0,e:0};months[m][type]+=fn(r)||0});
-  add(SI,'r',s=>(parseFloat(s.qty)||0)*(parseFloat(s.cost)||0));
-  add(SD.filter(d=>d.status!=='rejected'),'d',d=>(parseFloat(d.qty)||0)*(parseFloat(d.price)||0));
-  add(ER,'e',e=>parseFloat(e.amt)||0);
-  const labels=Object.keys(months).sort();
-  const isDark=S.theme!=='light';
-  const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
-  const tc=isDark?'#64748b':'#94a3b8';
-  _storeReportChart=new Chart(canvas,{
-    type:'bar',data:{labels,datasets:[
-      {label:'Received',data:labels.map(m=>months[m].r),backgroundColor:'rgba(16,185,129,.7)',borderRadius:6},
-      {label:'Dispatched',data:labels.map(m=>months[m].d),backgroundColor:'rgba(59,130,246,.7)',borderRadius:6},
-      {label:'Expenses',data:labels.map(m=>months[m].e),backgroundColor:'rgba(239,68,68,.6)',borderRadius:6},
-    ]},
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>fmt(v)}}}}
-  });
+  document.getElementById('extras').innerHTML='';
 }
 
 function printStoreReport(){
@@ -3872,23 +4022,23 @@ function renderStore(){
 
   document.getElementById('tab-content').innerHTML=`
     <div style="padding:12px 16px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
-      <span style="font-size:11px;font-weight:700;color:var(--text3)">🏪 CENTRAL STORE INVENTORY</span>
-      <span style="font-family:var(--mono);font-size:12px;color:var(--success);font-weight:700">Total Value: ${fmt(totalStoreVal)}</span>
-      ${isStorekeeper()?`<span style="font-size:10px;color:var(--success);margin-left:auto;background:var(--store-glass);padding:3px 10px;border-radius:99px;border:1px solid rgba(16,185,129,.3)">Store Keeper Mode</span>`:''}
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">${L('storeInventory')}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--success);font-weight:700">${L('totalValue')}: ${fmt(totalStoreVal)}</span>
+      ${isStorekeeper()?`<span style="font-size:10px;color:var(--success);margin-left:auto;background:var(--store-glass);padding:3px 10px;border-radius:99px;border:1px solid rgba(16,185,129,.3)">${L('storeKeeperMode')}</span>`:''}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Part No.</th><th>Item Name</th><th>Desc</th><th>Supplier</th><th>Date Received</th><th class="num">Stock Qty</th><th class="num">Unit Cost</th><th class="num">Total Value</th></tr></thead>
-        <tbody>${storeRows||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">No store stock yet.</td></tr>'}</tbody>
+        <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th>${L('supplier')}</th><th>${L('dateReceived')}</th><th class="num">${L('stockQty')}</th><th class="num">${L('unitCost')}</th><th class="num">${L('totalValue')}</th></tr></thead>
+        <tbody>${storeRows||`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px">${L('emptyStore')}</td></tr>`}</tbody>
       </table>
     </div>
     ${dispatches.length?`
     <div style="padding:12px 16px;background:var(--surface2);border-top:2px solid var(--border);border-bottom:1px solid var(--border)">
-      <span style="font-size:11px;font-weight:700;color:var(--text3)">📤 DISPATCH HISTORY (last 30)</span>
+      <span style="font-size:11px;font-weight:700;color:var(--text3)">${L('storeDispatchHistory')}</span>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Part No.</th><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th><th>To Branch</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>${L('date')}</th><th>${L('partNo')}</th><th>${L('item')}</th><th class="num">${L('qty')}</th><th class="num">${L('price')}</th><th class="num">${L('total')}</th><th>${L('branch')}</th><th>${L('status')}</th><th></th></tr></thead>
         <tbody>${dispatchRows}</tbody>
       </table>
     </div>`:''}`;
@@ -3911,8 +4061,8 @@ function renderExpense(){
             <td class="num td-mono ${colorClass(-amt)}" data-label="Amount">${fmt(amt)}</td>
             <td data-label="Payment"><span class="td-badge ${row.payment==='CASH'?'badge-cash':row.payment==='CREDIT'?'badge-credit':'badge-other'}">${row.payment||'CASH'}</span></td>
           </tr>`;}).join('')}
-        ${rows.length?`<tr class="summary-row"><td colspan="2" data-label="">TOTAL</td><td class="num td-mono ${colorClass(-total)}" data-label="Amount">${fmt(total)}</td><td data-label=""></td></tr>`:''}
-        ${!rows.length?`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:32px">No expenses yet.</td></tr>`:''}
+        ${rows.length?`<tr class="summary-row"><td colspan="2" data-label="">${L('totals').toUpperCase()}</td><td class="num td-mono ${colorClass(-total)}" data-label="">${fmt(total)}</td><td data-label=""></td></tr>`:''}
+        ${!rows.length?`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:32px">${L('emptyExpense')}</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
@@ -3921,13 +4071,13 @@ function renderExpense(){
 /* ═══════════════════════════════════════════════════════
    RENDER REPORT — per-branch & all-branches views
 ═══════════════════════════════════════════════════════ */
-let _reportChart=null;
 
 function _branchBal(branch){return parseFloat(S.branchBeginBal?.[branch])||0;}
 function _setBranchBal(branch,val){if(!S.branchBeginBal)S.branchBeginBal={};S.branchBeginBal[branch]=parseFloat(val)||0;saveUserData();}
 
 function _reportCalc(branch){
-  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0);};
+  const calcPT=p=>{const b=(p.qty||0)*(p.uPrice||0);return b+(p.vatOn?b*0.15:0);};
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);};
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
     const d=r.date.slice(0,10);
@@ -3939,8 +4089,8 @@ function _reportCalc(branch){
   const SR=inRange(branch?S.sales.filter(s=>s.branch===branch):S.sales);
   const ER=inRange(S.expense);
   const initBal=branch?_branchBal(branch):S.branches.reduce((a,b)=>a+_branchBal(b),0);
-  const tPC=PR.filter(p=>p.payment==='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
-  const tPCr=PR.filter(p=>p.payment!=='CASH').reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
+  const tPC=PR.filter(p=>p.payment==='CASH').reduce((a,b)=>a+calcPT(b),0);
+  const tPCr=PR.filter(p=>p.payment!=='CASH').reduce((a,b)=>a+calcPT(b),0);
   const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcST(b),0);
   const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcST(b),0);
   const tE=ER.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
@@ -3954,15 +4104,15 @@ function renderReport(){
   const showBranchTabs=isOwner()&&S.branches.length>1;
 
   const branchTabsHtml=showBranchTabs?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
-    <button class="btn btn-sm${activeBranch===''?' btn-primary':''}" onclick="S.reportBranch='';renderTab()">🌐 All Branches</button>
+    <button class="btn btn-sm${activeBranch===''?' btn-primary':''}" onclick="S.reportBranch='';renderTab()">🌐 ${L('allBranchesBtn')}</button>
     ${S.branches.map(b=>`<button class="btn btn-sm${activeBranch===b?' btn-primary':''}" onclick="S.reportBranch='${esc(b)}';renderTab()">${esc(b)}</button>`).join('')}
   </div>`:'';
 
   const datebar=`<div class="date-bar no-print">
     <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
     <label>To: <input type="date" value="${S.reportRange.to}" onchange="S.reportRange.to=this.value;renderTab()"></label>
-    <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">Clear</button>
-    <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">🖨️ Print</button>
+    <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">${L('btnClear')}</button>
+    <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">${L('btnPrint')}</button>
   </div>`;
 
   if(isOwner()&&activeBranch===''){
@@ -3990,7 +4140,7 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
   }).join('');
   const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCr+=c.tPCr;acc.tSC+=c.tSC;acc.tSCr+=c.tSCr;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCr:0,tSC:0,tSCr:0,tE:0,net:0,coh:0});
   const totRow=`<tr class="summary-row">
-    <td>ALL BRANCHES</td>
+    <td>${L('allBranches').toUpperCase()}</td>
     <td class="num td-mono">${fmt(tot.ib)}</td>
     <td class="num td-mono">${fmt(tot.tPC)}</td>
     <td class="num td-mono">${fmt(tot.tPCr)}</td>
@@ -4005,22 +4155,21 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
     ${branchTabsHtml}${datebar}
     <div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
       <span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em">📊 ALL BRANCHES SUMMARY</span>
-      ${isOwner()?'<span style="font-size:10px;color:var(--text3);margin-left:12px">Edit initial balance per branch inline in the table below</span>':''}
+      ${isOwner()?`<span style="font-size:10px;color:var(--text3);margin-left:12px">${L('editBalanceHint')}</span>`:''}
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Branch</th><th class="num">Init. Balance</th>
-          <th class="num">Purchase Cash</th><th class="num">Purchase Credit</th>
-          <th class="num">Sales Cash</th><th class="num">Sales Credit</th>
-          <th class="num">Expenses</th>
-          <th class="num">Net P/L</th><th class="num">Cash on Hand</th>
+          <th>${L('branch')}</th><th class="num">${L('initBalShort')}</th>
+          <th class="num">${L('purchCashShort')}</th><th class="num">${L('purchCreditShort')}</th>
+          <th class="num">${L('salesCashShort')}</th><th class="num">${L('salesCreditShort')}</th>
+          <th class="num">${L('expensesShort')}</th>
+          <th class="num">${L('netPLShort')}</th><th class="num">${L('cashOnHand')}</th>
         </tr></thead>
         <tbody>${rows}${totRow}</tbody>
       </table>
     </div>`;
-  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW — ALL BRANCHES</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
-  setTimeout(()=>buildChart(PR,SR,ER),50);
+  document.getElementById('extras').innerHTML='';
 }
 
 function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
@@ -4028,14 +4177,14 @@ function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
   const {PR,SR,ER}=c;
   const label=branch?`(${branch})`:'';
   const reportData=[
-    {l:`Initial Cash Balance${label?` — ${label}`:''}`,v:c.initBal,edit:true,branch},
-    {l:`Total Purchases — Cash ${label}`,v:c.tPC},
-    {l:`Total Purchases — Credit ${label}`,v:c.tPCr},
-    {l:`Total Sales — Cash ${label}`,v:c.tSC},
-    {l:`Total Sales — Credit ${label}`,v:c.tSCr},
-    {l:'Total Expenses',v:c.tE},
-    {l:'Net Profit / Loss',v:c.net,total:true},
-    {l:'Cash on Hand',v:c.coh,total:true},
+    {l:`${L('initBalance')}${label?` — ${label}`:''}`,v:c.initBal,edit:true,branch},
+    {l:`${L('totalPurchCash')} ${label}`,v:c.tPC},
+    {l:`${L('totalPurchCredit')} ${label}`,v:c.tPCr},
+    {l:`${L('totalSalesCash')} ${label}`,v:c.tSC},
+    {l:`${L('totalSalesCredit')} ${label}`,v:c.tSCr},
+    {l:L('totalExpenses'),v:c.tE},
+    {l:L('netProfitLoss'),v:c.net,total:true},
+    {l:L('cashOnHand'),v:c.coh,total:true},
   ];
   const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
     <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="_setBranchBal('${esc(r.branch||S.branches[0])}',this.value)" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
@@ -4050,65 +4199,43 @@ function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
     <td class="num">${fmt((parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0))}</td>
     <td><span class="td-badge badge-credit">${r.payment}</span></td>
   </tr>`).join(''):`<tr><td colspan="7" class="credit-empty">No credit purchases in range</td></tr>`;
-  const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return`<tr>
+  const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);return`<tr>
     <td>${(s.date||'').slice(0,10)}</td><td>${esc(s.party||'—')}</td><td>${esc(s.name||'—')}</td>
     <td style="color:var(--text3)">${esc(s.desc||'—')}</td>
     <td class="num">${fmtQ(parseFloat(s.qty)||0)}</td>
-    <td class="num">${fmt(b+v)}</td>
+    <td class="num">${fmt(b+v-wh)}</td>
     <td><span class="td-badge badge-credit">${s.payment}</span></td>
   </tr>`;}).join(''):`<tr><td colspan="7" class="credit-empty">No credit sales in range</td></tr>`;
   const creditTotalP=creditPurchases.reduce((a,r)=>a+(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),0);
-  const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0);},0);
+  const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);},0);
   document.getElementById('tab-content').innerHTML=`
     ${branchTabsHtml}${datebar}
     ${rr(reportData)}
     <div class="credit-section">
       <div class="credit-section-hdr">
         <div class="credit-section-hdr-icon purchase">🛒</div>
-        <span class="credit-section-title">Pending Purchase on Credit</span>
-        <span class="credit-section-count purchase">${creditPurchases.length} record${creditPurchases.length!==1?'s':''} · ${fmt(creditTotalP)}</span>
+        <span class="credit-section-title">${L('creditPurchTitle')}</span>
+        <span class="credit-section-count purchase">${creditPurchases.length} · ${fmt(creditTotalP)}</span>
       </div>
       <div class="credit-table-wrap"><table class="credit-table">
-        <thead><tr><th>Date</th><th>Supplier</th><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <thead><tr><th>${L('date')}</th><th>${L('supplier')}</th><th>${L('item')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${L('amount')}</th><th>${L('method')}</th></tr></thead>
         <tbody>${cpRows}</tbody>
       </table></div>
     </div>
     <div class="credit-section" style="margin-top:16px">
       <div class="credit-section-hdr">
         <div class="credit-section-hdr-icon sales">💰</div>
-        <span class="credit-section-title">Sales on Credit</span>
-        <span class="credit-section-count sales">${creditSales.length} record${creditSales.length!==1?'s':''} · ${fmt(creditTotalS)}</span>
+        <span class="credit-section-title">${L('creditSalesTitle')}</span>
+        <span class="credit-section-count sales">${creditSales.length} · ${fmt(creditTotalS)}</span>
       </div>
       <div class="credit-table-wrap"><table class="credit-table">
-        <thead><tr><th>Date</th><th>Customer</th><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <thead><tr><th>${L('date')}</th><th>${L('customer')}</th><th>${L('item')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${L('amount')}</th><th>${L('method')}</th></tr></thead>
         <tbody>${csRows}</tbody>
       </table></div>
     </div>`;
-  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY OVERVIEW${branch?' — '+branch:''}</div><canvas id="report-chart" class="chart-canvas"></canvas></div>`;
-  setTimeout(()=>buildChart(PR,SR,ER),50);
+  document.getElementById('extras').innerHTML='';
 }
 
-function buildChart(PR,SR,ER){
-  const canvas=document.getElementById('report-chart');if(!canvas)return;
-  if(_reportChart){_reportChart.destroy();_reportChart=null;}
-  const months={};
-  const add=(arr,type,fn)=>arr.forEach(r=>{if(!r.date)return;const m=r.date.slice(0,7);if(!months[m])months[m]={p:0,s:0,e:0};months[m][type]+=fn(r)||0});
-  add(PR,'p',r=>(r.qty||0)*(r.uPrice||0));
-  add(SR,'s',r=>(r.qty||0)*(r.sPrice||0)*(r.vatOn?1.15:1));
-  add(ER,'e',r=>parseFloat(r.amt)||0);
-  const labels=Object.keys(months).sort();
-  const isDark=S.theme!=='light';
-  const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
-  const tc=isDark?'#64748b':'#94a3b8';
-  _reportChart=new Chart(canvas,{
-    type:'bar',data:{labels,datasets:[
-      {label:'Purchase',data:labels.map(m=>months[m].p),backgroundColor:'rgba(59,130,246,.7)',borderRadius:6},
-      {label:'Sales',data:labels.map(m=>months[m].s),backgroundColor:'rgba(16,185,129,.7)',borderRadius:6},
-      {label:'Expense',data:labels.map(m=>months[m].e),backgroundColor:'rgba(239,68,68,.6)',borderRadius:6},
-    ]},
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>fmt(v)}}}}
-  });
-}
 
 function printReport(){
   const branch=S.userBranch||S.reportBranch||'';
@@ -4148,24 +4275,25 @@ function openRowReceipt(idx,listType){
   const vatAmt=!isP&&row.vatOn?base*0.15:0;
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
-  const grandTotal=base+vatAmt;
+  const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
   document.getElementById('receipt-content').innerHTML=`
-    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS</div><div class="rcpt-sub">${isP?'Purchase':'Sales'} Receipt</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
+    <div class="rcpt-hdr"><div class="rcpt-biz">📦 POWER-IMS</div><div class="rcpt-sub">${isP?L('receiptPurchase'):L('receiptSales')}</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
     <div class="rcpt-line"><span>${L('date')}</span><span>${(row.date||'').replace('T',' ')}</span></div>
     <div class="rcpt-line"><span>${isP?L('supplier'):L('customer')}</span><span>${esc(row.party||'—')}</span></div>
     <div class="rcpt-line"><span>${L('branch')}</span><span>${esc(row.branch||'—')}</span></div>
-    <div class="rcpt-line"><span>Part No.</span><span>${esc(row.id||'—')}</span></div>
-    <div class="rcpt-line"><span>Item</span><span>${esc(row.name||'—')}</span></div>
-    <div class="rcpt-line"><span>Qty</span><span>${fmtQ(qty)}</span></div>
-    <div class="rcpt-line"><span>Unit Price</span><span>${fmt(price)}</span></div>
-    <div class="rcpt-line"><span>Subtotal</span><span>${fmt(base)}</span></div>
-    ${vatAmt?`<div class="rcpt-line sub"><span>VAT (15%)</span><span>+${fmt(vatAmt)}</span></div>`:''}
-    ${wh3Amt?`<div class="rcpt-line sub"><span>Withhold 3%</span><span>-${fmt(wh3Amt)}</span></div>`:''}
-    ${vwhAmt?`<div class="rcpt-line sub"><span>VAT WH 7.5%</span><span>-${fmt(vwhAmt)}</span></div>`:''}
-    <div class="rcpt-line bold"><span>TOTAL</span><span>${fmt(grandTotal)}</span></div>
+    <div class="rcpt-line"><span>${L('receiptPartNo')}</span><span>${esc(row.id||'—')}</span></div>
+    <div class="rcpt-line"><span>${L('receiptItem')}</span><span>${esc(row.name||'—')}</span></div>
+    ${row.desc?`<div class="rcpt-line"><span>${L('receiptDesc')}</span><span>${esc(row.desc)}</span></div>`:''}
+    <div class="rcpt-line"><span>${L('receiptQty')}</span><span>${fmtQ(qty)}</span></div>
+    <div class="rcpt-line"><span>${L('receiptUnitPrice')}</span><span>${fmt(price)}</span></div>
+    <div class="rcpt-line"><span>${L('receiptSubtotal')}</span><span>${fmt(base)}</span></div>
+    ${vatAmt?`<div class="rcpt-line sub"><span>${L('vat')}</span><span>+${fmt(vatAmt)}</span></div>`:''}
+    ${wh3Amt?`<div class="rcpt-line sub"><span>${L('wh3')}</span><span>-${fmt(wh3Amt)}</span></div>`:''}
+    ${vwhAmt?`<div class="rcpt-line sub"><span>${L('vwh')}</span><span>-${fmt(vwhAmt)}</span></div>`:''}
+    <div class="rcpt-line bold"><span>${L('receiptTotal')}</span><span>${fmt(grandTotal)}</span></div>
     <div class="rcpt-line"><span>${L('payment')}</span><span>${esc(row.payment||'CASH')}</span></div>
-    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">AMOUNT DUE</div><div class="rcpt-total-val">${fmt(grandTotal)}</div></div>
-    <div class="rcpt-footer">POWER-IMS — Thank you!<br>Printed: ${new Date().toLocaleString()}</div>`;
+    <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">${L('receiptAmountDue')}</div><div class="rcpt-total-val">${fmt(grandTotal)}</div></div>
+    <div class="rcpt-footer">${L('receiptThankYou')}<br>${L('receiptPrinted')} ${new Date().toLocaleString()}</div>`;
   openModal('receipt-modal');
 }
 function printReceiptDirectly(){
@@ -4284,13 +4412,13 @@ function exportPDF(tab){
   const filterBranch=S.userBranch||'';
   let headers=[],rows=[];
   if(tab==='PURCHASE'){
-    headers=[['Date','Supplier','Branch','Part No.','Item Name','Qty','Unit Price','Total','Payment']];
-    rows=S.purchase.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.qty||'',fmtN(r.uPrice),fmtN((r.qty||0)*(r.uPrice||0)),r.payment||'CASH']);
-    const tot=rows.reduce((a,b)=>a+parseFloat((b[7]+'').replace(/,/g,'')||0),0);
-    rows.push(['','','','','','TOTAL','',fmtN(tot),'']);
+    headers=[['Date','Supplier','Branch','Part No.','Item Name','Qty','Unit Price','VAT','Total','Payment']];
+    rows=S.purchase.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(r=>{const b=(r.qty||0)*(r.uPrice||0);const v=r.vatOn?b*0.15:0;return[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.qty||'',fmtN(r.uPrice),fmtN(v),fmtN(b+v),r.payment||'CASH'];});
+    const tot=rows.reduce((a,b)=>a+parseFloat((b[8]+'').replace(/,/g,'')||0),0);
+    rows.push(['','','','','','TOTAL','','',fmtN(tot),'']);
   }else if(tab==='SALES'){
     headers=[['Date','Customer','Branch','Part No.','Item Name','Qty','Price','VAT','Total','Payment']];
-    rows=S.sales.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.qty||'',fmtN(s.sPrice),fmtN(v),fmtN(b+v),s.payment||'CASH'];});
+    rows=S.sales.filter(r=>r.id||r.party).filter(r=>!filterBranch||r.branch===filterBranch).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.qty||'',fmtN(s.sPrice),fmtN(v),fmtN(b+v-wh),s.payment||'CASH'];});
   }else if(tab==='BALANCE'){
     headers=[['Part No.','Item Name','Purchase Qty','Sales Qty','Balance','Avg Cost','Inventory Value']];
     S.items.filter(m=>m.id).forEach(item=>{
@@ -4319,12 +4447,12 @@ function exportXL(tab){
   if(typeof XLSX==='undefined'){showToast('XLSX not loaded','error');return;}
   let headers=[],data=[];
   if(tab==='PURCHASE'){
-    headers=['Date','Supplier','Branch','Part No.','Name','Desc','Qty','Unit Price','Total','Payment'];
-    data=S.purchase.filter(r=>r.id||r.party).map(r=>[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),r.payment||'CASH']);
-    const t=data.reduce((a,b)=>a+b[8],0);data.push(['','','','','','','TOTAL','',t,'']);
+    headers=['Date','Supplier','Branch','Part No.','Name','Desc','Qty','Unit Price','VAT','Total','Payment'];
+    data=S.purchase.filter(r=>r.id||r.party).map(r=>{const b=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);const v=r.vatOn?b*0.15:0;return[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',v,b+v,r.payment||'CASH'];});
+    const t=data.reduce((a,b)=>a+b[9],0);data.push(['','','','','','','TOTAL','','',t,'']);
   }else if(tab==='SALES'){
     headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Total','Payment'];
-    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,b+v,s.payment||'CASH'];});
+    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,b+v-wh,s.payment||'CASH'];});
   }else if(tab==='BALANCE'){
     headers=['Part No.','Name','Desc','Purchase Qty','Sales Qty','Balance','Inv. Value'];
     S.items.filter(m=>m.id).forEach(item=>{
@@ -4351,6 +4479,21 @@ function exportXL(tab){
 /* ═══════════════════════════════════════════════════════
    CHANGE PASSWORD
 ═══════════════════════════════════════════════════════ */
+function openShopNameModal(){
+  const reg=getRegistry();
+  document.getElementById('sn-input').value=reg[S.ownerId]?.shopName||'';
+  hideMsg('sn-error');openModal('shopname-modal');
+}
+function saveShopName(){
+  const name=document.getElementById('sn-input').value.trim();
+  if(!name){showMsg('sn-error','Please enter a shop name');return;}
+  const reg=getRegistry();
+  if(reg[S.ownerId])reg[S.ownerId].shopName=name;
+  saveRegistry(reg);
+  document.getElementById('brand-sub').textContent=name;
+  closeModal('shopname-modal');
+  showToast('Shop name updated!','success');
+}
 function openChangePass(){['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');hideMsg('cp-error');openModal('pass-modal');}
 function submitChangePass(){
   const cur=document.getElementById('cp-current').value;

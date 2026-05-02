@@ -1898,6 +1898,8 @@ function approveStoreReceipt(branch,idx){
   receipts[idx].status='approved';receipts[idx].approvedBy=S.user;receipts[idx].approvedAt=new Date().toISOString();
   saveBranchReceipts(branch,receipts);
   const r=receipts[idx];
+  const _dIdx=S.storeDispatches.findIndex(d=>d.id===r.id);
+  if(_dIdx>=0){S.storeDispatches[_dIdx].status='approved';S.storeDispatches[_dIdx].approvedBy=S.user;S.storeDispatches[_dIdx].approvedAt=r.approvedAt;}
   S.purchase.push({date:r.date,party:'[STORE DISPATCH]',branch,id:r.itemId,name:r.itemName,desc:r.itemDesc||'',qty:r.qty,uPrice:r.price,payment:'STORE TRANSFER',_by:S.user});
   S.branchReceipts=loadBranchReceipts(branch);
   saveUserData();
@@ -1912,6 +1914,8 @@ function rejectStoreReceipt(branch,idx){
   if(si>=0)S.storeItems[si].qty+=r.qty;
   receipts[idx].status='rejected';receipts[idx].rejectedBy=S.user;
   saveBranchReceipts(branch,receipts);
+  const _dIdx=S.storeDispatches.findIndex(d=>d.id===r.id);
+  if(_dIdx>=0){S.storeDispatches[_dIdx].status='rejected';S.storeDispatches[_dIdx].rejectedBy=S.user;}
   S.branchReceipts=loadBranchReceipts(branch);
   saveUserData();
   showToast('❌ Receipt rejected. Qty returned to store.','warn');

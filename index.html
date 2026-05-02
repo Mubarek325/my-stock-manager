@@ -414,6 +414,27 @@ tbody tr:last-child td{border-bottom:none}
 .store-notif-pulse{animation:storePulse 2s ease infinite}
 @keyframes storePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
 
+/* ════════════════════════════════════════════════════════
+   CARD VIEW — replaces table rows with stacked cards
+════════════════════════════════════════════════════════ */
+.cv-toggle{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:9px;font-size:11.5px;font-weight:700;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text2);transition:all .18s;font-family:var(--font);white-space:nowrap}
+.cv-toggle:hover,.cv-toggle.active{background:var(--p-glass);color:var(--p);border-color:rgba(59,130,246,.4)}
+html[data-card="1"] .table-wrap{overflow-x:visible!important}
+html[data-card="1"] table{min-width:0!important;display:block!important;border:none}
+html[data-card="1"] thead{display:none!important}
+html[data-card="1"] tbody{display:flex!important;flex-direction:column;gap:10px;padding:12px;border:none}
+html[data-card="1"] tbody tr{display:block!important;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border2);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.14);animation:flyInUp .3s cubic-bezier(.22,1,.36,1) both}
+html[data-card="1"] tbody tr:hover td{background:transparent!important}
+html[data-card="1"] tbody td{display:flex!important;justify-content:space-between;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--border);font-size:12.5px;text-align:right}
+html[data-card="1"] tbody td:last-child{border-bottom:none}
+html[data-card="1"] tbody td::before{content:attr(data-label);font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:left;flex-shrink:0;white-space:nowrap;padding-top:1px}
+html[data-card="1"] tbody td[data-label=""]{display:none!important}
+html[data-card="1"] tbody tr.summary-row{display:flex!important;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:10px 14px;gap:6px;background:linear-gradient(90deg,rgba(16,185,129,.08),var(--surface2))!important;border-top:2px solid var(--border2)}
+html[data-card="1"] tbody tr.summary-row td{display:inline-flex!important;padding:2px 6px;border-bottom:none!important;font-size:12px}
+html[data-card="1"] tbody tr.summary-row td::before{display:none}
+html[data-card="1"] tbody tr.row-low{border-color:rgba(239,68,68,.35)}
+html[data-card="1"] tbody tr.row-zero{border-color:rgba(245,158,11,.35)}
+
 @media print{
   .app-header,.bottom-nav,.settings-drawer,.drawer-overlay,.approval-overlay,
   .toast-wrap,.confirm-overlay,.modal-overlay:not(#receipt-modal):not(#store-receipt-print-modal),
@@ -2321,10 +2342,19 @@ function toggleViewMode(){
   setViewMode(next);
   showToast(next==='mobile'?'📱 Mobile view on':'🖥️ Desktop view on');
 }
+function toggleCardView(){
+  const cur=document.documentElement.getAttribute('data-card')==='1';
+  const next=cur?'0':'1';
+  document.documentElement.setAttribute('data-card',next);
+  if(S.user)localStorage.setItem(`ims_${S.user}_cardview`,next);
+  showToast(next==='1'?'⊞ Card view on':'≡ Table view on');
+  renderHeadActions();
+}
 function loadPrefs(){
   setTheme(localStorage.getItem(`ims_${S.user}_theme`)||'dark');
   setLang(localStorage.getItem(`ims_${S.user}_lang`)||'en');
   setViewMode(localStorage.getItem(`ims_${S.user}_view`)||'desktop');
+  document.documentElement.setAttribute('data-card',localStorage.getItem(`ims_${S.user}_cardview`)||'0');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2519,6 +2549,11 @@ function renderHeadActions(){
     const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
     html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
   }
+  const CARD_TABS=['ITEMS','PURCHASE','SALES','BALANCE','STORE','STOREBALANCE','EXPENSE'];
+  if(CARD_TABS.includes(S.tab)){
+    const isCard=document.documentElement.getAttribute('data-card')==='1';
+    html+=`<button class="btn cv-toggle${isCard?' active':''}" onclick="toggleCardView()" title="${isCard?'Switch to table view':'Switch to card view'}">⊞ ${isCard?'Table':'Card'}</button>`;
+  }
   if(S.tab==='STORE'&&(isOwner()||isStorekeeper())){
     html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
   }
@@ -2689,6 +2724,8 @@ function submitItemForm(mode,idx){
   const name=document.getElementById('f-name').value.trim();
   const desc=document.getElementById('f-desc').value.trim();
   if(!id||!name){showMsg('f-error','Part Number and Name are required');return;}
+  const dupIdx=S.items.findIndex(m=>m.id.toLowerCase()===id.toLowerCase());
+  if(dupIdx!==-1&&(mode==='add'||dupIdx!==idx)){showMsg('f-error','Part Number already exists — choose a unique one');return;}
   if(mode==='add')S.items.push({id,name,desc,_by:S.user});
   else S.items[idx]={...S.items[idx],id,name,desc,_by:S.user};
   saveUserData();renderTab();closeModal(mode==='add'?'add-row-modal':'edit-row-modal');
@@ -2837,9 +2874,9 @@ function renderItems(){
       <tbody>
         ${S.items.filter(r=>r.id||r.name).map((row,i)=>`
           <tr oncontextmenu="showCtxMenu(event,${i},'items')" title="Right-click for options">
-            <td class="td-mono">${esc(row.id)}</td>
-            <td style="font-weight:600">${esc(row.name)}</td>
-            <td style="color:var(--text3)">${esc(row.desc)}</td>
+            <td class="td-mono" data-label="Part No.">${esc(row.id)}</td>
+            <td style="font-weight:600" data-label="Item Name">${esc(row.name)}</td>
+            <td style="color:var(--text3)" data-label="Description">${esc(row.desc)}</td>
           </tr>`).join('')}
         ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">No items yet. Click "Add Items" to get started.</td></tr>`:''}
       </tbody>
@@ -2867,20 +2904,20 @@ function renderTx(){
     const pmBadge=m=>`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
     let taxCells='';
     if(!isP){
-      taxCells=`<td class="num td-mono">${fmt(price)}</td>
-        <td class="num">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>
-        <td class="num td-mono" style="font-weight:700">${fmt(total)}</td>`;
+      taxCells=`<td class="num td-mono" data-label="Price">${fmt(price)}</td>
+        <td class="num" data-label="Tax">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>
+        <td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(total)}</td>`;
     }
     return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit/delete/print">
-      <td class="td-mono" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
-      <td style="font-weight:500">${esc(row.party||'—')}</td>
-      <td><span class="td-badge badge-other" style="font-size:10px">${esc(row.branch||'Main')}</span></td>
-      <td class="td-mono">${esc(row.id||'—')}</td>
-      <td style="font-weight:500">${esc(row.name||'—')}</td>
-      <td style="color:var(--text3)">${esc(row.desc||'')}</td>
-      <td class="num td-mono">${fmtQ(qty)}</td>
-      ${isP?`<td class="num td-mono">${fmt(price)}</td><td class="num td-mono" style="font-weight:700">${fmt(base)}</td>`:taxCells}
-      <td>${pmBadge(row.payment||'CASH')}</td>
+      <td class="td-mono" data-label="Date" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
+      <td data-label="${isP?'Supplier':'Customer'}" style="font-weight:500">${esc(row.party||'—')}</td>
+      <td data-label="Branch"><span class="td-badge badge-other" style="font-size:10px">${esc(row.branch||'Main')}</span></td>
+      <td class="td-mono" data-label="Part No.">${esc(row.id||'—')}</td>
+      <td data-label="Item Name" style="font-weight:500">${esc(row.name||'—')}</td>
+      <td data-label="Description" style="color:var(--text3)">${esc(row.desc||'')}</td>
+      <td class="num td-mono" data-label="Qty">${fmtQ(qty)}</td>
+      ${isP?`<td class="num td-mono" data-label="Unit Price">${fmt(price)}</td><td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(base)}</td>`:taxCells}
+      <td data-label="Payment">${pmBadge(row.payment||'CASH')}</td>
     </tr>`;
   }).join('');
   const colsP=`<th>${L('date')}</th><th>${isP?L('supplier'):L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${L('unitPrice')}</th><th class="num">${L('total')}</th><th>${L('payment')}</th>`;
@@ -2891,10 +2928,10 @@ function renderTx(){
       <tbody>
         ${rows||`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:32px">No records yet.</td></tr>`}
         ${visible.length?`<tr class="summary-row">
-          <td colspan="6">TOTALS</td>
-          <td class="num td-mono">${fmtQ(totQty)}</td>
-          ${isP?'<td></td>':'<td></td><td></td>'}
-          <td class="num td-mono ${colorClass(totVal)}">${fmt(totVal)}</td><td></td>
+          <td colspan="6" data-label="">TOTALS</td>
+          <td class="num td-mono" data-label="Qty">${fmtQ(totQty)}</td>
+          ${isP?'<td data-label=""></td>':'<td data-label=""></td><td data-label=""></td>'}
+          <td class="num td-mono ${colorClass(totVal)}" data-label="Total">${fmt(totVal)}</td><td data-label=""></td>
         </tr>`:''}
       </tbody>
     </table>
@@ -2917,11 +2954,13 @@ function renderBalance(){
     const cost=purFilter.reduce((a,b)=>a+(b.qty||0)*(b.uPrice||0),0);
     const avg=inQ>0?cost/inQ:0;const val=stock*avg;totalV+=val;
     return`<tr class="${stock<0?'row-low':stock===0?'row-zero':''}">
-      <td class="td-mono">${esc(item.id)}</td><td style="font-weight:600">${esc(item.name)}</td>
-      <td style="color:var(--text3)">${esc(item.desc)}</td>
-      <td class="num td-mono">${fmtQ(inQ)}</td><td class="num td-mono">${fmtQ(outQ)}</td>
-      <td class="num td-mono ${stock>0?'num-pos':stock===0?'num-zero':'num-neg'}">${fmtQ(stock)}</td>
-      <td class="num td-mono ${colorClass(val)}">${fmt(val)}</td>
+      <td class="td-mono" data-label="Part No.">${esc(item.id)}</td>
+      <td data-label="Item Name" style="font-weight:600">${esc(item.name)}</td>
+      <td data-label="Description" style="color:var(--text3)">${esc(item.desc)}</td>
+      <td class="num td-mono" data-label="Purchase Qty">${fmtQ(inQ)}</td>
+      <td class="num td-mono" data-label="Sales Qty">${fmtQ(outQ)}</td>
+      <td class="num td-mono ${stock>0?'num-pos':stock===0?'num-zero':'num-neg'}" data-label="Balance">${fmtQ(stock)}</td>
+      <td class="num td-mono ${colorClass(val)}" data-label="Inv. Value">${fmt(val)}</td>
     </tr>`;
   }).filter(Boolean).join('');
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
@@ -2965,13 +3004,13 @@ function renderStoreBalance(){
     totalVal+=val;
     const balClass=balance>0?'num-pos':balance===0?'num-zero':'num-neg';
     return`<tr class="${balance<0?'row-low':balance===0?'row-zero':''}">
-      <td class="td-mono">${esc(s.itemId)}</td>
-      <td style="font-weight:600">${esc(s.itemName)}</td>
-      <td style="color:var(--text3)">${esc(s.itemDesc)}</td>
-      <td class="num td-mono">${fmtQ(received)}</td>
-      <td class="num td-mono">${fmtQ(dispatched)}</td>
-      <td class="num td-mono ${balClass}">${fmtQ(balance)}</td>
-      <td class="num td-mono ${colorClass(val)}">${fmt(val)}</td>
+      <td class="td-mono" data-label="Part No.">${esc(s.itemId)}</td>
+      <td data-label="Item Name" style="font-weight:600">${esc(s.itemName)}</td>
+      <td data-label="Description" style="color:var(--text3)">${esc(s.itemDesc)}</td>
+      <td class="num td-mono" data-label="Received Qty">${fmtQ(received)}</td>
+      <td class="num td-mono" data-label="Dispatched Qty">${fmtQ(dispatched)}</td>
+      <td class="num td-mono ${balClass}" data-label="Balance">${fmtQ(balance)}</td>
+      <td class="num td-mono ${colorClass(val)}" data-label="Store Value">${fmt(val)}</td>
     </tr>`;
   }).join('');
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
@@ -3023,13 +3062,13 @@ function renderStoreReport(){
     {l:'Net Store Value',v:netValue,total:true,icon:'💹'},
   ];
   const dispatchRows=SD.map(d=>`<tr>
-    <td class="td-mono" style="font-size:11px">${(d.date||'').slice(0,10)}</td>
-    <td style="font-weight:600">${esc(d.itemName||'—')}</td>
-    <td style="color:var(--text3)">${esc(d.itemDesc||'—')}</td>
-    <td>${esc(d.toBranch||'—')}</td>
-    <td class="num td-mono">${fmtQ(parseFloat(d.qty)||0)}</td>
-    <td class="num td-mono">${fmt((parseFloat(d.qty)||0)*(parseFloat(d.price)||0))}</td>
-    <td><span class="td-badge ${d.status==='approved'?'badge-cash':d.status==='rejected'?'badge-credit':'badge-other'}">${d.status||'pending'}</span></td>
+    <td class="td-mono" data-label="Date" style="font-size:11px">${(d.date||'').slice(0,10)}</td>
+    <td data-label="Item Name" style="font-weight:600">${esc(d.itemName||'—')}</td>
+    <td data-label="Description" style="color:var(--text3)">${esc(d.itemDesc||'—')}</td>
+    <td data-label="Branch">${esc(d.toBranch||'—')}</td>
+    <td class="num td-mono" data-label="Qty">${fmtQ(parseFloat(d.qty)||0)}</td>
+    <td class="num td-mono" data-label="Value">${fmt((parseFloat(d.qty)||0)*(parseFloat(d.price)||0))}</td>
+    <td data-label="Status"><span class="td-badge ${d.status==='approved'?'badge-cash':d.status==='rejected'?'badge-credit':'badge-other'}">${d.status||'pending'}</span></td>
   </tr>`).join('');
   document.getElementById('tab-content').innerHTML=`
     <div class="date-bar no-print">
@@ -3108,28 +3147,28 @@ function renderStore(){
 
   const storeRows=items.map((s,i)=>`
     <tr oncontextmenu="showCtxMenu(event,${i},'storeItems')" title="Right-click for options">
-      <td class="td-mono">${esc(s.itemId)}</td>
-      <td style="font-weight:600">${esc(s.itemName)}</td>
-      <td style="color:var(--text3)">${esc(s.itemDesc||'')}</td>
-      <td style="font-size:11px;color:var(--text3)">${esc(s.supplier||'—')}</td>
-      <td class="td-mono" style="font-size:11px">${(s.date||'').replace('T',' ')}</td>
-      <td class="num td-mono ${s.qty>0?'num-pos':s.qty===0?'num-zero':'num-neg'}">${fmtQ(s.qty)}</td>
-      <td class="num td-mono">${fmt(s.cost||0)}</td>
-      <td class="num td-mono">${fmt(s.qty*(s.cost||0))}</td>
+      <td class="td-mono" data-label="Part No.">${esc(s.itemId)}</td>
+      <td data-label="Item Name" style="font-weight:600">${esc(s.itemName)}</td>
+      <td data-label="Description" style="color:var(--text3)">${esc(s.itemDesc||'')}</td>
+      <td data-label="Supplier" style="font-size:11px;color:var(--text3)">${esc(s.supplier||'—')}</td>
+      <td class="td-mono" data-label="Date" style="font-size:11px">${(s.date||'').replace('T',' ')}</td>
+      <td class="num td-mono ${s.qty>0?'num-pos':s.qty===0?'num-zero':'num-neg'}" data-label="Qty">${fmtQ(s.qty)}</td>
+      <td class="num td-mono" data-label="Unit Cost">${fmt(s.cost||0)}</td>
+      <td class="num td-mono" data-label="Total Value">${fmt(s.qty*(s.cost||0))}</td>
     </tr>`).join('');
 
   const dispatchRows=[...dispatches].reverse().slice(0,30).map(d=>{
     const statusBadge=d.status==='pending'?`<span class="td-badge badge-pending">⏳ Pending</span>`:d.status==='approved'?`<span class="td-badge badge-approved">✅ Approved</span>`:`<span class="td-badge badge-rejected">❌ Rejected</span>`;
     return`<tr>
-      <td class="td-mono" style="font-size:11px">${(d.date||'').replace('T',' ')}</td>
-      <td class="td-mono">${esc(d.itemId)}</td>
-      <td>${esc(d.itemName)}</td>
-      <td class="num td-mono">${fmtQ(d.qty)}</td>
-      <td class="num td-mono">${fmt(d.price)}</td>
-      <td class="num td-mono">${fmt(d.total)}</td>
-      <td><span class="td-badge badge-other" style="font-size:10px">${esc(d.toBranch)}</span></td>
-      <td>${statusBadge}</td>
-      <td><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
+      <td class="td-mono" data-label="Date" style="font-size:11px">${(d.date||'').replace('T',' ')}</td>
+      <td class="td-mono" data-label="Part No.">${esc(d.itemId)}</td>
+      <td data-label="Item Name">${esc(d.itemName)}</td>
+      <td class="num td-mono" data-label="Qty">${fmtQ(d.qty)}</td>
+      <td class="num td-mono" data-label="Price">${fmt(d.price)}</td>
+      <td class="num td-mono" data-label="Total">${fmt(d.total)}</td>
+      <td data-label="Branch"><span class="td-badge badge-other" style="font-size:10px">${esc(d.toBranch)}</span></td>
+      <td data-label="Status">${statusBadge}</td>
+      <td data-label=""><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
     </tr>`;
   }).join('');
 
@@ -3169,12 +3208,12 @@ function renderExpense(){
       <tbody>
         ${rows.map(row=>{const amt=parseFloat(row.amt)||0;
           return`<tr oncontextmenu="showCtxMenu(event,${S.expense.indexOf(row)},'expense')" title="Right-click for options">
-            <td class="td-mono" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
-            <td style="font-weight:500">${esc(row.reason||'—')}</td>
-            <td class="num td-mono ${colorClass(-amt)}">${fmt(amt)}</td>
-            <td><span class="td-badge ${row.payment==='CASH'?'badge-cash':row.payment==='CREDIT'?'badge-credit':'badge-other'}">${row.payment||'CASH'}</span></td>
+            <td class="td-mono" data-label="Date" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
+            <td data-label="Reason" style="font-weight:500">${esc(row.reason||'—')}</td>
+            <td class="num td-mono ${colorClass(-amt)}" data-label="Amount">${fmt(amt)}</td>
+            <td data-label="Payment"><span class="td-badge ${row.payment==='CASH'?'badge-cash':row.payment==='CREDIT'?'badge-credit':'badge-other'}">${row.payment||'CASH'}</span></td>
           </tr>`;}).join('')}
-        ${rows.length?`<tr class="summary-row"><td colspan="2">TOTAL</td><td class="num td-mono ${colorClass(-total)}">${fmt(total)}</td><td></td></tr>`:''}
+        ${rows.length?`<tr class="summary-row"><td colspan="2" data-label="">TOTAL</td><td class="num td-mono ${colorClass(-total)}" data-label="Amount">${fmt(total)}</td><td data-label=""></td></tr>`:''}
         ${!rows.length?`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:32px">No expenses yet.</td></tr>`:''}
       </tbody>
     </table>

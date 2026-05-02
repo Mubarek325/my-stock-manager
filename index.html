@@ -767,6 +767,26 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<div class="modal-overlay" id="edit-user-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr"><span class="modal-hdr-icon">✏️</span><div><h2>Edit User</h2><p>Update user details</p></div><button class="modal-hdr-close" onclick="closeModal('edit-user-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Username</label><input id="eu-username" disabled style="background:var(--surface3);cursor:not-allowed;opacity:.7"></div>
+      <div class="field"><label>New Password <span style="color:var(--text3);font-size:9px">(leave blank to keep current)</span></label><input id="eu-password" type="password" placeholder="Enter new password (optional)"></div>
+      <div class="field"><label>Role *</label>
+        <select id="eu-role" onchange="toggleEditUserBranch()">
+          <option value="user">👤 Regular User</option>
+          <option value="storekeeper">🏪 Store Keeper</option>
+        </select>
+      </div>
+      <div class="field" id="eu-branch-wrap"><label>Assigned Branch *</label><select id="eu-branch"></select></div>
+      <button class="modal-btn" onclick="submitEditUser()">💾 Save Changes</button>
+      <button class="modal-btn secondary" onclick="closeModal('edit-user-modal')" style="margin-top:5px">Cancel</button>
+      <div class="modal-error" id="eu-error"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🏢</span><div><h2>Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
@@ -1672,7 +1692,8 @@ function renderOwnerDashboard(){
         <div class="user-meta">Branch: ${esc(r.branch||'—')}</div>
       </div>
       <span class="user-status ${statusClass}">${r.status==='suspended'?'🚫':'✅'}</span>
-      ${r.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:8px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
+      <button class="btn btn-sm" onclick="openEditUserModal('${u}')" style="margin-left:8px" title="Edit user">✏️</button>
+      ${r.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
       <button class="btn btn-sm" onclick="deleteMyUser('${u}')" style="margin-left:4px;color:var(--error)">🗑️</button>
     </div>`;
   }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No users yet.</div>`;
@@ -1795,6 +1816,41 @@ function submitAddUser(){
   closeModal('add-user-modal');
   showToast(`✅ User "${u}" created (${role})!`,'success');
   if(isOwner()&&document.getElementById('owner-screen').style.display!=='none')renderOwnerDashboard();
+}
+
+let _editUserTarget='';
+function openEditUserModal(u){
+  _editUserTarget=u;
+  const reg=getRegistry();const r=reg[u]||{};
+  document.getElementById('eu-username').value=u;
+  document.getElementById('eu-password').value='';
+  document.getElementById('eu-role').value=r.role||'user';
+  toggleEditUserBranch();
+  const sel=document.getElementById('eu-branch');
+  sel.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+  if(r.branch)sel.value=r.branch;
+  hideMsg('eu-error');openModal('edit-user-modal');
+}
+function toggleEditUserBranch(){
+  const role=document.getElementById('eu-role').value;
+  document.getElementById('eu-branch-wrap').style.display=role==='storekeeper'?'none':'';
+}
+function submitEditUser(){
+  const p=document.getElementById('eu-password').value;
+  const role=document.getElementById('eu-role').value;
+  const branch=role==='storekeeper'?'STORE':document.getElementById('eu-branch').value;
+  if(p&&p.length<4){showMsg('eu-error','Password must be at least 4 characters');return;}
+  const reg=getRegistry();if(!reg[_editUserTarget])return;
+  if(p)reg[_editUserTarget].password=p;
+  reg[_editUserTarget].role=role;
+  reg[_editUserTarget].branch=branch;
+  saveRegistry(reg);
+  if(!S.perms[_editUserTarget])S.perms[_editUserTarget]={};
+  if(role!=='storekeeper')S.perms[_editUserTarget].branches=[branch];
+  saveUserData();
+  closeModal('edit-user-modal');
+  showToast(`✅ ${_editUserTarget} updated!`,'success');
+  renderOwnerDashboard();
 }
 
 /* ═══════════════════════════════════════════════════════

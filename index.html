@@ -1902,7 +1902,7 @@ const isUser=()=>S.role==='user';
 const getPerm=tab=>{
   if(isOwner()||isSystemOwner())return'full';
   if(isStorekeeper()){
-    if(tab==='STORE'||tab==='STOREBALANCE')return'full';
+    if(STOREKEEPER_ALLOWED_TABS.includes(tab))return'full';
     if(tab==='ITEMS')return'read';
     return'none';
   }
@@ -2937,91 +2937,63 @@ function renderBalance(){
 }
 
 /* ═══════════════════════════════════════════════════════
-   ★ NEW: RENDER STORE BALANCE
-   Shows store stock levels by item — like BALANCE but for store
+   RENDER STORE BALANCE — mirrors items balance layout
+   Received Qty | Dispatched Qty | Balance | Store Value
 ═══════════════════════════════════════════════════════ */
 function renderStoreBalance(){
-  // Aggregate by itemId
-  const aggregated={};
-  S.storeItems.forEach(s=>{
-    if(!aggregated[s.itemId]){
-      aggregated[s.itemId]={itemId:s.itemId,itemName:s.itemName,itemDesc:s.itemDesc||'',totalQty:0,totalCost:0,latestDate:s.date||''};
-    }
-    aggregated[s.itemId].totalQty+=parseFloat(s.qty)||0;
-    aggregated[s.itemId].totalCost+=(parseFloat(s.qty)||0)*(parseFloat(s.cost)||0);
-    if((s.date||'')>(aggregated[s.itemId].latestDate||''))aggregated[s.itemId].latestDate=s.date||'';
-  });
-  // Subtract dispatched quantities
+  // Build per-item dispatch totals (non-rejected)
+  const dispatchedByItem={};
   S.storeDispatches.forEach(d=>{
-    // Only approved dispatches reduce the balance
-    // (pending dispatches are already deducted from storeItems.qty in real-time)
-    // We show the current live qty from storeItems directly
+    if(d.status==='rejected')return;
+    dispatchedByItem[d.itemId]=(dispatchedByItem[d.itemId]||0)+(parseFloat(d.qty)||0);
   });
-  const items=Object.values(aggregated);
+  // Build per-item current stock from storeItems
+  const itemMap={};
+  S.storeItems.forEach(s=>{
+    if(!itemMap[s.itemId])itemMap[s.itemId]={itemId:s.itemId,itemName:s.itemName,itemDesc:s.itemDesc||'',currentQty:0,unitCost:0};
+    itemMap[s.itemId].currentQty=parseFloat(s.qty)||0;
+    itemMap[s.itemId].unitCost=parseFloat(s.cost)||0;
+  });
+  const items=Object.values(itemMap).filter(s=>s.currentQty!==0||(dispatchedByItem[s.itemId]||0)!==0);
   let totalVal=0;
-  const rows=items.map((s,i)=>{
-    const val=s.totalCost;
+  const rows=items.map(s=>{
+    const dispatched=dispatchedByItem[s.itemId]||0;
+    // received = current balance + all dispatched (balance is what remains after dispatching)
+    const received=s.currentQty+dispatched;
+    const balance=s.currentQty;
+    const val=balance*s.unitCost;
     totalVal+=val;
-    const unitCost=s.totalQty>0?s.totalCost/s.totalQty:0;
-    const stockClass=s.totalQty>0?'num-pos':s.totalQty===0?'num-zero':'num-neg';
-    return`<tr>
+    const balClass=balance>0?'num-pos':balance===0?'num-zero':'num-neg';
+    return`<tr class="${balance<0?'row-low':balance===0?'row-zero':''}">
       <td class="td-mono">${esc(s.itemId)}</td>
       <td style="font-weight:600">${esc(s.itemName)}</td>
       <td style="color:var(--text3)">${esc(s.itemDesc)}</td>
-      <td class="num td-mono ${stockClass}">${fmtQ(s.totalQty)}</td>
-      <td class="num td-mono">${fmt(unitCost)}</td>
+      <td class="num td-mono">${fmtQ(received)}</td>
+      <td class="num td-mono">${fmtQ(dispatched)}</td>
+      <td class="num td-mono ${balClass}">${fmtQ(balance)}</td>
       <td class="num td-mono ${colorClass(val)}">${fmt(val)}</td>
     </tr>`;
   }).join('');
-
-  // Dispatch summary
-  const pendingDispatches=S.storeDispatches.filter(d=>d.status==='pending').length;
-  const approvedDispatches=S.storeDispatches.filter(d=>d.status==='approved').length;
-  const totalDispatched=S.storeDispatches.filter(d=>d.status!=='rejected').reduce((a,d)=>a+d.total,0);
-
-  document.getElementById('tab-content').innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:18px;background:var(--surface2);border-bottom:1px solid var(--border)">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:22px;margin-bottom:6px">📦</div>
-        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--store)">${items.length}</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Item Types</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:22px;margin-bottom:6px">💰</div>
-        <div style="font-family:var(--mono);font-size:1rem;font-weight:800;color:var(--store)">${fmt(totalVal)}</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Total Store Value</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:22px;margin-bottom:6px">📤</div>
-        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--warn)">${pendingDispatches}</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Pending Dispatches</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
-        <div style="font-size:22px;margin-bottom:6px">✅</div>
-        <div style="font-family:var(--display);font-size:1.3rem;font-weight:800;color:var(--success)">${approvedDispatches}</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Approved Dispatches</div>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Part No.</th><th>Item Name</th><th>Description</th>
-          <th class="num">Current Stock</th><th class="num">Avg Unit Cost</th><th class="num">Total Value</th>
-        </tr></thead>
-        <tbody>
-          ${rows||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">No store stock yet. Add stock from the Store tab.</td></tr>'}
-          ${items.length?`<tr class="summary-row">
-            <td colspan="3" style="font-weight:700">TOTAL</td>
-            <td></td><td></td>
-            <td class="num td-mono num-pos">${fmt(totalVal)}</td>
-          </tr>`:''}
-        </tbody>
-      </table>
-    </div>`;
-
+  document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Part No.</th><th>Item Name</th><th>Description</th>
+        <th class="num">Received Qty</th><th class="num">Dispatched Qty</th>
+        <th class="num">Balance</th><th class="num">Store Value</th>
+      </tr></thead>
+      <tbody>
+        ${rows||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:32px">No store activity yet. Add stock from the Store tab.</td></tr>'}
+        ${items.length?`<tr class="summary-row">
+          <td colspan="3">TOTAL</td>
+          <td></td><td></td><td></td>
+          <td class="num td-mono num-pos">${fmt(totalVal)}</td>
+        </tr>`:''}
+      </tbody>
+    </table>
+  </div>`;
   document.getElementById('extras').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:linear-gradient(90deg,rgba(16,185,129,.1),var(--surface2));border-top:2px solid var(--success)">
-    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL DISPATCHED (excl. rejected)</span>
-    <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--p)">${fmt(totalDispatched)}</span>
+    <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL STORE VALUE</span>
+    <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalVal)}</span>
   </div>`;
 }
 

@@ -631,6 +631,7 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
     <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">☁️<div class="sync-ring" id="sync-ring"></div></div>
     <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">🔔<div class="notif-dot" id="notif-dot" style="display:none">0</div></div>
     <div class="icon-btn no-print" id="store-notif-btn" onclick="openStoreReceipts()" style="display:none" title="Store Receipts">🏪<div class="notif-dot" id="store-notif-dot" style="display:none;background:var(--success)">0</div></div>
+    <div class="icon-btn no-print" id="req-notif-btn" onclick="openStoreRequestsPanel()" style="display:none" title="Branch Store Requests">🛒<div class="notif-dot" id="req-notif-dot" style="display:none;background:var(--warn)">0</div></div>
     <div class="hdr-chip no-print" id="hdr-chip">
       <div class="hdr-avatar" id="hdr-avatar" onclick="openSettings()">👤</div>
       <div>
@@ -679,6 +680,10 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
     <button class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
       <div class="di-info"><div class="di-label">Add User</div><div class="di-sub">Create user for a branch</div></div>
+    </button>
+    <button class="drawer-item" id="btn-request-store" onclick="openRequestItemModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📦</span>
+      <div class="di-info"><div class="di-label">Request from Store</div><div class="di-sub">Request items for your branch</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section">Preferences</div>
@@ -840,6 +845,32 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
   </div>
 </div>
 
+<!-- REQUEST FROM STORE MODAL -->
+<div class="modal-overlay" id="request-item-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr"><span class="modal-hdr-icon">📦</span><div><h2>Request from Store</h2><p>Submit a request for branch supplies</p></div><button class="modal-hdr-close" onclick="closeModal('request-item-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Item from Catalog</label>
+        <select id="req-item" onchange="onReqItemChange()">
+          <option value="">— Select a store item (optional) —</option>
+        </select>
+      </div>
+      <div class="field"><label>Or type item name *</label>
+        <input id="req-custom-item" placeholder="Enter item name if not in list above">
+      </div>
+      <div class="field"><label>Quantity *</label>
+        <input id="req-qty" type="number" min="1" placeholder="e.g. 5">
+      </div>
+      <div class="field"><label>Note / Reason</label>
+        <input id="req-note" placeholder="Optional reason for request…">
+      </div>
+      <button class="modal-btn" onclick="submitItemRequest()">📨 Submit Request</button>
+      <button class="modal-btn secondary" onclick="closeModal('request-item-modal')" style="margin-top:5px">Cancel</button>
+      <div class="modal-error" id="req-error"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
     <div class="modal-hdr"><span class="modal-hdr-icon">🏢</span><div><h2>Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
@@ -874,6 +905,13 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
   <div class="approval-panel">
     <div class="apv-hdr"><span class="apv-title">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
     <div id="store-receipt-list"></div>
+  </div>
+</div>
+
+<div class="approval-overlay" id="store-requests-overlay">
+  <div class="approval-panel">
+    <div class="apv-hdr"><span class="apv-title">🛒 Branch Store Requests</span><button class="apv-close" onclick="closeStoreRequestsPanel()">✕</button></div>
+    <div id="store-requests-list"></div>
   </div>
 </div>
 
@@ -1233,6 +1271,7 @@ async function loadFromCloud(ns){
     if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
     if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
     if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
+    if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
     const branches=d.branches?JSON.parse(d.branches):['Main'];
     branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
   }catch(e){}
@@ -1260,6 +1299,7 @@ function syncToCloud(){
       beginBal:S.beginBal,perms:JSON.stringify(S.perms),
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
+      storereqs:JSON.stringify(loadStoreRequests()),
       updatedAt:new Date().toISOString()
     };
     S.branches.forEach(b=>{
@@ -1416,6 +1456,7 @@ async function doLogin(u,ownerId,role){
   document.getElementById('btn-owner-perms').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
+  document.getElementById('btn-request-store').style.display=(isUser()&&S.userBranch)?'flex':'none';
   document.getElementById('owner-back-btn').style.display='none';
   updateHdrAvatar();
   // ★ CHANGE 5: Apply tab visibility rules per role
@@ -1429,6 +1470,7 @@ async function doLogin(u,ownerId,role){
   }
   if(isOwner())loadPendingApprovals();
   updateStoreNotifBadge();
+  updateRequestBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
   // Storekeeper starts on STORE; regular users start on last visited allowed tab
   let startTab;
@@ -1551,6 +1593,7 @@ function doLoginSystemOwner(){
   document.getElementById('hdr-avatar').textContent='👑';
   document.getElementById('notif-btn').style.display='none';
   document.getElementById('store-notif-btn').style.display='none';
+  document.getElementById('req-notif-btn').style.display='none';
   document.getElementById('owner-back-btn').style.display='none';
   document.getElementById('drawer-hdr').className='drawer-hdr owner-drawer-hdr';
   initFirebase();
@@ -2029,6 +2072,146 @@ function rejectStoreReceipt(branch,idx){
   saveUserData();
   showToast('❌ Receipt rejected. Qty returned to store.','warn');
   updateStoreNotifBadge();openStoreReceipts();
+}
+
+/* ═══════════════════════════════════════════════════════
+   STORE REQUESTS — branch users request items from store
+═══════════════════════════════════════════════════════ */
+function loadStoreRequests(){
+  return JSON.parse(localStorage.getItem(lsKey('storereqs'))||'[]');
+}
+function saveStoreRequests(reqs){
+  localStorage.setItem(lsKey('storereqs'),JSON.stringify(reqs));
+}
+
+function openRequestItemModal(){
+  const items=S.storeItems.filter(s=>s.qty>0);
+  const sel=document.getElementById('req-item');
+  sel.innerHTML='<option value="">— Select a store item (optional) —</option>'+
+    items.map(s=>`<option value="${esc(s.itemName)}">${esc(s.itemName)} (Stock: ${fmtQ(s.qty)})</option>`).join('');
+  document.getElementById('req-custom-item').value='';
+  document.getElementById('req-custom-item').disabled=false;
+  document.getElementById('req-custom-item').placeholder='Enter item name if not in list above';
+  document.getElementById('req-qty').value='';
+  document.getElementById('req-note').value='';
+  hideMsg('req-error');
+  openModal('request-item-modal');
+}
+
+function onReqItemChange(){
+  const v=document.getElementById('req-item').value;
+  const ci=document.getElementById('req-custom-item');
+  ci.disabled=!!v;
+  if(v)ci.value='';
+  ci.placeholder=v?'(using selected item)':'Enter item name if not in list above';
+}
+
+function submitItemRequest(){
+  const selItem=document.getElementById('req-item').value;
+  const custItem=document.getElementById('req-custom-item').value.trim();
+  const itemName=selItem||custItem;
+  const qty=parseFloat(document.getElementById('req-qty').value)||0;
+  const note=document.getElementById('req-note').value.trim();
+  if(!itemName){showMsg('req-error','Please select or enter an item name');return;}
+  if(qty<1){showMsg('req-error','Quantity must be at least 1');return;}
+  const reqs=loadStoreRequests();
+  reqs.push({
+    id:'REQ-'+genCode(),requestedBy:S.user,branch:S.userBranch,
+    itemName,qty,note,status:'pending',
+    requestedAt:new Date().toISOString(),respondedAt:null,respondedBy:null
+  });
+  saveStoreRequests(reqs);
+  syncToCloud();
+  closeModal('request-item-modal');
+  showToast('📦 Request submitted to store!','success');
+  updateRequestBadge();
+}
+
+function openStoreRequestsPanel(){
+  renderStoreRequestsPanel();
+  document.getElementById('store-requests-overlay').classList.add('open');
+}
+function closeStoreRequestsPanel(){
+  document.getElementById('store-requests-overlay').classList.remove('open');
+}
+
+function renderStoreRequestsPanel(){
+  const reqs=loadStoreRequests();
+  const list=document.getElementById('store-requests-list');
+  if(!reqs.length){
+    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">No requests yet.</div>';
+    return;
+  }
+  const canAct=isStorekeeper()||isOwner();
+  list.innerHTML=[...reqs].reverse().map((r,ri)=>{
+    const idx=reqs.length-1-ri;
+    const statusColor=r.status==='approved'?'var(--success)':r.status==='rejected'?'var(--error)':'var(--warn)';
+    const statusIcon=r.status==='approved'?'✅':r.status==='rejected'?'❌':'⏳';
+    return `<div class="store-receipt-item">
+      <div class="receipt-status-bar">
+        <span style="font-weight:700;font-size:13px">📦 ${esc(r.itemName)} ×${r.qty}</span>
+        <span style="color:${statusColor};font-size:11px;font-weight:700">${statusIcon} ${r.status.toUpperCase()}</span>
+      </div>
+      <div class="receipt-detail">
+        🏢 Branch: <b>${esc(r.branch||'—')}</b>&nbsp;&nbsp;👤 By: <b>${esc(r.requestedBy)}</b><br>
+        📅 ${r.requestedAt?new Date(r.requestedAt).toLocaleString():''}<br>
+        ${r.note?`📝 ${esc(r.note)}<br>`:''}
+        ${r.respondedBy?`Responded by: ${esc(r.respondedBy)}`:''}
+      </div>
+      ${r.status==='pending'&&canAct?`<div class="receipt-actions">
+        <button class="apv-btn approve" onclick="approveItemRequest(${idx})">✅ Approve & Dispatch</button>
+        <button class="apv-btn deny" onclick="rejectItemRequest(${idx})">❌ Reject</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function approveItemRequest(idx){
+  const reqs=loadStoreRequests();
+  const r=reqs[idx];
+  if(!r||r.status!=='pending')return;
+  const storeIdx=S.storeItems.findIndex(s=>s.itemName===r.itemName);
+  if(storeIdx<0){showToast(`"${r.itemName}" not found in store catalog`,'error');return;}
+  const si=S.storeItems[storeIdx];
+  if(si.qty<r.qty){showToast(`Insufficient stock — available: ${fmtQ(si.qty)}`,'error');return;}
+  dispatchToBranch(storeIdx,r.branch,r.qty,si.cost||0);
+  reqs[idx].status='approved';
+  reqs[idx].respondedAt=new Date().toISOString();
+  reqs[idx].respondedBy=S.user;
+  saveStoreRequests(reqs);
+  syncToCloud();
+  showToast(`✅ Approved & dispatched to ${r.branch}!`,'success');
+  updateRequestBadge();
+  renderStoreRequestsPanel();
+}
+
+function rejectItemRequest(idx){
+  const reqs=loadStoreRequests();
+  const r=reqs[idx];
+  if(!r||r.status!=='pending')return;
+  reqs[idx].status='rejected';
+  reqs[idx].respondedAt=new Date().toISOString();
+  reqs[idx].respondedBy=S.user;
+  saveStoreRequests(reqs);
+  syncToCloud();
+  showToast('❌ Request rejected.','warn');
+  updateRequestBadge();
+  renderStoreRequestsPanel();
+}
+
+function updateRequestBadge(){
+  const btn=document.getElementById('req-notif-btn');
+  const dot=document.getElementById('req-notif-dot');
+  if(!btn||!dot)return;
+  if(isStorekeeper()||isOwner()){
+    const reqs=loadStoreRequests();
+    const pending=reqs.filter(r=>r.status==='pending').length;
+    btn.style.display='flex';
+    if(pending>0){dot.style.display='flex';dot.textContent=pending;btn.classList.add('store-notif-pulse');}
+    else{dot.style.display='none';btn.classList.remove('store-notif-pulse');}
+  }else{
+    btn.style.display='none';
+  }
 }
 
 function viewStoreReceiptPrint(r){

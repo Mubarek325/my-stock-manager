@@ -3143,16 +3143,18 @@ function renderReport(){
   const creditSales=SR.filter(s=>s.payment&&s.payment!=='CASH');
   const cpRows=creditPurchases.length?creditPurchases.map(r=>`<tr>
     <td>${(r.date||'').slice(0,10)}</td><td>${esc(r.party||'—')}</td><td>${esc(r.name||'—')}</td>
+    <td style="color:var(--text3)">${esc(r.desc||'—')}</td>
     <td class="num">${fmtQ(parseFloat(r.qty)||0)}</td>
     <td class="num">${fmt((parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0))}</td>
     <td><span class="td-badge badge-credit">${r.payment}</span></td>
-  </tr>`).join(''):`<tr><td colspan="6" class="credit-empty">No credit purchases in range</td></tr>`;
+  </tr>`).join(''):`<tr><td colspan="7" class="credit-empty">No credit purchases in range</td></tr>`;
   const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;return`<tr>
     <td>${(s.date||'').slice(0,10)}</td><td>${esc(s.party||'—')}</td><td>${esc(s.name||'—')}</td>
+    <td style="color:var(--text3)">${esc(s.desc||'—')}</td>
     <td class="num">${fmtQ(parseFloat(s.qty)||0)}</td>
     <td class="num">${fmt(b+v)}</td>
     <td><span class="td-badge badge-credit">${s.payment}</span></td>
-  </tr>`;}).join(''):`<tr><td colspan="6" class="credit-empty">No credit sales in range</td></tr>`;
+  </tr>`;}).join(''):`<tr><td colspan="7" class="credit-empty">No credit sales in range</td></tr>`;
   const creditTotalP=creditPurchases.reduce((a,r)=>a+(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),0);
   const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0);},0);
   document.getElementById('tab-content').innerHTML=`
@@ -3170,7 +3172,7 @@ function renderReport(){
         <span class="credit-section-count purchase">${creditPurchases.length} record${creditPurchases.length!==1?'s':''} · ${fmt(creditTotalP)}</span>
       </div>
       <div class="credit-table-wrap"><table class="credit-table">
-        <thead><tr><th>Date</th><th>Supplier</th><th>Item</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <thead><tr><th>Date</th><th>Supplier</th><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
         <tbody>${cpRows}</tbody>
       </table></div>
     </div>
@@ -3181,7 +3183,7 @@ function renderReport(){
         <span class="credit-section-count sales">${creditSales.length} record${creditSales.length!==1?'s':''} · ${fmt(creditTotalS)}</span>
       </div>
       <div class="credit-table-wrap"><table class="credit-table">
-        <thead><tr><th>Date</th><th>Customer</th><th>Item</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
+        <thead><tr><th>Date</th><th>Customer</th><th>Item</th><th>Description</th><th class="num">Qty</th><th class="num">Amount</th><th>Method</th></tr></thead>
         <tbody>${csRows}</tbody>
       </table></div>
     </div>`;

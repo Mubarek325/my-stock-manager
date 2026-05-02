@@ -1082,6 +1082,7 @@ html[data-view="mobile"] .drawer-item .di-label{font-size:13px}
   <!-- Separate buttons kept for storekeepers -->
   <button class="nav-item store-nav" data-tab="STORE" onclick="switchTab('STORE')" id="store-nav-btn" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label">Store</span></button>
   <button class="nav-item store-nav" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label">St.Balance</span></button>
+  <button class="nav-item store-nav" data-tab="STOREREPORT" onclick="switchTab('STOREREPORT')" id="nav-STOREREPORT" style="display:none"><span class="ni-icon">📋</span><span class="ni-label">St.Report</span></button>
   <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label">Expense</span></button>
   <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label">Report</span></button>
   <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS"><span class="ni-icon">📋</span><span class="ni-label">Items</span></button>
@@ -1104,11 +1105,12 @@ const TAB_META = {
   STORE:{icon:'🏪',title:'Store',sub:'Central store inventory & dispatch'},
   STOREBALANCE:{icon:'📊',title:'Store Balance',sub:'Store stock levels & total value'},
   EXPENSE:{icon:'💸',title:'Expense',sub:'Expense tracking'},
-  REPORT:{icon:'📊',title:'Report',sub:'Financial summary'}
+  REPORT:{icon:'📊',title:'Report',sub:'Financial summary'},
+  STOREREPORT:{icon:'📋',title:'Store Report',sub:'Store financial summary'}
 };
 
 // ★ CHANGE 2: Define which tabs storekeepers can see
-const STOREKEEPER_ALLOWED_TABS = ['STORE','STOREBALANCE'];
+const STOREKEEPER_ALLOWED_TABS = ['STORE','STOREBALANCE','EXPENSE','STOREREPORT'];
 
 const LANG={
   en:{date:'Date',supplier:'Supplier',customer:'Customer',branch:'Branch',partNo:'Part Number',itemName:'Item Name',desc:'Description',qty:'Qty',unitPrice:'Unit Price',total:'Total',payment:'Payment',status:'Status',price:'Price',totals:'Totals',vat:'VAT (15%)',wh3:'Withhold 3%',vwh:'VAT WH 7.5%',totalPrice:'Total Price',cash:'Cash',credit:'Credit',reason:'Reason',amount:'Amount'},
@@ -1136,6 +1138,7 @@ const S={
   userBranch:null,
   db:null,dbConnected:false,_unsubscribe:null,
   userMeta:{},
+  storeReportRange:{from:'',to:''},
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -1519,14 +1522,17 @@ function updateNavForRole(){
   // Always hide the separate store buttons and combo by default
   document.getElementById('store-nav-btn').style.display='none';
   document.getElementById('nav-STOREBALANCE').style.display='none';
+  const _srBtn=document.getElementById('nav-STOREREPORT');if(_srBtn)_srBtn.style.display='none';
   document.getElementById('store-combo-wrap').style.display='none';
   if(isStorekeeper()){
-    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
+    ['PURCHASE','SALES','BALANCE','REPORT','ITEMS'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
     });
-    // Storekeepers get the two separate store buttons
+    // Storekeepers get store buttons, expense, and store report
     document.getElementById('store-nav-btn').style.display='flex';
     document.getElementById('nav-STOREBALANCE').style.display='flex';
+    document.getElementById('nav-EXPENSE').style.display='flex';
+    const srBtn=document.getElementById('nav-STOREREPORT');if(srBtn)srBtn.style.display='flex';
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='none';
   }else{
@@ -2464,7 +2470,7 @@ function switchTab(tab){
   S.tab=tab;
   const meta=TAB_META[tab]||TAB_META['ITEMS'];
   document.getElementById('page-icon').textContent=meta.icon;
-  document.getElementById('page-icon').className='page-icon-wrap'+(tab==='STORE'||tab==='STOREBALANCE'?' store-icon':'');
+  document.getElementById('page-icon').className='page-icon-wrap'+(tab==='STORE'||tab==='STOREBALANCE'||tab==='STOREREPORT'?' store-icon':'');
   document.getElementById('page-title').textContent=meta.title;
   document.getElementById('page-sub').textContent=meta.sub;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -2500,7 +2506,8 @@ function renderTab(){
   else if(S.tab==='PURCHASE'||S.tab==='SALES')renderTx();
   else if(S.tab==='BALANCE')renderBalance();
   else if(S.tab==='STORE')renderStore();
-  else if(S.tab==='STOREBALANCE')renderStoreBalance(); // ★ NEW
+  else if(S.tab==='STOREBALANCE')renderStoreBalance();
+  else if(S.tab==='STOREREPORT')renderStoreReport();
   else if(S.tab==='EXPENSE')renderExpense();
   else if(S.tab==='REPORT')renderReport();
 }
@@ -2508,7 +2515,7 @@ function renderHeadActions(){
   const ha=document.getElementById('head-actions');if(!ha)return;
   const rw=canWrite(S.tab);
   let html='';
-  if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'&&S.tab!=='STOREBALANCE'){
+  if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'&&S.tab!=='STOREBALANCE'&&S.tab!=='STOREREPORT'){
     const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
     html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
   }
@@ -3016,6 +3023,107 @@ function renderStoreBalance(){
     <span style="font-size:11px;font-weight:700;color:var(--text3)">TOTAL DISPATCHED (excl. rejected)</span>
     <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--p)">${fmt(totalDispatched)}</span>
   </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER STORE REPORT
+═══════════════════════════════════════════════════════ */
+let _storeReportChart=null;
+function renderStoreReport(){
+  const inRange=arr=>arr.filter(r=>{
+    if(!r.date)return true;
+    const d=r.date.slice(0,10);
+    if(S.storeReportRange.from&&d<S.storeReportRange.from)return false;
+    if(S.storeReportRange.to&&d>S.storeReportRange.to)return false;
+    return true;
+  });
+  const SI=inRange(S.storeItems);
+  const SD=inRange(S.storeDispatches);
+  const ER=inRange(S.expense);
+  const totalReceived=SI.reduce((a,s)=>a+(parseFloat(s.qty)||0)*(parseFloat(s.cost)||0),0);
+  const totalDispatched=SD.filter(d=>d.status!=='rejected').reduce((a,d)=>a+(parseFloat(d.qty)||0)*(parseFloat(d.price)||0),0);
+  const totalExpense=ER.reduce((a,e)=>a+(parseFloat(e.amt)||0),0);
+  const netValue=totalReceived-totalDispatched-totalExpense;
+  const summaryData=[
+    {l:'Total Store Stock Received',v:totalReceived,icon:'📦'},
+    {l:'Total Dispatched to Branches',v:totalDispatched,icon:'📤'},
+    {l:'Total Expenses',v:totalExpense,icon:'💸'},
+    {l:'Net Store Value',v:netValue,total:true,icon:'💹'},
+  ];
+  const dispatchRows=SD.map(d=>`<tr>
+    <td class="td-mono" style="font-size:11px">${(d.date||'').slice(0,10)}</td>
+    <td style="font-weight:600">${esc(d.itemName||'—')}</td>
+    <td style="color:var(--text3)">${esc(d.itemDesc||'—')}</td>
+    <td>${esc(d.toBranch||'—')}</td>
+    <td class="num td-mono">${fmtQ(parseFloat(d.qty)||0)}</td>
+    <td class="num td-mono">${fmt((parseFloat(d.qty)||0)*(parseFloat(d.price)||0))}</td>
+    <td><span class="td-badge ${d.status==='approved'?'badge-cash':d.status==='rejected'?'badge-credit':'badge-other'}">${d.status||'pending'}</span></td>
+  </tr>`).join('');
+  document.getElementById('tab-content').innerHTML=`
+    <div class="date-bar no-print">
+      <label>From: <input type="date" value="${S.storeReportRange.from}" onchange="S.storeReportRange.from=this.value;renderTab()"></label>
+      <label>To: <input type="date" value="${S.storeReportRange.to}" onchange="S.storeReportRange.to=this.value;renderTab()"></label>
+      <button class="btn btn-sm" onclick="S.storeReportRange.from='';S.storeReportRange.to='';renderTab()">Clear</button>
+      <button class="btn btn-sm no-print" onclick="printStoreReport()" style="margin-left:auto">🖨️ Print</button>
+    </div>
+    ${summaryData.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
+      <div class="report-label">${r.icon} ${r.l}</div>
+      <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${fmt(r.v)}</div>
+    </div>`).join('')}
+    <div class="credit-section" style="margin-top:16px">
+      <div class="credit-section-hdr">
+        <div class="credit-section-hdr-icon" style="background:var(--store-gradient)">📤</div>
+        <span class="credit-section-title">Dispatch Log</span>
+        <span class="credit-section-count" style="background:rgba(16,185,129,.15);color:var(--store)">${SD.length} dispatch${SD.length!==1?'es':''}</span>
+      </div>
+      <div class="credit-table-wrap"><table class="credit-table">
+        <thead><tr><th>Date</th><th>Item</th><th>Description</th><th>Branch</th><th class="num">Qty</th><th class="num">Value</th><th>Status</th></tr></thead>
+        <tbody>${dispatchRows||'<tr><td colspan="7" class="credit-empty">No dispatches in range</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+  document.getElementById('extras').innerHTML=`<div class="chart-wrap"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;letter-spacing:.08em">📊 MONTHLY STORE OVERVIEW</div><canvas id="store-report-chart" class="chart-canvas"></canvas></div>`;
+  setTimeout(()=>buildStoreChart(SI,SD,ER),50);
+}
+
+function buildStoreChart(SI,SD,ER){
+  const canvas=document.getElementById('store-report-chart');if(!canvas)return;
+  if(_storeReportChart){_storeReportChart.destroy();_storeReportChart=null;}
+  const months={};
+  const add=(arr,type,fn)=>arr.forEach(r=>{if(!r.date)return;const m=r.date.slice(0,7);if(!months[m])months[m]={r:0,d:0,e:0};months[m][type]+=fn(r)||0});
+  add(SI,'r',s=>(parseFloat(s.qty)||0)*(parseFloat(s.cost)||0));
+  add(SD.filter(d=>d.status!=='rejected'),'d',d=>(parseFloat(d.qty)||0)*(parseFloat(d.price)||0));
+  add(ER,'e',e=>parseFloat(e.amt)||0);
+  const labels=Object.keys(months).sort();
+  const isDark=S.theme!=='light';
+  const gc=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const tc=isDark?'#64748b':'#94a3b8';
+  _storeReportChart=new Chart(canvas,{
+    type:'bar',data:{labels,datasets:[
+      {label:'Received',data:labels.map(m=>months[m].r),backgroundColor:'rgba(16,185,129,.7)',borderRadius:6},
+      {label:'Dispatched',data:labels.map(m=>months[m].d),backgroundColor:'rgba(59,130,246,.7)',borderRadius:6},
+      {label:'Expenses',data:labels.map(m=>months[m].e),backgroundColor:'rgba(239,68,68,.6)',borderRadius:6},
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{grid:{color:gc},ticks:{color:tc}},y:{grid:{color:gc},ticks:{color:tc,callback:v=>fmt(v)}}}}
+  });
+}
+
+function printStoreReport(){
+  const content=document.getElementById('tab-content').innerHTML;
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=`<style>@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}}
+    #print-area{position:fixed;top:0;left:0;width:100%;background:white;padding:24px;font-family:sans-serif}
+    h2{color:#10b981;margin-bottom:6px}p{color:#64748b;font-size:12px;margin-bottom:18px}
+    .report-row{display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e2e8f0}
+    .report-label{font-size:13px;color:#475569}.report-val{font-family:monospace;font-weight:700}
+    .report-total-row{background:#f0fdf4;border-top:2px solid #10b981}
+    .report-total-row .report-label{font-weight:700;color:#0f172a}.report-total-row .report-val{color:#10b981}
+    .num-pos{color:#10b981}.num-neg{color:#ef4444}.date-bar,.no-print{display:none!important}
+    table{width:100%;border-collapse:collapse;margin-top:12px}.credit-section{margin-top:16px}
+    .credit-section-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:8px 8px 0 0}
+    th,td{padding:6px 10px;border-bottom:1px solid #e2e8f0;font-size:11px;text-align:left}th{font-weight:700}
+    .credit-empty{text-align:center;color:#94a3b8;padding:20px}
+  </style><h2>📋 POWER-IMS — Store Report</h2><p>Generated: ${new Date().toLocaleString()} | Storekeeper: ${S.user}</p>${content}`;
+  window.print();setTimeout(()=>pa.innerHTML='',1200);
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -2573,6 +2573,7 @@ function setLang(l){
 }
 function setViewMode(mode){
   document.documentElement.setAttribute('data-view',mode==='mobile'?'mobile':'desktop');
+  document.documentElement.setAttribute('data-card',mode==='mobile'?'1':'0');
   const tog=document.getElementById('mobile-toggle');if(tog)tog.checked=(mode==='mobile');
   const btn=document.getElementById('view-mode-btn');
   if(btn){
@@ -2581,6 +2582,7 @@ function setViewMode(mode){
     btn.className='icon-btn no-print'+(mode==='mobile'?' mobile-active':'');
   }
   if(S.user)localStorage.setItem(`ims_${S.user}_view`,mode);
+  renderHeadActions();
 }
 function toggleViewMode(){
   const cur=document.documentElement.getAttribute('data-view');
@@ -2600,7 +2602,6 @@ function loadPrefs(){
   setTheme(localStorage.getItem(`ims_${S.user}_theme`)||'dark');
   setLang(localStorage.getItem(`ims_${S.user}_lang`)||'en');
   setViewMode(localStorage.getItem(`ims_${S.user}_view`)||'desktop');
-  document.documentElement.setAttribute('data-card',localStorage.getItem(`ims_${S.user}_cardview`)||'0');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2794,11 +2795,6 @@ function renderHeadActions(){
   if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'&&S.tab!=='STOREBALANCE'&&S.tab!=='STOREREPORT'){
     const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
     html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
-  }
-  const CARD_TABS=['ITEMS','PURCHASE','SALES','BALANCE','STORE','STOREBALANCE','EXPENSE'];
-  if(CARD_TABS.includes(S.tab)){
-    const isCard=document.documentElement.getAttribute('data-card')==='1';
-    html+=`<button class="btn cv-toggle${isCard?' active':''}" onclick="toggleCardView()" title="${isCard?'Switch to table view':'Switch to card view'}">⊞ ${isCard?'Table':'Card'}</button>`;
   }
   if(S.tab==='STORE'&&(isOwner()||isStorekeeper())){
     html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;

@@ -1260,20 +1260,8 @@ async function loadFromCloud(ns){
     const doc=await S.db.collection('power_ims5').doc(ns).get();
     if(!doc.exists)return;
     const d=doc.data();
-    if(d.items!==undefined) localStorage.setItem(`ims_${ns}_items`,d.items);
-    if(d.purchase!==undefined) localStorage.setItem(`ims_${ns}_purchase`,d.purchase);
-    if(d.sales!==undefined) localStorage.setItem(`ims_${ns}_sales`,d.sales);
-    if(d.expense!==undefined) localStorage.setItem(`ims_${ns}_expense`,d.expense);
-    if(d.storeItems!==undefined) localStorage.setItem(`ims_${ns}_storeItems`,d.storeItems);
-    if(d.storeDispatches!==undefined) localStorage.setItem(`ims_${ns}_storeDispatches`,d.storeDispatches);
-    if(d.beginBal!==undefined) localStorage.setItem(`ims_${ns}_beginBal`,d.beginBal);
-    if(d.perms!==undefined) localStorage.setItem(`ims_${ns}_perms`,d.perms);
-    if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
-    if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
-    if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
-    if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
-    const branches=d.branches?JSON.parse(d.branches):['Main'];
-    branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
+    if(d.updatedAt)_lastWrittenAt=d.updatedAt;
+    applyCloudSnapshot(ns,d);
   }catch(e){}
 }
 
@@ -1287,11 +1275,15 @@ function initFirebase(){
   }catch(e){setSyncRing(false);return false;}
 }
 let _syncT=null;
+let _lastWrittenAt='';
+
 function syncToCloud(){
   if(!S.dbConnected||!S.db)return;
   clearTimeout(_syncT);
   _syncT=setTimeout(()=>{
     const ns=ownerNS();
+    const now=new Date().toISOString();
+    _lastWrittenAt=now;
     const payload={
       items:JSON.stringify(S.items),purchase:JSON.stringify(S.purchase),
       sales:JSON.stringify(S.sales),expense:JSON.stringify(S.expense),
@@ -1300,19 +1292,54 @@ function syncToCloud(){
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
       storereqs:JSON.stringify(loadStoreRequests()),
-      updatedAt:new Date().toISOString()
+      updatedAt:now
     };
     S.branches.forEach(b=>{
       payload[`br_${b}`]=JSON.stringify(loadBranchReceipts(b));
     });
     S.db.collection('power_ims5').doc(ns).set(payload,{merge:true})
       .then(()=>setSyncRing(true)).catch(()=>setSyncRing(false));
-    // ★ Also keep global registry in sync
     saveRegistryToCloud(getRegistry());
   },1200);
 }
 function setSyncRing(ok){const r=document.getElementById('sync-ring');if(r)r.className='sync-ring'+(ok?' active':'');}
 function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
+
+function applyCloudSnapshot(ns,d){
+  if(d.items!==undefined) localStorage.setItem(`ims_${ns}_items`,d.items);
+  if(d.purchase!==undefined) localStorage.setItem(`ims_${ns}_purchase`,d.purchase);
+  if(d.sales!==undefined) localStorage.setItem(`ims_${ns}_sales`,d.sales);
+  if(d.expense!==undefined) localStorage.setItem(`ims_${ns}_expense`,d.expense);
+  if(d.storeItems!==undefined) localStorage.setItem(`ims_${ns}_storeItems`,d.storeItems);
+  if(d.storeDispatches!==undefined) localStorage.setItem(`ims_${ns}_storeDispatches`,d.storeDispatches);
+  if(d.beginBal!==undefined) localStorage.setItem(`ims_${ns}_beginBal`,d.beginBal);
+  if(d.perms!==undefined) localStorage.setItem(`ims_${ns}_perms`,d.perms);
+  if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
+  if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
+  if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
+  if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
+  const branches=d.branches?JSON.parse(d.branches):['Main'];
+  branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
+}
+
+function startRealtimeSync(){
+  if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
+  const ns=ownerNS();
+  if(!S.db||!ns||ns==='_system_')return;
+  S._unsubscribe=S.db.collection('power_ims5').doc(ns).onSnapshot(doc=>{
+    if(!doc.exists)return;
+    const d=doc.data();
+    if(!d||!d.updatedAt||d.updatedAt===_lastWrittenAt)return;
+    _lastWrittenAt=d.updatedAt;
+    applyCloudSnapshot(ns,d);
+    loadUserData();
+    renderTab();
+    if(isOwner())loadPendingApprovals();
+    updateNotifBadge();
+    updateStoreNotifBadge();
+    updateRequestBadge();
+  },()=>{});
+}
 
 /* ═══════════════════════════════════════════════════════
    EMERGENCY RESET
@@ -1431,6 +1458,7 @@ async function doLogin(u,ownerId,role){
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   initFirebase();
   await loadFromCloud(ownerId);
+  startRealtimeSync();
   // Subscription gate — block expired/suspended owners and their users
   if(role!=='system_owner'){
     const gateReg=getRegistry();
@@ -2326,6 +2354,8 @@ function showMsg(id,msg,type='error'){const el=document.getElementById(id);el.te
 function hideMsg(id){const el=document.getElementById(id);el.className=el.className.replace(' show','');}
 
 function logout(){
+  if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
+  _lastWrittenAt='';
   S.user=null;S.ownerId=null;S.role=null;
   localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentOwner');localStorage.removeItem('ims_currentRole');
   closeSettings();

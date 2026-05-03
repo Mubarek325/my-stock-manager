@@ -43,7 +43,8 @@
   --shadow:0 2px 16px rgba(0,0,0,.07);--shadow-lg:0 16px 48px rgba(0,0,0,.12);
 }
 
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,select,textarea{-webkit-user-select:text;user-select:text}
 html{scroll-behavior:smooth;height:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;
   padding-bottom:var(--nav-h);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;
@@ -5295,6 +5296,25 @@ document.addEventListener('keydown',e=>{
     hideCtxMenu();
   }
 });
+
+/* Long-press context menu for iOS / touch devices */
+let _lpTimer=null,_lpTouchX=0,_lpTouchY=0;
+document.addEventListener('touchstart',e=>{
+  const tr=e.target.closest('tbody tr');
+  if(!tr||e.target.closest('input,select,textarea,button,a'))return;
+  const t=e.touches[0];
+  _lpTouchX=t.clientX;_lpTouchY=t.clientY;
+  _lpTimer=setTimeout(()=>{
+    if(typeof tr.oncontextmenu==='function'){
+      tr.oncontextmenu({preventDefault:()=>{},clientX:_lpTouchX,clientY:_lpTouchY,target:e.target});
+    }
+    _lpTimer=null;
+  },500);
+},{passive:true});
+function _lpCancel(){clearTimeout(_lpTimer);_lpTimer=null;}
+document.addEventListener('touchmove',_lpCancel,{passive:true});
+document.addEventListener('touchend',_lpCancel,{passive:true});
+document.addEventListener('touchcancel',_lpCancel,{passive:true});
 
 /* ═══════════════════════════════════════════════════════
    ★ BOOT — now async to support cloud registry fetch

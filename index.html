@@ -7,13 +7,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0f1e">
 <title>POWER-IMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Bebas+Neue&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════
    POWER-IMS v6 — Refined UI
@@ -30,7 +31,7 @@
   --text:#eef2f8;--text2:#8da0bb;--text3:#546480;
   --shadow:0 4px 24px rgba(0,0,0,.35);--shadow-lg:0 20px 60px rgba(0,0,0,.55);
   --radius:12px;--radius-sm:8px;--radius-lg:18px;--radius-xl:24px;
-  --font:'Inter',sans-serif;--display:'Plus Jakarta Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --font:'Inter',sans-serif;--display:'Bebas Neue',sans-serif;--mono:'JetBrains Mono',monospace;
   --nav-h:68px;--hdr-h:58px;
   --gradient:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#0284c7 100%);
   --owner-gradient:linear-gradient(135deg,#92400e 0%,#b45309 50%,#d97706 100%);
@@ -405,6 +406,14 @@ tbody tr:last-child td{border-bottom:none}
 .badge-pending{background:rgba(245,158,11,.12);color:var(--warn)}
 .badge-approved{background:rgba(16,185,129,.12);color:var(--success)}
 .badge-rejected{background:rgba(239,68,68,.12);color:var(--error)}
+.badge-paid{background:rgba(16,185,129,.14);color:var(--success);border:1px solid rgba(16,185,129,.25)}
+.badge-outstanding{background:rgba(234,179,8,.12);color:#ca8a04;border:1px solid rgba(234,179,8,.25)}
+.credit-summary-card{background:var(--surface2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 16px}
+.credit-receivable{border-left:3px solid var(--success)}
+.credit-payable{border-left:3px solid var(--error)}
+.csc-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.csc-total{font-size:1rem;font-weight:800;font-family:var(--display);color:var(--text);margin-bottom:8px}
+.csc-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--text2);padding:3px 0;border-top:1px solid var(--border)}
 .num-pos{color:var(--success);font-weight:700}
 .num-neg{color:var(--error);font-weight:700}
 .num-zero{color:var(--text3)}
@@ -648,8 +657,10 @@ tbody tr:last-child td{border-bottom:none}
 .auth-card{
   background:var(--surface);border-radius:var(--radius-xl);width:min(420px,100%);
   border:1px solid var(--border2);box-shadow:var(--shadow-lg);overflow:hidden;
-  position:relative;z-index:1;animation:flyInScale .45s cubic-bezier(.22,1,.36,1)
+  position:relative;z-index:1;animation:flyInScale .45s cubic-bezier(.22,1,.36,1);
+  max-height:calc(100vh - 40px);display:flex;flex-direction:column
 }
+.auth-hdr{flex-shrink:0}
 .auth-hdr{
   padding:32px 28px 26px;
   background:linear-gradient(150deg,#1a3a8f 0%,#1e40af 55%,#0369a1 100%);
@@ -673,7 +684,7 @@ tbody tr:last-child td{border-bottom:none}
 .auth-hdr h1 .v5-badge{font-size:.52em;font-weight:600;opacity:.6;vertical-align:super;letter-spacing:.03em}
 .auth-hdr p{font-size:.7rem;opacity:.55;margin-top:5px;letter-spacing:.07em;text-transform:uppercase}
 
-.auth-body{padding:22px 24px}
+.auth-body{padding:22px 24px;overflow-y:auto;flex:1}
 .auth-tabs{
   display:flex;gap:3px;background:var(--surface2);padding:3px;
   border-radius:9px;margin-bottom:18px
@@ -939,7 +950,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
   <div class="loader-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
   <image x="0" y="0" width="100" height="100"></image>
 </svg></div>
-  <div class="loader-text">POWER-IMS</div>
+  <div class="loader-text">POWER</div>
   <div class="loader-sub" id="loader-sub-text">Loading accounts from cloud…</div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
 </div>
@@ -957,7 +968,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
         <div class="ah-icon"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
   <image x="0" y="0" width="100" height="100"></image>
 </svg></div>
-        <h1>POWER-IMS</h1>
+        <h1>POWER</h1>
         <p>Inventory Management System</p>
       </div>
     </div>
@@ -979,12 +990,17 @@ html[data-view="mobile"] .table-search-bar{display:none}
         <div id="auth-type-hint" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center">Register your business for a 14-day free trial</div>
       </div>
       <div class="field" id="auth-shopname-wrap" style="display:none"><label>Business / Shop Name *</label><input id="auth-shopname" placeholder="e.g. Abebe General Trading"></div>
-      <div class="field"><label>Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
+      <div class="field" id="auth-email-wrap" style="display:none"><label>Email Address *</label><input id="auth-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
+      <div class="field"><label id="auth-user-label">Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
       <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
       <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
       <div class="field" id="auth-admin-target-wrap" style="display:none">
         <label>Platform Owner Username <span style="color:var(--text3);font-size:9px">(who manages your account)</span></label>
         <input id="auth-admin-target" placeholder="Enter the platform owner's username">
+      </div>
+      <div id="auth-otp-wrap" style="display:none">
+        <div class="field"><label>Verification Code *</label><input id="auth-otp" maxlength="6" placeholder="Enter 6-digit code" style="letter-spacing:.2em;font-family:var(--mono);text-align:center" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+        <div id="auth-otp-hint" style="font-size:10px;color:var(--text3);margin:-6px 0 8px;text-align:center"></div>
       </div>
       <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
       <div class="modal-error" id="auth-error"></div>
@@ -1001,7 +1017,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
   <image x="0" y="0" width="100" height="100"></image>
 </svg></div>
     <div class="brand-text">
-      <div class="t1">POWER-IMS</div>
+      <div class="t1">POWER</div>
       <div class="t2" id="brand-sub">System Dashboard</div>
     </div>
   </div>
@@ -1261,7 +1277,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
   <div class="modal-box narrow">
     <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👤</span></div><div><h2 data-i18n="addUserTitle">Add User</h2><p data-i18n="addUserSub">Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="addUsernameLbl">Username *</label><input id="nu-username" data-i18n="addUsernamePh" data-i18n-attr="placeholder" placeholder="Enter username"></div>
+      <div class="field"><label data-i18n="addUsernameLbl">Full Name *</label><input id="nu-username" data-i18n="addUsernamePh" data-i18n-attr="placeholder" placeholder="Enter full name"></div>
       <div class="field"><label data-i18n="addPassLbl">Password *</label><input id="nu-password" type="password" data-i18n="addPassPh" data-i18n-attr="placeholder" placeholder="Set password"></div>
       <div class="field"><label data-i18n="addRoleLbl">Role *</label>
         <select id="nu-role" onchange="toggleAddUserBranch()">
@@ -1411,7 +1427,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="owner-hero-top">
         <div>
           <h1>👑 Platform Dashboard</h1>
-          <p>POWER-IMS — Full visibility over all users on your platform</p>
+          <p>POWER — Full visibility over all users on your platform</p>
         </div>
         <button class="owner-logout-btn" onclick="logout()">🚪 Log Out</button>
       </div>
@@ -1490,6 +1506,13 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div id="pending-user-list"><div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div></div>
     </div>
     <div class="owner-section" style="animation-delay:.24s">
+      <div class="owner-section-hdr">
+        <h3>🚫 Banned Owners</h3>
+        <span id="banned-count" style="background:rgba(239,68,68,.12);color:var(--error);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
+      </div>
+      <div id="banned-owner-list"><div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div></div>
+    </div>
+    <div class="owner-section" style="animation-delay:.28s">
       <div class="owner-section-hdr"><h3>🏢 Branches</h3><button class="btn" onclick="openBranches()">Manage</button></div>
       <div id="owner-branch-list"><div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div></div>
     </div>
@@ -1499,6 +1522,43 @@ html[data-view="mobile"] .table-search-bar{display:none}
         <span id="reset-req-count" style="background:rgba(239,68,68,.15);color:var(--error);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
       <div id="reset-request-list"><div style="padding:24px;text-align:center;color:var(--text3)">No reset requests 🎉</div></div>
+    </div>
+    <div class="owner-section" style="animation-delay:.36s">
+      <div class="owner-section-hdr">
+        <h3>📧 Email Settings</h3>
+        <button class="btn btn-owner" onclick="openEmailConfigModal()">⚙️ Configure</button>
+      </div>
+      <div id="email-config-status" style="padding:14px 18px;color:var(--text3);font-size:13px">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="emailjs-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr owner-hdr">
+      <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📧</span></div>
+      <div><h2>Email Settings</h2><p>Configure EmailJS to send real OTP codes</p></div>
+      <button class="modal-hdr-close" onclick="closeModal('emailjs-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:var(--text2);line-height:1.6">
+        <strong>Quick setup (free):</strong><br>
+        1. Go to <strong>emailjs.com</strong> → Sign up free<br>
+        2. Add your Gmail / Outlook as an <strong>Email Service</strong><br>
+        3. Create an <strong>Email Template</strong> with these variables:<br>
+        &nbsp;&nbsp;<code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{{to_email}}</code>&nbsp;
+        <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{{otp_code}}</code>&nbsp;
+        <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{{shop_name}}</code>&nbsp;
+        <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{{to_name}}</code><br>
+        4. Copy your <strong>Service ID</strong>, <strong>Template ID</strong>, and <strong>Public Key</strong> below
+      </div>
+      <div class="field"><label>Service ID</label><input id="ejs-service" placeholder="e.g. service_abc123"></div>
+      <div class="field"><label>Template ID</label><input id="ejs-template" placeholder="e.g. template_xyz789"></div>
+      <div class="field"><label>Public Key</label><input id="ejs-pubkey" placeholder="From Account → API Keys"></div>
+      <button class="modal-btn" onclick="saveEmailConfig()">💾 Save Configuration</button>
+      <button class="modal-btn secondary" onclick="clearEmailConfig()" style="margin-top:5px">🗑️ Clear</button>
+      <div class="modal-error" id="ejs-error"></div>
+      <div class="modal-success" id="ejs-success"></div>
     </div>
   </div>
 </div>
@@ -1596,6 +1656,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
   <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE"><span class="ni-icon">⚖️</span><span class="ni-label" data-i18n="navBalance">Balance</span></button>
   <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE"><span class="ni-icon">💸</span><span class="ni-label" data-i18n="navExpense">Expense</span></button>
   <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT"><span class="ni-icon">📊</span><span class="ni-label" data-i18n="navReport">Report</span></button>
+  <button class="nav-item" data-tab="CREDIT" onclick="switchTab('CREDIT')" id="nav-CREDIT"><span class="ni-icon">💳</span><span class="ni-label">Credit</span></button>
   <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS"><span class="ni-icon">📋</span><span class="ni-label" data-i18n="navItems">Items</span></button>
   <button class="nav-item" data-tab="STORE" onclick="switchTab('STORE')" id="nav-STORE" style="display:none"><span class="ni-icon">🏪</span><span class="ni-label" data-i18n="navStore">Store</span></button>
   <button class="nav-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none"><span class="ni-icon">📊</span><span class="ni-label" data-i18n="navStoreBalance">Balance</span></button>
@@ -1606,7 +1667,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 /* ═══════════════════════════════════════════════════════
    CONSTANTS
 ═══════════════════════════════════════════════════════ */
-const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPORT'];
+const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPORT','CREDIT'];
 const PERM_OPTS = [{v:'full',l:'Full'},{v:'add_only',l:'Add Only'},{v:'read',l:'Read Only'},{v:'none',l:'No Access'}];
 const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
 
@@ -1620,7 +1681,8 @@ const TAB_META = {
   STOREBALANCE:{icon:'📊',get title(){return L('titleStoreBalance')},get sub(){return L('subStoreBalance')}},
   EXPENSE:{icon:'💸',get title(){return L('titleExpense')},get sub(){return L('subExpense')}},
   REPORT:{icon:'📊',get title(){return L('titleReport')},get sub(){return L('subReport')}},
-  STOREREPORT:{icon:'📋',get title(){return L('titleStoreReport')},get sub(){return L('subStoreReport')}}
+  STOREREPORT:{icon:'📋',get title(){return L('titleStoreReport')},get sub(){return L('subStoreReport')}},
+  CREDIT:{icon:'💳',title:'Credit Ledger',sub:'Manage credit purchases & sales'}
 };
 
 // ★ CHANGE 2: Define which tabs storekeepers can see
@@ -1830,7 +1892,17 @@ function loadUserData(){
   S.exportPerms=JSON.parse(localStorage.getItem(`ims_${ns}_exportperms`)||'{}');
   S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
   S.branches=JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
+  S.creditPayments=JSON.parse(localStorage.getItem(`ims_${ns}_creditPayments`)||'[]');
   S.avatarDataUrl=localStorage.getItem(`ims_${S.user}_avatar`)||null;
+  // Backfill _cid for existing CREDIT records that pre-date this feature
+  let _cidChanged=false;
+  const _mkCid=prefix=>`cr_${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  S.purchase.forEach(r=>{if(r.payment==='CREDIT'&&!r._cid){r._cid=_mkCid('p');_cidChanged=true;}});
+  S.sales.forEach(r=>{if(r.payment==='CREDIT'&&!r._cid){r._cid=_mkCid('s');_cidChanged=true;}});
+  if(_cidChanged){
+    localStorage.setItem(`ims_${ns}_purchase`,JSON.stringify(S.purchase));
+    localStorage.setItem(`ims_${ns}_sales`,JSON.stringify(S.sales));
+  }
   if(S.userBranch){
     S.branchReceipts=loadBranchReceipts(S.userBranch);
   }
@@ -1850,6 +1922,7 @@ function saveUserData(){
   localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
   localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
   localStorage.setItem(`ims_${ns}_branches`,JSON.stringify(S.branches));
+  localStorage.setItem(`ims_${ns}_creditPayments`,JSON.stringify(S.creditPayments||[]));
   syncToCloud();
 }
 
@@ -1899,6 +1972,7 @@ function syncToCloud(){
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
       storereqs:JSON.stringify(loadStoreRequests()),
+      creditPayments:JSON.stringify(S.creditPayments||[]),
       updatedAt:now
     };
     S.branches.forEach(b=>{
@@ -1926,6 +2000,7 @@ function applyCloudSnapshot(ns,d){
   if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
   if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
   if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
+  if(d.creditPayments!==undefined) localStorage.setItem(`ims_${ns}_creditPayments`,d.creditPayments);
   const branches=d.branches?JSON.parse(d.branches):['Main'];
   branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
   if(d.resetAt&&d.resetAt!==localStorage.getItem(`ims_${ns}_lastResetAt`)){
@@ -1974,26 +2049,54 @@ function emergencyReset(){
 ═══════════════════════════════════════════════════════ */
 let authMode='login';
 let authSubMode='business';
+
+// ── EmailJS — credentials stored via Platform Dashboard ──
+const EJS_LS_KEY='ims_emailjs_config';
+function getEmailConfig(){
+  const s=JSON.parse(localStorage.getItem(EJS_LS_KEY)||'null');
+  if(s&&s.serviceId&&s.templateId&&s.publicKey)return s;
+  return null;
+}
+function initEmailJS(){
+  const cfg=getEmailConfig();
+  if(cfg&&typeof emailjs!=='undefined')emailjs.init(cfg.publicKey);
+}
+
+// OTP state for owner email verification
+let _ownerOTP=null,_ownerOTPEmail=null,_ownerOTPExpiry=null;
 function setAuthSubMode(m){
   authSubMode=m;
+  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
   document.getElementById('auth-type-biz').classList.toggle('active',m==='business');
   document.getElementById('auth-type-emp').classList.toggle('active',m==='employee');
   document.getElementById('auth-admin-target-wrap').style.display=m==='employee'?'':'none';
   document.getElementById('auth-shopname-wrap').style.display=m==='business'?'':'none';
+  document.getElementById('auth-email-wrap').style.display=m==='business'?'':'none';
+  document.getElementById('auth-otp-wrap').style.display='none';
+  document.getElementById('auth-user-label').textContent=m==='employee'?'Full Name':'Username';
+  document.getElementById('auth-user').placeholder=m==='employee'?'Enter your full name':'Enter your username';
   const hint=document.getElementById('auth-type-hint');
   if(hint)hint.textContent=m==='business'?'Register your business for a 14-day free trial':'Request access under an existing business account';
-  document.getElementById('auth-btn').innerHTML=m==='business'?'🏢 Register Business':'📝 Request Access';
+  document.getElementById('auth-btn').innerHTML=m==='business'?'📧 Send Verification Code':'📝 Request Access';
+  hideMsg('auth-error');hideMsg('auth-success');
 }
 function setAuthMode(m){
   authMode=m;
+  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
   document.getElementById('tab-login-btn').classList.toggle('active',m==='login');
   document.getElementById('tab-signup-btn').classList.toggle('active',m==='signup');
   document.getElementById('auth-confirm-wrap').style.display=m==='signup'?'':'none';
   document.getElementById('auth-signup-avatar').style.display=m==='signup'?'':'none';
   document.getElementById('auth-type-toggle').style.display=m==='signup'?'':'none';
-  if(m==='signup')setAuthSubMode('business');
-  else document.getElementById('auth-admin-target-wrap').style.display='none';
-  document.getElementById('auth-btn').innerHTML=m==='signup'?'🏢 Register Business':'🔐 Log In';
+  document.getElementById('auth-otp-wrap').style.display='none';
+  if(m==='signup'){setAuthSubMode('business');}
+  else{
+    document.getElementById('auth-admin-target-wrap').style.display='none';
+    document.getElementById('auth-email-wrap').style.display='none';
+    document.getElementById('auth-user-label').textContent='Username';
+    document.getElementById('auth-user').placeholder='Enter your username';
+  }
+  document.getElementById('auth-btn').innerHTML=m==='signup'?'📧 Send Verification Code':'🔐 Log In';
   hideMsg('auth-error');hideMsg('auth-success');
 }
 
@@ -2010,7 +2113,7 @@ async function submitAuth(){
 
   // Show loading state
   const btn=document.getElementById('auth-btn');
-  const origText=btn.innerHTML;
+  let origText=btn.innerHTML;
   btn.innerHTML='<span class="loader"></span> Checking…';
   btn.disabled=true;
 
@@ -2021,7 +2124,11 @@ async function submitAuth(){
 
     if(authMode==='login'){
       const entry=reg[u];
-      if(!entry){showMsg('auth-error','Username not found.');return;}
+      if(!entry){
+        const isBanned=getBannedOwners().find(b=>b.username===u);
+        if(isBanned){showMsg('auth-error','⛔ This account has been removed. Contact the platform administrator.');return;}
+        showMsg('auth-error','Username not found.');return;
+      }
       if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
       if(entry.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact your platform owner.');return;}
       doLogin(u,entry.ownerId||u,entry.role||'user');
@@ -2031,18 +2138,68 @@ async function submitAuth(){
       if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
       if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already taken. Choose a different username.');return;}
       if(authSubMode==='business'){
-        // New subscriber/owner registration — goes to system owner's pending queue
         const shopName=document.getElementById('auth-shopname')?.value.trim()||'';
+        const email=(document.getElementById('auth-email')?.value||'').trim().toLowerCase();
         if(!shopName){showMsg('auth-error','Please enter your business/shop name.');return;}
+        if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showMsg('auth-error','Please enter a valid email address.');return;}
+        // Forbid duplicate email in registry
+        if(Object.values(reg).some(v=>v.email&&v.email.toLowerCase()===email)){showMsg('auth-error','This email address is already registered.');return;}
         const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+        if(pending.find(x=>x.email&&x.email.toLowerCase()===email)){showMsg('auth-error','This email address already has a pending request.');return;}
         if(pending.find(x=>x.username===u)){showMsg('auth-error','A request with this username is already pending.');return;}
-        pending.push({username:u,password:p,shopName,requestedAt:new Date().toISOString()});
-        localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
-        // Push to cloud so system owner sees it on any device
-        if(S.db){
-          S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+        // Block banned owners from re-registering
+        const banned=getBannedOwners();
+        if(banned.find(b=>b.username===u)){showMsg('auth-error','⛔ This username has been removed from the platform. Contact the platform administrator.');return;}
+        if(email&&banned.find(b=>b.email&&b.email.toLowerCase()===email)){showMsg('auth-error','⛔ This email address has been removed from the platform. Contact the platform administrator.');return;}
+
+        if(_ownerOTP===null){
+          // Phase 1 — validate fields then send OTP
+          _ownerOTP=String(Math.floor(100000+Math.random()*900000));
+          _ownerOTPEmail=email;
+          _ownerOTPExpiry=Date.now()+10*60*1000;
+          let emailSent=false;
+          const ejsCfg=getEmailConfig();
+          if(ejsCfg&&typeof emailjs!=='undefined'){
+            try{
+              initEmailJS();
+              await emailjs.send(ejsCfg.serviceId,ejsCfg.templateId,{
+                to_email:email,to_name:u,shop_name:shopName,otp_code:_ownerOTP
+              });
+              emailSent=true;
+            }catch(e){console.error('EmailJS:',e);}
+          }
+          document.getElementById('auth-otp-wrap').style.display='';
+          document.getElementById('auth-otp').value='';
+          document.getElementById('auth-otp-hint').textContent=`Code sent to ${email} — valid for 10 minutes`;
+          document.getElementById('auth-otp').focus();
+          origText='🏢 Register Business';
+          if(emailSent){
+            showMsg('auth-success',`📧 Verification code sent to ${email}. Enter it above to complete registration.`,'success');
+          }else{
+            showMsg('auth-success',`🔑 Dev mode — code not emailed. Your code: ${_ownerOTP}  (set EmailJS credentials to enable real emails)`,'success');
+          }
+        }else{
+          // Phase 2 — verify OTP then complete registration
+          const entered=(document.getElementById('auth-otp')?.value||'').trim();
+          if(!entered){showMsg('auth-error','Please enter the 6-digit verification code.');return;}
+          if(Date.now()>_ownerOTPExpiry){
+            _ownerOTP=null;_ownerOTPEmail=null;
+            document.getElementById('auth-otp-wrap').style.display='none';
+            origText='📧 Send Verification Code';
+            showMsg('auth-error','Verification code expired. Please request a new one.');return;
+          }
+          if(entered!==_ownerOTP){showMsg('auth-error','Incorrect verification code. Try again.');return;}
+          // OTP verified — push to pending queue
+          pending.push({username:u,password:p,shopName,email,requestedAt:new Date().toISOString()});
+          localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+          if(S.db){
+            S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+          }
+          _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
+          document.getElementById('auth-otp-wrap').style.display='none';
+          origText='📧 Send Verification Code';
+          showMsg('auth-success','✅ Email verified! Your registration is pending administrator approval.','success');
         }
-        showMsg('auth-success','✅ Business registered! The platform administrator will activate your account shortly.','success');
       }else{
         // Employee/user signup — goes to their owner's pending queue
         const ownerTarget=document.getElementById('auth-admin-target').value.trim();
@@ -2091,8 +2248,8 @@ async function doLogin(u,ownerId,role){
   const logo=document.getElementById('brand-logo');
   logo.className='brand-logo'+(role==='storekeeper'?' store-logo':'');
   logo.innerHTML=LOGO_SVG;
-  const shopName=role==='owner'?(getRegistry()[ownerId]?.shopName||''):'';
-  document.getElementById('brand-sub').textContent=role==='storekeeper'?'Store Keeper':(shopName||'Inventory System');
+  const shopName=getRegistry()[ownerId]?.shopName||'';
+  document.getElementById('brand-sub').textContent=shopName||'Inventory System';
   const hdr=document.getElementById('app-header');
   hdr.className='app-header'+(role==='storekeeper'?' store-mode':'');
   document.getElementById('drawer-hdr').className='drawer-hdr'+(role==='storekeeper'?' store-drawer-hdr':'');
@@ -2136,7 +2293,7 @@ async function doLogin(u,ownerId,role){
 ═══════════════════════════════════════════════════════ */
 function updateNavForRole(){
   if(isStorekeeper()){
-    ['PURCHASE','SALES','BALANCE','REPORT','ITEMS'].forEach(tab=>{
+    ['PURCHASE','SALES','BALANCE','REPORT','ITEMS','CREDIT'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
     });
     ['STORE','STOREBALANCE','STOREREPORT','EXPENSE'].forEach(tab=>{
@@ -2146,7 +2303,7 @@ function updateNavForRole(){
     if(drawerItems)drawerItems.style.display='none';
     document.getElementById('store-settings-section').style.display='none';
   }else{
-    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS'].forEach(tab=>{
+    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS','CREDIT'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='';
     });
     ['STORE','STOREBALANCE','STOREREPORT'].forEach(tab=>{
@@ -2272,13 +2429,85 @@ async function loadPendingOwnersFromCloud(){
       localStorage.setItem('ims_reset_requests',JSON.stringify(merged));
     }
   }catch(e){}
+  try{
+    const bdoc=await S.db.collection('power_ims5').doc('_banned_owners').get();
+    if(bdoc.exists&&bdoc.data().banned){
+      const cloudBanned=JSON.parse(bdoc.data().banned||'[]');
+      const localBanned=JSON.parse(localStorage.getItem(BANNED_LS_KEY)||'[]');
+      const merged=[...localBanned];
+      cloudBanned.forEach(c=>{if(!merged.find(l=>l.username===c.username))merged.push(c);});
+      localStorage.setItem(BANNED_LS_KEY,JSON.stringify(merged));
+    }
+  }catch(e){}
 }
 
-function deleteOwner(u){
-  customConfirm(`Delete Owner "${u}"?`,'This removes their account. Inventory data stays intact.','🗑️','Delete',()=>{
-    const reg=getRegistry();delete reg[u];saveRegistry(reg);
-    showToast(`${u} deleted`,'success');renderSystemOwnerDashboard();
+const BANNED_LS_KEY='ims_banned_owners';
+function getBannedOwners(){return JSON.parse(localStorage.getItem(BANNED_LS_KEY)||'[]');}
+function saveBannedOwners(list){
+  localStorage.setItem(BANNED_LS_KEY,JSON.stringify(list));
+  if(S.db)S.db.collection('power_ims5').doc('_banned_owners').set({banned:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+}
+function restoreOwner(i){
+  const banned=getBannedOwners();
+  const b=banned[i];
+  customConfirm(`Restore "${b.username}"?`,'This re-activates their account so they can log back in.','✅','Restore',()=>{
+    const reg=getRegistry();
+    reg[b.username]={...b.originalData,status:'active'};
+    saveRegistry(reg);
+    banned.splice(i,1);
+    saveBannedOwners(banned);
+    showToast(`✅ ${b.username} restored`,'success');
+    renderSystemOwnerDashboard();
   });
+}
+function deleteOwner(u){
+  customConfirm(`Delete Owner "${u}"?`,'This removes their account and permanently blocks re-registration unless you restore them.','🗑️','Delete',()=>{
+    const reg=getRegistry();
+    const ownerData=reg[u]||{};
+    const banned=getBannedOwners();
+    if(!banned.find(b=>b.username===u)){
+      banned.push({username:u,email:ownerData.email||'',shopName:ownerData.shopName||'',bannedAt:new Date().toISOString(),originalData:{...ownerData}});
+      saveBannedOwners(banned);
+    }
+    delete reg[u];saveRegistry(reg);
+    showToast(`${u} removed and blocked`,'success');renderSystemOwnerDashboard();
+  });
+}
+
+function updateEmailConfigStatus(){
+  const el=document.getElementById('email-config-status');if(!el)return;
+  const cfg=getEmailConfig();
+  if(cfg){
+    el.innerHTML=`<span style="color:var(--success);font-weight:600">✅ EmailJS configured</span> <span style="color:var(--text3)">— Service: ${esc(cfg.serviceId)} · Template: ${esc(cfg.templateId)}</span>`;
+  }else{
+    el.innerHTML=`<span style="color:var(--warn)">⚠️ Not configured</span> <span style="color:var(--text3)">— OTP codes are shown on screen only. Click <strong>Configure</strong> to enable real email delivery.</span>`;
+  }
+}
+function openEmailConfigModal(){
+  const cfg=getEmailConfig()||{};
+  document.getElementById('ejs-service').value=cfg.serviceId||'';
+  document.getElementById('ejs-template').value=cfg.templateId||'';
+  document.getElementById('ejs-pubkey').value=cfg.publicKey||'';
+  hideMsg('ejs-error');hideMsg('ejs-success');
+  openModal('emailjs-modal');
+}
+function saveEmailConfig(){
+  const serviceId=document.getElementById('ejs-service').value.trim();
+  const templateId=document.getElementById('ejs-template').value.trim();
+  const publicKey=document.getElementById('ejs-pubkey').value.trim();
+  if(!serviceId||!templateId||!publicKey){showMsg('ejs-error','All three fields are required.');return;}
+  localStorage.setItem(EJS_LS_KEY,JSON.stringify({serviceId,templateId,publicKey}));
+  initEmailJS();
+  showMsg('ejs-success','✅ Saved! New owner registrations will now receive real OTP emails.','success');
+  updateEmailConfigStatus();
+}
+function clearEmailConfig(){
+  localStorage.removeItem(EJS_LS_KEY);
+  document.getElementById('ejs-service').value='';
+  document.getElementById('ejs-template').value='';
+  document.getElementById('ejs-pubkey').value='';
+  showMsg('ejs-success','Config cleared.','success');
+  updateEmailConfigStatus();
 }
 
 function renderSystemOwnerDashboard(){
@@ -2326,11 +2555,25 @@ function renderSystemOwnerDashboard(){
   document.getElementById('pending-user-list').innerHTML=pendingOwners.length?pendingOwners.map((p,i)=>`
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
-      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
+      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">${p.email?`📧 ${esc(p.email)} · `:''}Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
       <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve + Trial</button>
       <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
+  const bannedOwners=getBannedOwners();
+  document.getElementById('banned-count').textContent=bannedOwners.length;
+  document.getElementById('banned-owner-list').innerHTML=bannedOwners.length?bannedOwners.map((b,i)=>`
+    <div class="user-card" style="animation-delay:${i*.06}s;border-left:3px solid var(--error);opacity:.85">
+      <div class="user-avatar" style="background:rgba(239,68,68,.18);color:var(--error)">${b.username[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${esc(b.username)} ${b.shopName?`<span style="font-size:10px;color:var(--text3);font-weight:400">— ${esc(b.shopName)}</span>`:''}
+          <span style="font-size:9px;background:rgba(239,68,68,.15);color:var(--error);padding:1px 6px;border-radius:99px;margin-left:6px;font-weight:700">BANNED</span>
+        </div>
+        <div class="user-meta">${b.email?`📧 ${esc(b.email)} · `:''}Removed: ${new Date(b.bannedAt).toLocaleString()}</div>
+      </div>
+      <button class="btn btn-sm btn-success" onclick="restoreOwner(${i})" style="margin-left:8px;white-space:nowrap">✅ Restore</button>
+    </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div>`;
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
+  updateEmailConfigStatus();
   const resetReqs=_getResetRequests();
   const pendingResets=resetReqs.filter(r=>r.status==='pending');
   document.getElementById('reset-req-count').textContent=pendingResets.length;
@@ -2356,6 +2599,7 @@ function approveOwner(i){
   reg[p.username]={
     password:p.password,ownerId:p.username,role:'owner',
     shopName:p.shopName||'',
+    email:p.email||'',
     sub:'trial',status:'trial',
     trialStart:new Date().toISOString().slice(0,10),trialDays:14,
     payHistory:[]
@@ -2367,10 +2611,19 @@ function approveOwner(i){
 }
 function denyOwner(i){
   const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
-  const name=pending[i].username;pending.splice(i,1);
-  localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
-  if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
-  showToast(`❌ ${name} denied`,'error');renderSystemOwnerDashboard();
+  const name=pending[i]?.username||'Unknown';
+  customConfirm(
+    `Deny "${name}"?`,
+    'Their request will be removed. They can re-apply at any time.',
+    '❌','Deny',
+    ()=>{
+      const list=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+      list.splice(i,1);
+      localStorage.setItem('ims_pending_owners',JSON.stringify(list));
+      if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+      showToast(`❌ ${name} denied — they may re-apply`,'warn');renderSystemOwnerDashboard();
+    }
+  );
 }
 function suspendUser(u){
   customConfirm('Suspend User?',`${u} will lose access.`,'🚫','Suspend',()=>{
@@ -3361,6 +3614,7 @@ function renderTab(){
   else if(S.tab==='STOREREPORT')renderStoreReport();
   else if(S.tab==='EXPENSE')renderExpense();
   else if(S.tab==='REPORT')renderReport();
+  else if(S.tab==='CREDIT')renderCreditPage();
 }
 function renderHeadActions(){
   const ha=document.getElementById('head-actions');if(!ha)return;
@@ -3636,15 +3890,18 @@ function submitTxForm(mode,idx,isP){
   if(!qty){showMsg('f-error','Quantity required');return;}
   if(!price){showMsg('f-error','Price required');return;}
   const item=S.items.find(m=>m.id===itemId)||{name:'',desc:''};
+  const _cid=payment==='CREDIT'?`cr_${isP?'p':'s'}_${Date.now()}_${Math.random().toString(36).slice(2,7)}`:undefined;
   if(isP){
     const vatOn=document.getElementById('f-vat')?.checked??false;
     const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,uPrice:price,payment,vatOn,_by:S.user};
+    if(_cid)row._cid=_cid;
     if(mode==='add')S.purchase.push(row);else S.purchase[idx]={...S.purchase[idx],...row};
   }else{
     const vatOn=document.getElementById('f-vat')?.checked??true;
     const wh3On=document.getElementById('f-wh3')?.checked??false;
     const vwhOn=document.getElementById('f-vwh')?.checked??false;
     const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,sPrice:price,payment,vatOn,wh3On,vwhOn,_by:S.user};
+    if(_cid)row._cid=_cid;
     if(mode==='add')S.sales.push(row);else S.sales[idx]={...S.sales[idx],...row};
   }
   saveUserData();renderTab();updateSuggestions();
@@ -4045,6 +4302,106 @@ function renderStore(){
 }
 
 /* ═══════════════════════════════════════════════════════
+   CREDIT LEDGER
+═══════════════════════════════════════════════════════ */
+function markCreditPaid(cid){
+  if(!S.creditPayments)S.creditPayments=[];
+  if(S.creditPayments.some(p=>p.cid===cid))return;
+  S.creditPayments.push({cid,paidAt:new Date().toISOString(),paidBy:S.user});
+  saveUserData();renderTab();showToast('✅ Marked as paid','success');
+}
+function unmarkCreditPaid(cid){
+  if(!S.creditPayments)return;
+  S.creditPayments=S.creditPayments.filter(p=>p.cid!==cid);
+  saveUserData();renderTab();showToast('↩️ Marked as outstanding','warn');
+}
+
+function renderCreditPage(){
+  const calcPT=p=>{const b=(p.qty||0)*(p.uPrice||0);return b+(p.vatOn?b*0.15:0);};
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);};
+  const paidSet=new Set((S.creditPayments||[]).map(p=>p.cid));
+  const getPaid=cid=>(S.creditPayments||[]).find(p=>p.cid===cid);
+  const canMark=canWrite('CREDIT');
+
+  const creditSales=S.sales.filter(s=>s.payment==='CREDIT'&&s._cid);
+  const creditPurch=S.purchase.filter(p=>p.payment==='CREDIT'&&p._cid);
+
+  const totalRec=creditSales.reduce((a,s)=>a+calcST(s),0);
+  const collectedRec=creditSales.filter(s=>paidSet.has(s._cid)).reduce((a,s)=>a+calcST(s),0);
+  const outstandingRec=totalRec-collectedRec;
+
+  const totalPay=creditPurch.reduce((a,p)=>a+calcPT(p),0);
+  const settledPay=creditPurch.filter(p=>paidSet.has(p._cid)).reduce((a,p)=>a+calcPT(p),0);
+  const outstandingPay=totalPay-settledPay;
+
+  const activeFilter=S.creditFilter||'all';
+  const all=[
+    ...creditSales.map(r=>({...r,_type:'sale',_amt:calcST(r)})),
+    ...creditPurch.map(r=>({...r,_type:'purchase',_amt:calcPT(r)}))
+  ].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const filtered=activeFilter==='sales'?all.filter(r=>r._type==='sale'):
+                 activeFilter==='purchases'?all.filter(r=>r._type==='purchase'):all;
+
+  const rows=filtered.map(row=>{
+    const isPaid=paidSet.has(row._cid);
+    const paidInfo=getPaid(row._cid);
+    const typeLabel=row._type==='sale'?
+      `<span class="td-badge badge-cash" style="font-size:9px">SALE</span>`:
+      `<span class="td-badge badge-credit" style="font-size:9px">PURCHASE</span>`;
+    const statusBadge=isPaid?
+      `<span class="td-badge badge-paid">✅ PAID</span>`:
+      `<span class="td-badge badge-outstanding">⏳ OUTSTANDING</span>`;
+    const paidMeta=isPaid&&paidInfo?`<div style="font-size:9px;color:var(--text3);margin-top:3px">${(paidInfo.paidAt||'').slice(0,10)} · ${esc(paidInfo.paidBy||'')}</div>`:'';
+    const actionBtn=canMark?(isPaid?
+      `<button class="btn btn-sm" onclick="unmarkCreditPaid('${row._cid}')" style="font-size:10px;padding:3px 8px;opacity:.7">↩️ Undo</button>`:
+      `<button class="btn btn-sm btn-primary" onclick="markCreditPaid('${row._cid}')" style="font-size:10px;padding:3px 8px">✅ Mark Paid</button>`):'';
+    return`<tr style="${isPaid?'opacity:.65':''}">
+      <td class="td-mono" data-label="Date" style="font-size:11px">${(row.date||'').replace('T',' ')}</td>
+      <td data-label="Type">${typeLabel}</td>
+      <td data-label="Party" style="font-weight:600">${esc(row.party||'—')}</td>
+      <td data-label="Branch"><span class="td-badge badge-other" style="font-size:10px">${esc(row.branch||'Main')}</span></td>
+      <td class="td-mono" data-label="Part No." style="font-size:11px">${esc(row.id||'—')}</td>
+      <td data-label="Item">${esc(row.name||'—')}</td>
+      <td class="num td-mono" data-label="Amount" style="font-weight:700;color:${isPaid?'var(--success)':'inherit'}">${fmt(row._amt)}</td>
+      <td data-label="Status">${statusBadge}${paidMeta}</td>
+      <td data-label="">${actionBtn}</td>
+    </tr>`;
+  }).join('');
+
+  const summaryCards=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div class="credit-summary-card credit-receivable">
+        <div class="csc-label">💰 Receivables</div>
+        <div class="csc-total">${fmt(totalRec)}</div>
+        <div class="csc-row"><span>Collected</span><span class="num-pos td-mono">${fmt(collectedRec)}</span></div>
+        <div class="csc-row"><span>Outstanding</span><span class="${outstandingRec>0?'num-neg':'num-pos'} td-mono">${fmt(outstandingRec)}</span></div>
+      </div>
+      <div class="credit-summary-card credit-payable">
+        <div class="csc-label">🛒 Payables</div>
+        <div class="csc-total">${fmt(totalPay)}</div>
+        <div class="csc-row"><span>Settled</span><span class="num-pos td-mono">${fmt(settledPay)}</span></div>
+        <div class="csc-row"><span>Outstanding</span><span class="${outstandingPay>0?'num-neg':'num-pos'} td-mono">${fmt(outstandingPay)}</span></div>
+      </div>
+    </div>`;
+
+  const filterBar=`
+    <div style="display:flex;gap:8px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center">
+      <button class="btn btn-sm${activeFilter==='all'?' btn-primary':''}" onclick="S.creditFilter='all';renderTab()">All (${all.length})</button>
+      <button class="btn btn-sm${activeFilter==='sales'?' btn-primary':''}" onclick="S.creditFilter='sales';renderTab()">💰 Sales (${creditSales.length})</button>
+      <button class="btn btn-sm${activeFilter==='purchases'?' btn-primary':''}" onclick="S.creditFilter='purchases';renderTab()">🛒 Purchases (${creditPurch.length})</button>
+      <span style="margin-left:auto;font-size:10px;color:var(--text3)">${filtered.filter(r=>!paidSet.has(r._cid)).length} outstanding of ${filtered.length}</span>
+    </div>`;
+
+  document.getElementById('tab-content').innerHTML=summaryCards+filterBar+`
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>${L('date')}</th><th>Type</th><th>Party</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows||`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:32px">No credit records yet. Use <strong>CREDIT</strong> as payment method when adding purchases or sales.</td></tr>`}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
    RENDER EXPENSE
 ═══════════════════════════════════════════════════════ */
 function renderExpense(){
@@ -4094,9 +4451,13 @@ function _reportCalc(branch){
   const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcST(b),0);
   const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcST(b),0);
   const tE=ER.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
+  // Credit payments settled: paid credit sales = cash received, paid credit purchases = cash paid out
+  const paidSet=new Set((S.creditPayments||[]).map(p=>p.cid));
+  const tSCrPaid=SR.filter(s=>s.payment==='CREDIT'&&s._cid&&paidSet.has(s._cid)).reduce((a,b)=>a+calcST(b),0);
+  const tPCrPaid=PR.filter(p=>p.payment==='CREDIT'&&p._cid&&paidSet.has(p._cid)).reduce((a,b)=>a+calcPT(b),0);
   const net=tSC+tSCr-tPC-tPCr-tE;
-  const coh=initBal+tSC-tPC-tE;
-  return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh};
+  const coh=initBal+tSC+tSCrPaid-tPC-tPCrPaid-tE;
+  return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh,tSCrPaid,tPCrPaid};
 }
 
 function renderReport(){
@@ -4524,6 +4885,7 @@ document.addEventListener('keydown',e=>{
 ═══════════════════════════════════════════════════════ */
 async function init(){
   ensureDefaults();
+  initEmailJS();
   // Init Firebase first so cloud registry fetch works
   initFirebase();
 

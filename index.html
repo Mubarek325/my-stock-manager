@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0f1e">
 <title>POWER-IMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Bebas+Neue&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -327,6 +326,26 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .sub-banner.ok{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.18);color:var(--success)}
 .sub-banner-icon{font-size:18px;flex-shrink:0}
 .sub-banner-days{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:99px;margin-left:auto;white-space:nowrap}
+
+/* ── Subscription Self-Service ── */
+.sub-dur-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.sub-dur-card{border:1.5px solid var(--border2);border-radius:10px;padding:12px 8px;cursor:pointer;transition:all .18s;background:var(--surface2);text-align:center;position:relative}
+.sub-dur-card:hover{border-color:var(--owner);background:var(--owner-glass)}
+.sub-dur-card.active{border-color:var(--owner);background:var(--owner-glass);box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+.sub-dur-card .sub-plan-chk{position:absolute;top:6px;right:6px;width:16px;height:16px;background:var(--owner);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;opacity:0;transition:opacity .14s}
+.sub-dur-card.active .sub-plan-chk{opacity:1}
+.sub-dur-icon{font-size:20px;margin-bottom:4px}
+.sub-dur-name{font-size:12px;font-weight:700;color:var(--text)}
+.sub-dur-desc{font-size:10px;color:var(--text3);margin-top:2px}
+.act-code-wrap{display:flex;gap:8px;margin-top:10px}
+.act-code-wrap input{flex:1;padding:10px 13px;border:1.5px solid var(--border2);border-radius:9px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:14px;letter-spacing:.15em;text-align:center;outline:none}
+.act-code-wrap input:focus{border-color:var(--owner)}
+.sub-req-status{border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.6}
+.sub-req-status.pending{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#ca8a04}
+.sub-req-status.code-ready{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:var(--success)}
+.sub-req-status.activated{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:var(--p)}
+.gen-code-box{background:var(--surface3);border:1.5px solid var(--owner);border-radius:10px;padding:14px 16px;text-align:center;margin-top:8px}
+.gen-code-val{font-family:var(--mono);font-size:1.6rem;font-weight:800;letter-spacing:.2em;color:var(--owner);margin:8px 0}
 
 /* ── Subscription Plan Cards ── */
 .sub-plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
@@ -1027,13 +1046,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
       Back
     </button>
     <div class="hdr-divider no-print" id="hdr-div1"></div>
-    <div class="icon-btn no-print" id="view-mode-btn" onclick="toggleViewMode()" title="Switch to Mobile View">
-      <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line></svg>
-    </div>
-    <div class="icon-btn no-print" id="sync-btn" onclick="manualSync()" title="Cloud Sync">
-      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-      <div class="sync-ring active" id="sync-ring"></div>
-    </div>
+    <div id="sync-ring" style="display:none"></div>
     <div class="icon-btn no-print" id="notif-btn" onclick="openApprovals()" style="display:none">
       <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
       <div class="notif-dot" id="notif-dot" style="display:none">0</div>
@@ -1047,15 +1060,12 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="notif-dot" id="req-notif-dot" style="display:none;background:var(--warn)">0</div>
     </div>
     <div class="hdr-divider no-print"></div>
-    <div class="hdr-chip owner-chip no-print" id="hdr-chip" onclick="openSettings()">
+    <div class="hdr-chip owner-chip no-print" id="hdr-chip" onclick="openSettings()" title="Settings">
       <div class="hdr-avatar owner-avatar" id="hdr-avatar">👑</div>
       <div>
         <div class="name" id="user-label">Mb</div>
         <div class="role owner-role" id="user-role-label">SYSTEM OWNER</div>
       </div>
-    </div>
-    <div class="icon-btn no-print" onclick="openSettings()" title="Settings">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </div>
   </div>
 </div>
@@ -1108,6 +1118,10 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
       <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼️</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsPhoto">Profile Photo</div></div>
+    </button>
+    <button class="drawer-item" id="btn-owner-sub" onclick="openOwnerSubModal();closeSettings()" style="display:none">
+      <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">💳</span>
+      <div class="di-info"><div class="di-label">Subscription</div><div class="di-sub" id="drawer-sub-hint">Manage your plan</div></div>
     </button>
     <button class="drawer-item" id="btn-owner-shopname" onclick="openShopNameModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">🏪</span>
@@ -1523,6 +1537,13 @@ html[data-view="mobile"] .table-search-bar{display:none}
       </div>
       <div id="reset-request-list"><div style="padding:24px;text-align:center;color:var(--text3)">No reset requests 🎉</div></div>
     </div>
+    <div class="owner-section" style="animation-delay:.34s;border:1.5px solid rgba(245,158,11,.3)">
+      <div class="owner-section-hdr">
+        <h3 style="color:var(--owner)">💎 Subscription Requests</h3>
+        <span id="sub-req-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
+      </div>
+      <div id="sub-req-list"><div style="padding:24px;text-align:center;color:var(--text3)">No subscription requests</div></div>
+    </div>
     <div class="owner-section" style="animation-delay:.36s">
       <div class="owner-section-hdr">
         <h3>📧 Email Settings</h3>
@@ -1559,6 +1580,20 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <button class="modal-btn secondary" onclick="clearEmailConfig()" style="margin-top:5px">🗑️ Clear</button>
       <div class="modal-error" id="ejs-error"></div>
       <div class="modal-success" id="ejs-success"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER SELF-SERVICE SUBSCRIPTION MODAL -->
+<div class="modal-overlay" id="owner-sub-self-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr owner-hdr">
+      <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">💳</span></div>
+      <div><h2>Subscription</h2><p id="owner-sub-self-title">Choose a plan</p></div>
+      <button class="modal-hdr-close" onclick="closeModal('owner-sub-self-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="owner-sub-self-body">
+      <!-- rendered by renderOwnerSubModal() -->
     </div>
   </div>
 </div>
@@ -1625,6 +1660,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="sub-gate-title" id="sub-gate-title">Subscription Expired</div>
     <div class="sub-gate-sub" id="sub-gate-sub">Your subscription has expired. Please contact the platform administrator to renew your access.</div>
     <div class="sub-gate-contact">Contact your <strong>POWER-IMS Administrator</strong> to renew your subscription and restore access to the platform.</div>
+    <button class="sub-gate-btn" id="sub-gate-renew-btn" onclick="openOwnerSubModal()" style="background:var(--owner-gradient);color:#fff;border-color:transparent;margin-bottom:10px">💳 Request Subscription Renewal</button><br>
     <button class="sub-gate-btn" onclick="logout()">← Return to Login</button>
   </div>
 </div>
@@ -2258,6 +2294,7 @@ async function doLogin(u,ownerId,role){
   document.getElementById('btn-owner-branches').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-users').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-owner-shopname').style.display=isOwner()?'flex':'none';
+  document.getElementById('btn-owner-sub').style.display=isOwner()?'flex':'none';
   document.getElementById('btn-request-store').style.display=(isUser()&&S.userBranch)?'flex':'none';
   document.getElementById('danger-zone-wrap').style.display=isOwner()?'block':'none';
   document.getElementById('owner-back-btn').style.display='none';
@@ -2272,6 +2309,18 @@ async function doLogin(u,ownerId,role){
     if(bannerEl)bannerEl.innerHTML=buildSubBanner(ssBanner);
   }
   if(isOwner())loadPendingApprovals();
+  if(isOwner()){
+    // Pull latest sub_requests so owner sees their code status
+    if(S.db)S.db.collection('power_ims5').doc('_sub_requests').get().then(d=>{
+      if(d.exists&&d.data().requests){
+        const cr=JSON.parse(d.data().requests||'[]');
+        const lr=JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');
+        const mg=[...lr];
+        cr.forEach(c=>{const li=mg.findIndex(l=>l.id===c.id);if(li===-1)mg.push(c);else if(c.status!=='pending')mg[li]=c;});
+        localStorage.setItem(SUB_REQ_KEY,JSON.stringify(mg));
+      }
+    }).catch(()=>{});
+  }
   updateStoreNotifBadge();
   updateRequestBadge();
   const lastTab=localStorage.getItem(`ims_${u}_lastTab`)||'ITEMS';
@@ -2352,6 +2401,9 @@ function showSubGate(ss){
     ?'Your account has been suspended. Please contact the platform administrator to restore access.'
     :'Your subscription has expired. Please contact the platform administrator to renew your access and continue using POWER-IMS.';
   document.getElementById('auth-screen').style.display='none';
+  // Only show the renewal button for owners (not users/storekeepers)
+  const renewBtn=document.getElementById('sub-gate-renew-btn');
+  if(renewBtn)renewBtn.style.display=S.role==='owner'?'inline-block':'none';
   gate.style.display='flex';
 }
 
@@ -2437,6 +2489,19 @@ async function loadPendingOwnersFromCloud(){
       const merged=[...localBanned];
       cloudBanned.forEach(c=>{if(!merged.find(l=>l.username===c.username))merged.push(c);});
       localStorage.setItem(BANNED_LS_KEY,JSON.stringify(merged));
+    }
+  }catch(e){}
+  try{
+    const srdoc=await S.db.collection('power_ims5').doc('_sub_requests').get();
+    if(srdoc.exists&&srdoc.data().requests){
+      const cloudReqs=JSON.parse(srdoc.data().requests||'[]');
+      const localReqs=JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');
+      const merged=[...localReqs];
+      cloudReqs.forEach(c=>{
+        const li=merged.findIndex(l=>l.id===c.id);
+        if(li===-1)merged.push(c);else if(c.status!=='pending')merged[li]=c;
+      });
+      localStorage.setItem(SUB_REQ_KEY,JSON.stringify(merged));
     }
   }catch(e){}
 }
@@ -2573,6 +2638,35 @@ function renderSystemOwnerDashboard(){
       <button class="btn btn-sm btn-success" onclick="restoreOwner(${i})" style="margin-left:8px;white-space:nowrap">✅ Restore</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div>`;
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
+  // Subscription requests section
+  const subReqs=getSubRequests();
+  document.getElementById('sub-req-count').textContent=subReqs.length;
+  document.getElementById('sub-req-list').innerHTML=subReqs.length?[...subReqs].reverse().map((q,i)=>{
+    const dur=SUB_DURATIONS[q.plan]||{label:q.plan,icon:'📅'};
+    const statusColor=q.status==='pending'?'var(--warn)':q.status==='code_ready'?'var(--success)':q.status==='activated'?'var(--p)':'var(--text3)';
+    const statusLabel=q.status==='pending'?'⏳ Pending':q.status==='code_ready'?'✅ Code Ready':q.status==='activated'?'💎 Activated':'';
+    const codeBox=q.status==='code_ready'?`<div class="gen-code-box">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Send this code to <strong>${esc(q.username)}</strong></div>
+      <div class="gen-code-val">${q.code}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px">Activates until <strong>${q.paidUntil}</strong></div>
+      <button class="btn btn-sm btn-owner" onclick="copySubCode('${q.code}')">📋 Copy Code</button>
+    </div>`:'';
+    const activatedInfo=q.status==='activated'?`<div style="font-size:10px;color:var(--p);margin-top:4px">Activated ${(q.activatedAt||'').slice(0,10)} · Until ${q.paidUntil||'—'}</div>`:'';
+    return`<div class="user-card" style="animation-delay:${i*.04}s;flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar" style="background:var(--owner-gradient)">${q.username[0].toUpperCase()}</div>
+        <div class="user-info" style="flex:1">
+          <div class="user-name">${esc(q.username)}${q.shopName&&q.shopName!==q.username?` <span style="font-size:10px;font-weight:400;color:var(--text3)">— ${esc(q.shopName)}</span>`:''}
+            <span style="font-size:10px;color:${statusColor};font-weight:700;margin-left:6px">${statusLabel}</span>
+          </div>
+          <div class="user-meta">${dur.icon} ${dur.label} · Requested ${new Date(q.requestedAt).toLocaleDateString()}</div>
+          ${activatedInfo}
+        </div>
+        ${q.status==='pending'?`<button class="btn btn-sm btn-owner" onclick="generateSubCode('${q.id}')" style="white-space:nowrap">🔑 Generate Code</button>`:''}
+      </div>
+      ${codeBox}
+    </div>`;
+  }).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No subscription requests</div>`;
   updateEmailConfigStatus();
   const resetReqs=_getResetRequests();
   const pendingResets=resetReqs.filter(r=>r.status==='pending');
@@ -2670,6 +2764,182 @@ function saveSubscription(){
   }
   saveRegistry(reg);syncToCloud();
   closeModal('sub-modal');showToast('Subscription updated!','success');renderSystemOwnerDashboard();
+}
+
+/* ═══════════════════════════════════════════════════════
+   SUBSCRIPTION SELF-SERVICE (owner-initiated requests)
+═══════════════════════════════════════════════════════ */
+const SUB_DURATIONS={
+  monthly:{label:'Monthly',months:1,icon:'📅',desc:'1 month'},
+  '3months':{label:'3 Months',months:3,icon:'📆',desc:'3 months'},
+  '6months':{label:'6 Months',months:6,icon:'🗓️',desc:'6 months'},
+  annual:{label:'Annual',months:12,icon:'🎯',desc:'12 months — best value'}
+};
+const SUB_REQ_KEY='ims_sub_requests';
+function getSubRequests(){return JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');}
+function saveSubRequests(list){
+  localStorage.setItem(SUB_REQ_KEY,JSON.stringify(list));
+  if(S.db)S.db.collection('power_ims5').doc('_sub_requests').set({requests:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+}
+
+let _selfSubPlan='monthly';
+function selectSelfSubPlan(plan){
+  _selfSubPlan=plan;
+  Object.keys(SUB_DURATIONS).forEach(k=>{
+    const el=document.getElementById(`sdp-${k}`);if(el)el.classList.toggle('active',k===plan);
+  });
+}
+
+function openOwnerSubModal(){
+  _selfSubPlan='monthly';
+  renderOwnerSubModal();
+  openModal('owner-sub-self-modal');
+}
+
+function renderOwnerSubModal(){
+  const reg=getRegistry();
+  const r=reg[S.ownerId]||{};
+  const ss=getSubStatus(r);
+  const reqs=getSubRequests();
+  const myReq=reqs.filter(q=>q.username===S.ownerId).sort((a,b)=>b.requestedAt.localeCompare(a.requestedAt))[0]||null;
+
+  // Update drawer hint
+  const hint=document.getElementById('drawer-sub-hint');
+  if(hint)hint.textContent=ss.label||'Manage your plan';
+
+  document.getElementById('owner-sub-self-title').textContent=r.shopName||S.ownerId;
+
+  // Status display
+  const statusHtml=`<div style="margin-bottom:14px;text-align:center">
+    <span class="sub-badge sub-${ss.variant}" style="font-size:12px;padding:6px 14px">${ss.label}</span>
+    ${r.paidUntil?`<div style="font-size:10px;color:var(--text3);margin-top:4px">Active until ${r.paidUntil}</div>`:''}
+  </div>`;
+
+  // Pending request notice
+  let reqNotice='';
+  if(myReq&&myReq.status==='pending'){
+    reqNotice=`<div class="sub-req-status pending">⏳ <strong>Request pending</strong> — ${SUB_DURATIONS[myReq.plan]?.label||myReq.plan} plan requested on ${myReq.requestedAt.slice(0,10)}.<br>The platform administrator will review and send you an activation code.</div>`;
+  }else if(myReq&&myReq.status==='code_ready'){
+    reqNotice=`<div class="sub-req-status code-ready">✅ <strong>Code ready!</strong> Your activation code has been generated for the <strong>${SUB_DURATIONS[myReq.plan]?.label||myReq.plan}</strong> plan.<br>Enter the code the administrator sent you below.</div>`;
+  }else if(myReq&&myReq.status==='activated'){
+    reqNotice=`<div class="sub-req-status activated">💎 <strong>Last request activated</strong> on ${(myReq.activatedAt||'').slice(0,10)} — ${SUB_DURATIONS[myReq.plan]?.label||myReq.plan} plan.</div>`;
+  }
+
+  // Duration plan cards
+  const planCards=Object.entries(SUB_DURATIONS).map(([k,v])=>`
+    <div class="sub-dur-card${_selfSubPlan===k?' active':''}" id="sdp-${k}" onclick="selectSelfSubPlan('${k}')">
+      <div class="sub-plan-chk">✓</div>
+      <div class="sub-dur-icon">${v.icon}</div>
+      <div class="sub-dur-name">${v.label}</div>
+      <div class="sub-dur-desc">${v.desc}</div>
+    </div>`).join('');
+
+  // Code entry (always shown)
+  const codeEntry=`
+    <div class="exp-section-label" style="margin-top:14px">Enter Activation Code</div>
+    <div class="act-code-wrap">
+      <input id="sub-act-code" maxlength="8" placeholder="8-digit code" oninput="this.value=this.value.replace(/\\D/g,'')">
+      <button class="btn btn-owner" onclick="activateSubCode()" style="white-space:nowrap">✅ Activate</button>
+    </div>
+    <div class="modal-error" id="sub-act-error" style="margin-top:6px"></div>
+    <div class="modal-success" id="sub-act-success" style="margin-top:6px"></div>`;
+
+  const canRequest=!myReq||myReq.status==='activated'||myReq.status==='code_ready';
+  const submitBtn=canRequest&&(!myReq||myReq.status==='activated')?
+    `<button class="modal-btn owner-btn" onclick="submitSubRequest()" style="margin-top:4px">📤 Submit Request</button>`:
+    myReq&&myReq.status==='pending'?`<button class="modal-btn secondary" onclick="cancelSubRequest('${myReq.id}')" style="margin-top:4px">✕ Cancel Request</button>`:'';
+
+  document.getElementById('owner-sub-self-body').innerHTML=`
+    ${statusHtml}
+    ${reqNotice}
+    <div class="exp-section-label">Select Plan Duration</div>
+    <div class="sub-dur-cards">${planCards}</div>
+    ${submitBtn}
+    <div class="modal-error" id="sub-req-error"></div>
+    <div class="exp-divider" style="margin:14px 0"></div>
+    ${codeEntry}`;
+}
+
+function submitSubRequest(){
+  hideMsg('sub-req-error');
+  const reg=getRegistry();const r=reg[S.ownerId]||{};
+  const reqs=getSubRequests();
+  // Check no pending request already
+  if(reqs.some(q=>q.username===S.ownerId&&q.status==='pending')){
+    showMsg('sub-req-error','You already have a pending request.');return;
+  }
+  const req={
+    id:`sr_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+    username:S.ownerId,shopName:r.shopName||S.ownerId,email:r.email||'',
+    plan:_selfSubPlan,requestedAt:new Date().toISOString(),
+    status:'pending',code:null,codeGeneratedAt:null,paidUntil:null,activatedAt:null
+  };
+  reqs.push(req);saveSubRequests(reqs);
+  showToast('📤 Subscription request sent!','success');
+  renderOwnerSubModal();
+}
+
+function cancelSubRequest(reqId){
+  const reqs=getSubRequests();
+  const i=reqs.findIndex(q=>q.id===reqId&&q.status==='pending');
+  if(i===-1)return;
+  reqs.splice(i,1);saveSubRequests(reqs);
+  showToast('Request cancelled','warn');renderOwnerSubModal();
+}
+
+function activateSubCode(){
+  hideMsg('sub-act-error');hideMsg('sub-act-success');
+  const code=(document.getElementById('sub-act-code')?.value||'').trim();
+  if(code.length!==8||!/^\d{8}$/.test(code)){showMsg('sub-act-error','Enter a valid 8-digit code.');return;}
+  const reqs=getSubRequests();
+  const idx=reqs.findIndex(q=>q.username===S.ownerId&&q.code===code&&q.status==='code_ready');
+  if(idx===-1){showMsg('sub-act-error','Code not found or already used.');return;}
+  const req=reqs[idx];
+  // Apply paidUntil to registry
+  const reg=getRegistry();
+  if(!reg[S.ownerId])return;
+  reg[S.ownerId].paidUntil=req.paidUntil;
+  reg[S.ownerId].status='active';
+  reg[S.ownerId].sub=req.plan;
+  if(!reg[S.ownerId].payHistory)reg[S.ownerId].payHistory=[];
+  reg[S.ownerId].payHistory.push({date:new Date().toISOString().slice(0,10),amount:0,plan:req.plan,until:req.paidUntil,note:'Activated via code'});
+  saveRegistry(reg);
+  // Mark request activated
+  reqs[idx].status='activated';reqs[idx].activatedAt=new Date().toISOString();
+  saveSubRequests(reqs);
+  // Refresh subscription banner
+  const ss=getSubStatus(reg[S.ownerId]);
+  const bannerEl=document.getElementById('app-sub-banner');
+  if(bannerEl)bannerEl.innerHTML=buildSubBanner(ss);
+  // Hide sub-gate if visible
+  const gate=document.getElementById('sub-gate');if(gate)gate.style.display='none';
+  showMsg('sub-act-success',`🎉 Subscription activated! Active until ${req.paidUntil}`);
+  setTimeout(()=>{closeModal('owner-sub-self-modal');renderOwnerSubModal();},1800);
+}
+
+// ── System owner: generate activation code for a request ──
+function generateSubCode(reqId){
+  const reqs=getSubRequests();
+  const idx=reqs.findIndex(q=>q.id===reqId);
+  if(idx===-1)return;
+  const req=reqs[idx];
+  // Calculate paidUntil: extend from existing paidUntil if in future, else from today
+  const reg=getRegistry();
+  const ownerReg=reg[req.username]||{};
+  const today=new Date().toISOString().slice(0,10);
+  const base=(ownerReg.paidUntil&&ownerReg.paidUntil>today)?ownerReg.paidUntil:today;
+  const d=new Date(base);d.setMonth(d.getMonth()+SUB_DURATIONS[req.plan].months);
+  const paidUntil=d.toISOString().slice(0,10);
+  const code=String(Math.floor(10000000+Math.random()*90000000));
+  reqs[idx].code=code;reqs[idx].status='code_ready';
+  reqs[idx].codeGeneratedAt=new Date().toISOString();reqs[idx].paidUntil=paidUntil;
+  saveSubRequests(reqs);
+  renderSystemOwnerDashboard();
+  showToast(`Code generated for ${req.username}`,'success');
+}
+
+function copySubCode(code){
+  navigator.clipboard?.writeText(code).then(()=>showToast('Code copied!','success')).catch(()=>{});
 }
 
 function exitOwnerDashboard(){

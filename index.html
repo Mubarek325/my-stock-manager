@@ -240,6 +240,20 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
 .owner-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative;z-index:1}
 .owner-hero h1{font-family:var(--display);font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:4px}
 .owner-hero p{color:rgba(255,255,255,.65);font-size:.78rem}
+/* ── System admin mode (software owner) — purple/indigo, clearly a higher tier ── */
+#owner-screen.sys-admin-mode .owner-hero{
+  background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4c1d95 100%);
+  border:1.5px solid rgba(139,92,246,.3);
+}
+#owner-screen.sys-admin-mode .owner-logout-btn{
+  background:rgba(139,92,246,.22);color:#c4b5fd;
+  border:1px solid rgba(139,92,246,.4)
+}
+#owner-screen.sys-admin-mode .owner-logout-btn:hover{background:rgba(139,92,246,.38)}
+#owner-screen.sys-admin-mode .owner-stat{border-left:3px solid rgba(139,92,246,.5)}
+#owner-screen.sys-admin-mode .owner-stats{background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:var(--radius)}
+/* ── Shop owner mode — keep amber/gold, add a subtle back-to-store badge ── */
+#owner-screen.shop-owner-mode .owner-hero{background:var(--owner-gradient)}
 .owner-logout-btn{
   display:flex;align-items:center;gap:6px;padding:8px 14px;
   border:1.5px solid rgba(255,255,255,.25);border-radius:8px;
@@ -1434,14 +1448,41 @@ html[data-view="mobile"] .table-search-bar{display:none}
   </div>
 </div>
 
+<!-- CREDIT PAYMENT MODAL -->
+<div class="modal-overlay" id="credit-pay-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr">
+      <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">💳</span></div>
+      <div><h2>Record Payment</h2><p id="credit-pay-subtitle" style="font-size:12px;color:var(--text2)"></p></div>
+      <button class="modal-hdr-close" onclick="closeModal('credit-pay-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="credit-pay-summary" style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.8;border:1px solid var(--border2)"></div>
+      <div class="field">
+        <label>Payment Amount *</label>
+        <input type="number" id="credit-pay-amount" placeholder="0.00" step="any" min="0.01">
+      </div>
+      <div class="field">
+        <label>Note <span style="color:var(--text3);font-size:11px">(optional)</span></label>
+        <input type="text" id="credit-pay-note" placeholder="e.g. Partial — first installment">
+      </div>
+      <div class="modal-error" id="credit-pay-error"></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="modal-btn secondary" onclick="closeModal('credit-pay-modal')" style="flex:0 0 auto;padding:11px 20px">Cancel</button>
+        <button class="modal-btn btn-primary" onclick="saveCreditPayment()" style="flex:1">✅ Save Payment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- OWNER / PLATFORM DASHBOARD -->
 <div id="owner-screen" style="display: block; position: fixed; inset: 0px; z-index: 300; background: var(--bg); overflow-y: auto; padding-bottom: 20px;">
   <div class="owner-screen">
     <div class="owner-hero">
       <div class="owner-hero-top">
         <div>
-          <h1>👑 Platform Dashboard</h1>
-          <p>POWER — Full visibility over all users on your platform</p>
+          <h1 id="owner-dash-title">👑 Platform Dashboard</h1>
+          <p id="owner-dash-sub">POWER — Full visibility over all users on your platform</p>
         </div>
         <button class="owner-logout-btn" onclick="logout()">🚪 Log Out</button>
       </div>
@@ -1455,7 +1496,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     </div>
     <div class="owner-section">
       <div class="owner-section-hdr">
-        <h3>👤 All Users</h3>
+        <h3 id="owner-users-title">👤 All Users</h3>
         <button class="btn btn-owner" onclick="openAddUserModal()">➕ Add User</button>
       </div>
       <div id="user-list-body"><div class="user-card" style="animation-delay:0s;">
@@ -1514,37 +1555,37 @@ html[data-view="mobile"] .table-search-bar{display:none}
     </div>
     <div class="owner-section">
       <div class="owner-section-hdr">
-        <h3>⏳ Pending Access Requests</h3>
+        <h3 id="owner-pending-title">⏳ Pending Access Requests</h3>
         <span id="pending-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
       <div id="pending-user-list"><div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div></div>
     </div>
-    <div class="owner-section" style="animation-delay:.24s">
+    <div class="owner-section" id="section-banned-owners" style="animation-delay:.24s">
       <div class="owner-section-hdr">
         <h3>🚫 Banned Owners</h3>
         <span id="banned-count" style="background:rgba(239,68,68,.12);color:var(--error);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
       <div id="banned-owner-list"><div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div></div>
     </div>
-    <div class="owner-section" style="animation-delay:.28s">
+    <div class="owner-section" id="section-branches" style="animation-delay:.28s">
       <div class="owner-section-hdr"><h3>🏢 Branches</h3><button class="btn" onclick="openBranches()">Manage</button></div>
       <div id="owner-branch-list"><div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div></div>
     </div>
-    <div class="owner-section" style="animation-delay:.30s;border:1.5px solid rgba(239,68,68,.3);border-radius:var(--radius)">
+    <div class="owner-section" id="section-reset-reqs" style="animation-delay:.30s;border:1.5px solid rgba(239,68,68,.3);border-radius:var(--radius)">
       <div class="owner-section-hdr">
         <h3 style="color:var(--error)">🗑️ Data Reset Requests</h3>
         <span id="reset-req-count" style="background:rgba(239,68,68,.15);color:var(--error);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
       <div id="reset-request-list"><div style="padding:24px;text-align:center;color:var(--text3)">No reset requests 🎉</div></div>
     </div>
-    <div class="owner-section" style="animation-delay:.34s;border:1.5px solid rgba(245,158,11,.3)">
+    <div class="owner-section" id="section-sub-reqs" style="animation-delay:.34s;border:1.5px solid rgba(245,158,11,.3)">
       <div class="owner-section-hdr">
         <h3 style="color:var(--owner)">💎 Subscription Requests</h3>
         <span id="sub-req-count" style="background:var(--owner-glass);color:var(--owner);padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">0</span>
       </div>
       <div id="sub-req-list"><div style="padding:24px;text-align:center;color:var(--text3)">No subscription requests</div></div>
     </div>
-    <div class="owner-section" style="animation-delay:.36s">
+    <div class="owner-section" id="section-email-settings" style="animation-delay:.36s">
       <div class="owner-section-hdr">
         <h3>📧 Email Settings</h3>
         <button class="btn btn-owner" onclick="openEmailConfigModal()">⚙️ Configure</button>
@@ -2575,7 +2616,23 @@ function clearEmailConfig(){
   updateEmailConfigStatus();
 }
 
+function _setOwnerDashMode(mode){
+  // mode: 'sys-admin' | 'shop-owner'
+  const outer=document.getElementById('owner-screen');
+  outer.classList.toggle('sys-admin-mode',mode==='sys-admin');
+  outer.classList.toggle('shop-owner-mode',mode==='shop-owner');
+  const SYS_ONLY=['section-banned-owners','section-reset-reqs','section-sub-reqs','section-email-settings'];
+  const SHOP_ONLY=['section-branches'];
+  SYS_ONLY.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=mode==='sys-admin'?'':'none';});
+  SHOP_ONLY.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=mode==='shop-owner'?'':'none';});
+}
+
 function renderSystemOwnerDashboard(){
+  _setOwnerDashMode('sys-admin');
+  document.getElementById('owner-dash-title').textContent='⚙️ System Administration';
+  document.getElementById('owner-dash-sub').textContent='POWER-IMS — Software-level control over all platform owners';
+  document.getElementById('owner-users-title').textContent='👑 All Platform Owners';
+  document.getElementById('owner-pending-title').textContent='⏳ Pending Owner Registrations';
   const reg=getRegistry();
   const owners=Object.keys(reg).filter(u=>reg[u].role==='owner');
   const allUsers=Object.keys(reg).filter(u=>reg[u].role!=='system_owner');
@@ -2967,8 +3024,14 @@ function handleBrandClick(){
    OWNER DASHBOARD
 ═══════════════════════════════════════════════════════ */
 function renderOwnerDashboard(){
+  _setOwnerDashMode('shop-owner');
   const reg=getRegistry();
   const ownerEntry=reg[S.ownerId];
+  const shopName=ownerEntry?.shopName||S.ownerId||'Store';
+  document.getElementById('owner-dash-title').textContent='🏪 '+shopName;
+  document.getElementById('owner-dash-sub').textContent='Shop Owner Dashboard — Manage your team, branches, and subscription';
+  document.getElementById('owner-users-title').textContent='👤 My Users';
+  document.getElementById('owner-pending-title').textContent='⏳ Pending User Requests';
   const ss=getSubStatus(ownerEntry);
   const bannerEl=document.getElementById('owner-sub-banner');
   if(bannerEl)bannerEl.innerHTML=buildSubBanner(ss);
@@ -4574,34 +4637,78 @@ function renderStore(){
 /* ═══════════════════════════════════════════════════════
    CREDIT LEDGER
 ═══════════════════════════════════════════════════════ */
-function markCreditPaid(cid){
-  if(!S.creditPayments)S.creditPayments=[];
-  if(S.creditPayments.some(p=>p.cid===cid))return;
-  S.creditPayments.push({cid,paidAt:new Date().toISOString(),paidBy:S.user});
-  saveUserData();renderTab();showToast('✅ Marked as paid','success');
+// --- Credit partial payment helpers ---
+let _cpCid=null,_cpTotalAmt=0;
+
+function getCreditPaidAmt(cid){
+  return(S.creditPayments||[]).filter(p=>p.cid===cid).reduce((a,p)=>a+(p.amount||0),0);
 }
-function unmarkCreditPaid(cid){
-  if(!S.creditPayments)return;
-  S.creditPayments=S.creditPayments.filter(p=>p.cid!==cid);
-  saveUserData();renderTab();showToast('↩️ Marked as outstanding','warn');
+
+function openCreditPayModal(cid,totalAmt){
+  _cpCid=cid;_cpTotalAmt=totalAmt;
+  const paid=getCreditPaidAmt(cid);
+  const remaining=Math.max(0,totalAmt-paid);
+  document.getElementById('credit-pay-subtitle').textContent='Enter the amount received/paid';
+  document.getElementById('credit-pay-summary').innerHTML=
+    `<div style="display:flex;justify-content:space-between"><span>Total Credit</span><strong class="td-mono">${fmt(totalAmt)}</strong></div>`+
+    `<div style="display:flex;justify-content:space-between"><span>Already Paid</span><strong class="td-mono num-pos">${fmt(paid)}</strong></div>`+
+    `<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);margin-top:4px;padding-top:4px"><span>Remaining</span><strong class="td-mono ${remaining>0?'num-neg':'num-pos'}">${fmt(remaining)}</strong></div>`;
+  const amtInput=document.getElementById('credit-pay-amount');
+  amtInput.value=remaining>0?remaining.toFixed(2):'';
+  amtInput.max=remaining;
+  document.getElementById('credit-pay-note').value='';
+  document.getElementById('credit-pay-error').textContent='';
+  document.getElementById('credit-pay-modal').classList.add('open');
+  setTimeout(()=>amtInput.select(),80);
+}
+
+function saveCreditPayment(){
+  const amt=parseFloat(document.getElementById('credit-pay-amount').value)||0;
+  const note=(document.getElementById('credit-pay-note').value||'').trim();
+  const err=document.getElementById('credit-pay-error');
+  if(amt<=0){err.textContent='Enter a positive amount.';return;}
+  const paid=getCreditPaidAmt(_cpCid);
+  if(paid+amt>_cpTotalAmt+0.001){err.textContent=`Amount exceeds remaining balance of ${fmt(_cpTotalAmt-paid)}.`;return;}
+  if(!S.creditPayments)S.creditPayments=[];
+  S.creditPayments.push({cid:_cpCid,paidAt:new Date().toISOString(),paidBy:S.user,amount:amt,note:note||undefined});
+  saveUserData();
+  closeModal('credit-pay-modal');
+  renderTab();
+  showToast('✅ Payment recorded','success');
+}
+
+function removeCreditPayment(cid,idx){
+  customConfirm('Remove Payment?','This payment entry will be deleted.','↩️','Remove',()=>{
+    const payments=(S.creditPayments||[]).filter(p=>p.cid===cid);
+    const target=payments[idx];
+    if(!target)return;
+    const pos=S.creditPayments.indexOf(target);
+    if(pos>-1)S.creditPayments.splice(pos,1);
+    saveUserData();renderTab();showToast('↩️ Payment removed','warn');
+  });
+}
+
+function clearCreditPayments(cid){
+  customConfirm('Clear All Payments?','All payment entries for this credit will be removed.','🗑️','Clear All',()=>{
+    S.creditPayments=(S.creditPayments||[]).filter(p=>p.cid!==cid);
+    saveUserData();renderTab();showToast('↩️ Payments cleared','warn');
+  });
 }
 
 function renderCreditPage(){
   const calcPT=p=>{const b=(p.qty||0)*(p.uPrice||0);return b+(p.vatOn?b*0.15:0);};
   const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);};
-  const paidSet=new Set((S.creditPayments||[]).map(p=>p.cid));
-  const getPaid=cid=>(S.creditPayments||[]).find(p=>p.cid===cid);
   const canMark=canWrite('CREDIT');
 
   const creditSales=S.sales.filter(s=>s.payment==='CREDIT'&&s._cid);
   const creditPurch=S.purchase.filter(p=>p.payment==='CREDIT'&&p._cid);
 
   const totalRec=creditSales.reduce((a,s)=>a+calcST(s),0);
-  const collectedRec=creditSales.filter(s=>paidSet.has(s._cid)).reduce((a,s)=>a+calcST(s),0);
+  const collectedRec=creditSales.reduce((a,s)=>a+getCreditPaidAmt(s._cid),0);
   const outstandingRec=totalRec-collectedRec;
 
   const totalPay=creditPurch.reduce((a,p)=>a+calcPT(p),0);
-  const settledPay=creditPurch.filter(p=>paidSet.has(p._cid)).reduce((a,p)=>a+calcPT(p),0);
+  const settledPay=creditPurch.reduce((a,p)=>a+getCreditPaidAmt(p._cid),0);
   const outstandingPay=totalPay-settledPay;
 
   const activeFilter=S.creditFilter||'all';
@@ -4613,30 +4720,49 @@ function renderCreditPage(){
                  activeFilter==='purchases'?all.filter(r=>r._type==='purchase'):all;
 
   const rows=filtered.map(row=>{
-    const isPaid=paidSet.has(row._cid);
-    const paidInfo=getPaid(row._cid);
+    const paidAmt=getCreditPaidAmt(row._cid);
+    const remaining=Math.max(0,row._amt-paidAmt);
+    const isFullyPaid=paidAmt>=row._amt-0.001;
+    const isPartial=paidAmt>0.001&&!isFullyPaid;
+    const payments=(S.creditPayments||[]).filter(p=>p.cid===row._cid);
     const typeLabel=row._type==='sale'?
       `<span class="td-badge badge-cash" style="font-size:9px">SALE</span>`:
       `<span class="td-badge badge-credit" style="font-size:9px">PURCHASE</span>`;
-    const statusBadge=isPaid?
+    const statusBadge=isFullyPaid?
       `<span class="td-badge badge-paid">✅ PAID</span>`:
+      isPartial?`<span class="td-badge" style="background:rgba(59,130,246,.14);color:var(--p2);border:1px solid rgba(59,130,246,.25);font-size:9px">⚡ PARTIAL</span>`:
       `<span class="td-badge badge-outstanding">⏳ OUTSTANDING</span>`;
-    const paidMeta=isPaid&&paidInfo?`<div style="font-size:9px;color:var(--text3);margin-top:3px">${(paidInfo.paidAt||'').slice(0,10)} · ${esc(paidInfo.paidBy||'')}</div>`:'';
-    const actionBtn=canMark?(isPaid?
-      `<button class="btn btn-sm" onclick="unmarkCreditPaid('${row._cid}')" style="font-size:10px;padding:3px 8px;opacity:.7">↩️ Undo</button>`:
-      `<button class="btn btn-sm btn-primary" onclick="markCreditPaid('${row._cid}')" style="font-size:10px;padding:3px 8px">✅ Mark Paid</button>`):'';
-    return`<tr style="${isPaid?'opacity:.65':''}">
+    const payHistHtml=payments.length?`<div style="margin-top:4px;font-size:9px;color:var(--text3);line-height:1.7">`+
+      payments.map((p,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:6px">
+        <span class="td-mono num-pos">+${fmt(p.amount||0)}</span>
+        <span>${(p.paidAt||'').slice(0,10)}</span>
+        ${p.note?`<span style="color:var(--text3)">· ${esc(p.note)}</span>`:''}
+        ${canMark?`<button onclick="removeCreditPayment('${row._cid}',${i})" style="background:none;border:none;cursor:pointer;color:var(--error);font-size:9px;padding:0 2px;line-height:1" title="Remove this payment">✕</button>`:''}
+      </span>`).join('')+
+      `</div>`:'';
+    const remainingLabel=isFullyPaid?'':`<div style="font-size:10px;color:${isPartial?'var(--warn)':'var(--text3)'};margin-top:2px">${isPartial?`Balance: ${fmt(remaining)}`:'—'}</div>`;
+    const actionBtn=canMark?`<div style="display:flex;flex-direction:column;gap:4px">
+      ${!isFullyPaid?`<button class="btn btn-sm btn-primary" onclick="openCreditPayModal('${row._cid}',${row._amt})" style="font-size:10px;padding:3px 8px">+ Payment</button>`:''}
+      ${payments.length?`<button class="btn btn-sm" onclick="clearCreditPayments('${row._cid}')" style="font-size:10px;padding:3px 8px;opacity:.6">🗑️ Clear</button>`:''}
+    </div>`:'';
+    return`<tr style="${isFullyPaid?'opacity:.6':''}">
       <td class="td-mono" data-label="Date" style="font-size:11px">${(row.date||'').replace('T',' ')}</td>
       <td data-label="Type">${typeLabel}</td>
       <td data-label="Party" style="font-weight:600">${esc(row.party||'—')}</td>
       <td data-label="Branch"><span class="td-badge badge-other" style="font-size:10px">${esc(row.branch||'Main')}</span></td>
       <td class="td-mono" data-label="Part No." style="font-size:11px">${esc(row.id||'—')}</td>
       <td data-label="Item">${esc(row.name||'—')}</td>
-      <td class="num td-mono" data-label="Amount" style="font-weight:700;color:${isPaid?'var(--success)':'inherit'}">${fmt(row._amt)}</td>
-      <td data-label="Status">${statusBadge}${paidMeta}</td>
+      <td class="num td-mono" data-label="Amount" style="font-weight:700">
+        <div>${fmt(row._amt)}</div>
+        ${isPartial?`<div style="font-size:9px;color:var(--success)">Paid: ${fmt(paidAmt)}</div>`:''}
+        ${remainingLabel}
+      </td>
+      <td data-label="Status">${statusBadge}${payHistHtml}</td>
       <td data-label="">${actionBtn}</td>
     </tr>`;
   }).join('');
+
+  const numOutstanding=filtered.filter(r=>{const p=getCreditPaidAmt(r._cid);return p<r._amt-0.001;}).length;
 
   const summaryCards=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
@@ -4659,13 +4785,13 @@ function renderCreditPage(){
       <button class="btn btn-sm${activeFilter==='all'?' btn-primary':''}" onclick="S.creditFilter='all';renderTab()">All (${all.length})</button>
       <button class="btn btn-sm${activeFilter==='sales'?' btn-primary':''}" onclick="S.creditFilter='sales';renderTab()">💰 Sales (${creditSales.length})</button>
       <button class="btn btn-sm${activeFilter==='purchases'?' btn-primary':''}" onclick="S.creditFilter='purchases';renderTab()">🛒 Purchases (${creditPurch.length})</button>
-      <span style="margin-left:auto;font-size:10px;color:var(--text3)">${filtered.filter(r=>!paidSet.has(r._cid)).length} outstanding of ${filtered.length}</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--text3)">${numOutstanding} outstanding of ${filtered.length}</span>
     </div>`;
 
   document.getElementById('tab-content').innerHTML=summaryCards+filterBar+`
     <div class="table-wrap">
       <table>
-        <thead><tr><th>${L('date')}</th><th>Type</th><th>Party</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>${L('date')}</th><th>Type</th><th>Party</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th class="num">Amount</th><th>Status / Payments</th><th></th></tr></thead>
         <tbody>${rows||`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:32px">No credit records yet. Use <strong>CREDIT</strong> as payment method when adding purchases or sales.</td></tr>`}</tbody>
       </table>
     </div>`;
@@ -4721,10 +4847,11 @@ function _reportCalc(branch){
   const tSC=SR.filter(s=>s.payment==='CASH').reduce((a,b)=>a+calcST(b),0);
   const tSCr=SR.filter(s=>s.payment!=='CASH').reduce((a,b)=>a+calcST(b),0);
   const tE=ER.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
-  // Credit payments settled: paid credit sales = cash received, paid credit purchases = cash paid out
-  const paidSet=new Set((S.creditPayments||[]).map(p=>p.cid));
-  const tSCrPaid=SR.filter(s=>s.payment==='CREDIT'&&s._cid&&paidSet.has(s._cid)).reduce((a,b)=>a+calcST(b),0);
-  const tPCrPaid=PR.filter(p=>p.payment==='CREDIT'&&p._cid&&paidSet.has(p._cid)).reduce((a,b)=>a+calcPT(b),0);
+  // Credit payments settled: use actual partial amounts paid, capped at the full credit value
+  const tSCrPaid=SR.filter(s=>s.payment==='CREDIT'&&s._cid).reduce((a,s)=>{
+    const paid=Math.min(getCreditPaidAmt(s._cid),calcST(s));return a+paid;},0);
+  const tPCrPaid=PR.filter(p=>p.payment==='CREDIT'&&p._cid).reduce((a,p)=>{
+    const paid=Math.min(getCreditPaidAmt(p._cid),calcPT(p));return a+paid;},0);
   const net=tSC+tSCr-tPC-tPCr-tE;
   const coh=initBal+tSC+tSCrPaid-tPC-tPCrPaid-tE;
   return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh,tSCrPaid,tPCrPaid};

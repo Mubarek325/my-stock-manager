@@ -1970,6 +1970,7 @@ function loadUserData(){
   S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
   S.branches=JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
   S.creditPayments=JSON.parse(localStorage.getItem(`ims_${ns}_creditPayments`)||'[]');
+  S.deletedUsers=JSON.parse(localStorage.getItem(`ims_${ns}_deletedUsers`)||'[]');
   S.avatarDataUrl=localStorage.getItem(`ims_${S.user}_avatar`)||null;
   // Backfill _cid for existing CREDIT records that pre-date this feature
   let _cidChanged=false;
@@ -2000,6 +2001,7 @@ function saveUserData(){
   localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
   localStorage.setItem(`ims_${ns}_branches`,JSON.stringify(S.branches));
   localStorage.setItem(`ims_${ns}_creditPayments`,JSON.stringify(S.creditPayments||[]));
+  localStorage.setItem(`ims_${ns}_deletedUsers`,JSON.stringify(S.deletedUsers||[]));
   syncToCloud();
 }
 
@@ -2050,6 +2052,7 @@ function syncToCloud(){
       registry:JSON.stringify(getRegistry()),
       storereqs:JSON.stringify(loadStoreRequests()),
       creditPayments:JSON.stringify(S.creditPayments||[]),
+      deletedUsers:JSON.stringify(S.deletedUsers||[]),
       updatedAt:now
     };
     S.branches.forEach(b=>{
@@ -2078,6 +2081,7 @@ function applyCloudSnapshot(ns,d){
   if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
   if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
   if(d.creditPayments!==undefined) localStorage.setItem(`ims_${ns}_creditPayments`,d.creditPayments);
+  if(d.deletedUsers!==undefined) localStorage.setItem(`ims_${ns}_deletedUsers`,d.deletedUsers);
   const branches=d.branches?JSON.parse(d.branches):['Main'];
   branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
   if(d.resetAt&&d.resetAt!==localStorage.getItem(`ims_${ns}_lastResetAt`)){
@@ -2283,6 +2287,8 @@ async function submitAuth(){
         if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
         if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
         const ns=reg[ownerTarget].ownerId||ownerTarget;
+        const _delList=JSON.parse(localStorage.getItem(`ims_${ns}_deletedUsers`)||'[]');
+        if(_delList.includes(u)){showMsg('auth-error','⛔ This username has been removed from this account and cannot rejoin.');return;}
         const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
         pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
         localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
@@ -3084,6 +3090,12 @@ function renderOwnerDashboard(){
 function approveMyUser(i){
   const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
   const p=pending[i];
+  if((S.deletedUsers||[]).includes(p.username)){
+    pending.splice(i,1);
+    localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+    showToast(`⛔ ${p.username} is permanently blocked and was removed from queue.`,'error');
+    renderOwnerDashboard();return;
+  }
   const branch=document.getElementById(`approve-branch-${i}`)?.value||S.branches[0];
   const role=document.getElementById(`approve-role-${i}`)?.value||'user';
   const reg=getRegistry();
@@ -3115,9 +3127,12 @@ function unsuspendMyUser(u){
   showToast(`${u} reactivated`,'success');renderOwnerDashboard();
 }
 function deleteMyUser(u){
-  customConfirm('Delete User?',`Remove "${u}" permanently?`,'🗑️','Delete',()=>{
+  customConfirm('Delete User?',`Remove "${u}" permanently? They will never be able to rejoin this account.`,'🗑️','Delete',()=>{
+    if(!S.deletedUsers)S.deletedUsers=[];
+    if(!S.deletedUsers.includes(u))S.deletedUsers.push(u);
     const reg=getRegistry();delete reg[u];saveRegistry(reg);
-    showToast(`${u} deleted`,'success');renderOwnerDashboard();
+    saveUserData();
+    showToast(`${u} permanently removed`,'success');renderOwnerDashboard();
   });
 }
 
@@ -4311,7 +4326,10 @@ function renderTx(){
     if(row.vatOn)total+=base*0.15;
     if(!isP){if(row.wh3On)total-=base*0.03;if(row.vwhOn)total-=base*0.075;}
     totQty+=qty;totVal+=total;
-    const pmBadge=m=>`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
+    const pmBadge=m=>{
+      if(m==='CREDIT'&&row._cid){const p=getCreditPaidAmt(row._cid);const fp=p>=total-0.001;const pp=p>0.001&&!fp;if(fp)return`<span class="td-badge badge-cash">✅ PAID</span>`;if(pp)return`<span class="td-badge" style="background:rgba(59,130,246,.14);color:var(--p2);border:1px solid rgba(59,130,246,.25);font-size:9px">⚡ PARTIAL</span>`;}
+      return`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
+    };
     const taxCell=`<td class="num" data-label="Tax">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>`;
     return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit/delete/print">
       <td class="td-mono" data-label="Date" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
@@ -4852,7 +4870,7 @@ function _reportCalc(branch){
     const paid=Math.min(getCreditPaidAmt(s._cid),calcST(s));return a+paid;},0);
   const tPCrPaid=PR.filter(p=>p.payment==='CREDIT'&&p._cid).reduce((a,p)=>{
     const paid=Math.min(getCreditPaidAmt(p._cid),calcPT(p));return a+paid;},0);
-  const net=tSC+tSCr-tPC-tPCr-tE;
+  const net=tSC+tSCrPaid-tPC-tPCrPaid-tE;
   const coh=initBal+tSC+tSCrPaid-tPC-tPCrPaid-tE;
   return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh,tSCrPaid,tPCrPaid};
 }
@@ -4888,22 +4906,22 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
       <td style="font-weight:700">${esc(b)}</td>
       <td class="num">${isOwner()?editable:fmt(c.initBal)}</td>
       <td class="num td-mono">${fmt(c.tPC)}</td>
-      <td class="num td-mono">${fmt(c.tPCr)}</td>
+      <td class="num td-mono">${fmt(c.tPCrPaid)}</td>
       <td class="num td-mono">${fmt(c.tSC)}</td>
-      <td class="num td-mono">${fmt(c.tSCr)}</td>
+      <td class="num td-mono">${fmt(c.tSCrPaid)}</td>
       <td class="num td-mono">${fmt(c.tE)}</td>
       <td class="num td-mono ${c.net>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.net)}</td>
       <td class="num td-mono ${c.coh>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.coh)}</td>
     </tr>`;
   }).join('');
-  const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCr+=c.tPCr;acc.tSC+=c.tSC;acc.tSCr+=c.tSCr;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCr:0,tSC:0,tSCr:0,tE:0,net:0,coh:0});
+  const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCrPaid+=c.tPCrPaid;acc.tSC+=c.tSC;acc.tSCrPaid+=c.tSCrPaid;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCrPaid:0,tSC:0,tSCrPaid:0,tE:0,net:0,coh:0});
   const totRow=`<tr class="summary-row">
     <td>${L('allBranches').toUpperCase()}</td>
     <td class="num td-mono">${fmt(tot.ib)}</td>
     <td class="num td-mono">${fmt(tot.tPC)}</td>
-    <td class="num td-mono">${fmt(tot.tPCr)}</td>
+    <td class="num td-mono">${fmt(tot.tPCrPaid)}</td>
     <td class="num td-mono">${fmt(tot.tSC)}</td>
-    <td class="num td-mono">${fmt(tot.tSCr)}</td>
+    <td class="num td-mono">${fmt(tot.tSCrPaid)}</td>
     <td class="num td-mono">${fmt(tot.tE)}</td>
     <td class="num td-mono ${tot.net>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.net)}</td>
     <td class="num td-mono ${tot.coh>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.coh)}</td>
@@ -4919,8 +4937,8 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
       <table>
         <thead><tr>
           <th>${L('branch')}</th><th class="num">${L('initBalShort')}</th>
-          <th class="num">${L('purchCashShort')}</th><th class="num">${L('purchCreditShort')}</th>
-          <th class="num">${L('salesCashShort')}</th><th class="num">${L('salesCreditShort')}</th>
+          <th class="num">${L('purchCashShort')}</th><th class="num">Cr.Purch Paid</th>
+          <th class="num">${L('salesCashShort')}</th><th class="num">Cr.Sales Coll.</th>
           <th class="num">${L('expensesShort')}</th>
           <th class="num">${L('netPLShort')}</th><th class="num">${L('cashOnHand')}</th>
         </tr></thead>
@@ -4937,9 +4955,9 @@ function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
   const reportData=[
     {l:`${L('initBalance')}${label?` — ${label}`:''}`,v:c.initBal,edit:true,branch},
     {l:`${L('totalPurchCash')} ${label}`,v:c.tPC},
-    {l:`${L('totalPurchCredit')} ${label}`,v:c.tPCr},
+    {l:`Credit Purchases Paid ${label}`,v:c.tPCrPaid},
     {l:`${L('totalSalesCash')} ${label}`,v:c.tSC},
-    {l:`${L('totalSalesCredit')} ${label}`,v:c.tSCr},
+    {l:`Credit Sales Collected ${label}`,v:c.tSCrPaid},
     {l:L('totalExpenses'),v:c.tE},
     {l:L('netProfitLoss'),v:c.net,total:true},
     {l:L('cashOnHand'),v:c.coh,total:true},
@@ -4950,19 +4968,20 @@ function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
   </div>`).join('');
   const creditPurchases=PR.filter(p=>p.payment&&p.payment!=='CASH');
   const creditSales=SR.filter(s=>s.payment&&s.payment!=='CASH');
-  const cpRows=creditPurchases.length?creditPurchases.map(r=>`<tr>
+  const _creditBadge=(cid,totalAmt)=>{const p=getCreditPaidAmt(cid);const fp=p>=totalAmt-0.001;const pp=p>0.001&&!fp;return fp?`<span class="td-badge badge-cash">✅ PAID</span>`:pp?`<span class="td-badge" style="background:rgba(59,130,246,.14);color:var(--p2);border:1px solid rgba(59,130,246,.25);font-size:9px">⚡ PARTIAL</span>`:`<span class="td-badge badge-credit">CREDIT</span>`;};
+  const cpRows=creditPurchases.length?creditPurchases.map(r=>{const tot=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);return`<tr>
     <td>${(r.date||'').slice(0,10)}</td><td>${esc(r.party||'—')}</td><td>${esc(r.name||'—')}</td>
     <td style="color:var(--text3)">${esc(r.desc||'—')}</td>
     <td class="num">${fmtQ(parseFloat(r.qty)||0)}</td>
-    <td class="num">${fmt((parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0))}</td>
-    <td><span class="td-badge badge-credit">${r.payment}</span></td>
-  </tr>`).join(''):`<tr><td colspan="7" class="credit-empty">No credit purchases in range</td></tr>`;
-  const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);return`<tr>
+    <td class="num">${fmt(tot)}</td>
+    <td>${_creditBadge(r._cid,tot)}</td>
+  </tr>`;}  ).join(''):`<tr><td colspan="7" class="credit-empty">No credit purchases in range</td></tr>`;
+  const csRows=creditSales.length?creditSales.map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);const tot=b+v-wh;return`<tr>
     <td>${(s.date||'').slice(0,10)}</td><td>${esc(s.party||'—')}</td><td>${esc(s.name||'—')}</td>
     <td style="color:var(--text3)">${esc(s.desc||'—')}</td>
     <td class="num">${fmtQ(parseFloat(s.qty)||0)}</td>
-    <td class="num">${fmt(b+v-wh)}</td>
-    <td><span class="td-badge badge-credit">${s.payment}</span></td>
+    <td class="num">${fmt(tot)}</td>
+    <td>${_creditBadge(s._cid,tot)}</td>
   </tr>`;}).join(''):`<tr><td colspan="7" class="credit-empty">No credit sales in range</td></tr>`;
   const creditTotalP=creditPurchases.reduce((a,r)=>a+(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0),0);
   const creditTotalS=creditSales.reduce((a,s)=>{const b=(s.qty||0)*(s.sPrice||0);return a+b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);},0);

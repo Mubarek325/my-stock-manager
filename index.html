@@ -1802,7 +1802,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 ═══════════════════════════════════════════════════════ */
 const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPORT','CREDIT'];
 const PERM_OPTS = [{v:'full',l:'Full'},{v:'add_only',l:'Add Only'},{v:'read',l:'Read Only'},{v:'none',l:'No Access'}];
-const PAYMENT_METHODS = ['CASH','CREDIT','BANK TRANSFER','MOBILE PAY','CHECK'];
+const PAYMENT_METHODS = ['CASH','CREDIT'];
 
 // ★ CHANGE 1: Added STOREBALANCE to TAB_META
 const TAB_META = {
@@ -4923,9 +4923,16 @@ function _reportCalc(branch){
     const paid=Math.min(getCreditPaidAmt(s._cid),calcST(s));return a+paid;},0);
   const tPCrPaid=PR.filter(p=>p.payment==='CREDIT'&&p._cid).reduce((a,p)=>{
     const paid=Math.min(getCreditPaidAmt(p._cid),calcPT(p));return a+paid;},0);
-  const net=tSC+tSCrPaid-tPC-tPCrPaid-tE;
+  // Outstanding = total credit amount minus what has been paid/collected so far
+  const tPCrOut=PR.filter(p=>p.payment==='CREDIT'&&p._cid).reduce((a,p)=>{
+    const tot=calcPT(p);return a+tot-Math.min(getCreditPaidAmt(p._cid),tot);},0);
+  const tSCrOut=SR.filter(s=>s.payment==='CREDIT'&&s._cid).reduce((a,s)=>{
+    const tot=calcST(s);return a+tot-Math.min(getCreditPaidAmt(s._cid),tot);},0);
+  // Accrual P/L: all sales - all purchases - expenses (credit counted when made, not when settled)
+  const net=(tSC+tSCr)-(tPC+tPCr)-tE;
+  // Cash on hand: only actual cash movements (paid credit settlements included)
   const coh=initBal+tSC+tSCrPaid-tPC-tPCrPaid-tE;
-  return{PR,SR,ER,initBal,tPC,tPCr,tSC,tSCr,tE,net,coh,tSCrPaid,tPCrPaid};
+  return{PR,SR,ER,initBal,tPC,tPCr,tPCrPaid,tPCrOut,tSC,tSCr,tSCrPaid,tSCrOut,tE,net,coh};
 }
 
 function renderReport(){
@@ -4959,22 +4966,22 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
       <td style="font-weight:700">${esc(b)}</td>
       <td class="num">${isOwner()?editable:fmt(c.initBal)}</td>
       <td class="num td-mono">${fmt(c.tPC)}</td>
-      <td class="num td-mono">${fmt(c.tPCrPaid)}</td>
+      <td class="num td-mono num-neg">${fmt(c.tPCrOut)}</td>
       <td class="num td-mono">${fmt(c.tSC)}</td>
-      <td class="num td-mono">${fmt(c.tSCrPaid)}</td>
+      <td class="num td-mono num-pos">${fmt(c.tSCrOut)}</td>
       <td class="num td-mono">${fmt(c.tE)}</td>
       <td class="num td-mono ${c.net>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.net)}</td>
       <td class="num td-mono ${c.coh>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.coh)}</td>
     </tr>`;
   }).join('');
-  const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCrPaid+=c.tPCrPaid;acc.tSC+=c.tSC;acc.tSCrPaid+=c.tSCrPaid;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCrPaid:0,tSC:0,tSCrPaid:0,tE:0,net:0,coh:0});
+  const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCrOut+=c.tPCrOut;acc.tSC+=c.tSC;acc.tSCrOut+=c.tSCrOut;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCrOut:0,tSC:0,tSCrOut:0,tE:0,net:0,coh:0});
   const totRow=`<tr class="summary-row">
     <td>${L('allBranches').toUpperCase()}</td>
     <td class="num td-mono">${fmt(tot.ib)}</td>
     <td class="num td-mono">${fmt(tot.tPC)}</td>
-    <td class="num td-mono">${fmt(tot.tPCrPaid)}</td>
+    <td class="num td-mono num-neg">${fmt(tot.tPCrOut)}</td>
     <td class="num td-mono">${fmt(tot.tSC)}</td>
-    <td class="num td-mono">${fmt(tot.tSCrPaid)}</td>
+    <td class="num td-mono num-pos">${fmt(tot.tSCrOut)}</td>
     <td class="num td-mono">${fmt(tot.tE)}</td>
     <td class="num td-mono ${tot.net>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.net)}</td>
     <td class="num td-mono ${tot.coh>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.coh)}</td>
@@ -4990,8 +4997,8 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
       <table>
         <thead><tr>
           <th>${L('branch')}</th><th class="num">${L('initBalShort')}</th>
-          <th class="num">${L('purchCashShort')}</th><th class="num">Cr.Purch Paid</th>
-          <th class="num">${L('salesCashShort')}</th><th class="num">Cr.Sales Coll.</th>
+          <th class="num">${L('purchCashShort')}</th><th class="num">Purch Outstanding</th>
+          <th class="num">${L('salesCashShort')}</th><th class="num">Sales Outstanding</th>
           <th class="num">${L('expensesShort')}</th>
           <th class="num">${L('netPLShort')}</th><th class="num">${L('cashOnHand')}</th>
         </tr></thead>
@@ -5008,16 +5015,16 @@ function _renderSingleBranchReport(branch,branchTabsHtml,datebar){
   const reportData=[
     {l:`${L('initBalance')}${label?` — ${label}`:''}`,v:c.initBal,edit:true,branch},
     {l:`${L('totalPurchCash')} ${label}`,v:c.tPC},
-    {l:`Credit Purchases Paid ${label}`,v:c.tPCrPaid},
+    {l:`Purchase Outstanding ${label}`,v:c.tPCrOut,neg:true},
     {l:`${L('totalSalesCash')} ${label}`,v:c.tSC},
-    {l:`Credit Sales Collected ${label}`,v:c.tSCrPaid},
+    {l:`Sales Outstanding ${label}`,v:c.tSCrOut,pos:true},
     {l:L('totalExpenses'),v:c.tE},
     {l:L('netProfitLoss'),v:c.net,total:true},
     {l:L('cashOnHand'),v:c.coh,total:true},
   ];
   const rr=rows=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
     <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="_setBranchBal('${esc(r.branch||S.branches[0])}',this.value)" style="margin-left:12px;width:120px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
-    <div class="report-val ${r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
+    <div class="report-val ${r.neg?'num-neg':r.pos?'num-pos':r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
   </div>`).join('');
   const creditPurchases=PR.filter(p=>p.payment&&p.payment!=='CASH');
   const creditSales=SR.filter(s=>s.payment&&s.payment!=='CASH');

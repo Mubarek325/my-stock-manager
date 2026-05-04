@@ -4959,51 +4959,57 @@ function renderReport(){
 }
 
 function _renderAllBranchesReport(branchTabsHtml,datebar){
-  const rows=S.branches.map(b=>{
+  const rr=(rows,branchName)=>rows.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
+    <div class="report-label">${r.l}${r.edit&&isOwner()?`<input type="number" value="${r.v}" oninput="_setBranchBal('${esc(branchName)}',this.value)" style="margin-left:12px;width:110px;padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none">`:''}</div>
+    <div class="report-val ${r.neg?'num-neg':r.pos?'num-pos':r.v<0?'num-neg':r.v>0?'num-pos':''}">${r.edit&&isOwner()?'':fmt(r.v)}</div>
+  </div>`).join('');
+
+  const branchCards=S.branches.map(b=>{
     const c=_reportCalc(b);
-    const editable=isOwner()?`<input type="number" value="${_branchBal(b)}" oninput="_setBranchBal('${esc(b)}',this.value)" style="width:90px;padding:4px 7px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;text-align:right">`:fmt(_branchBal(b));
-    return`<tr>
-      <td style="font-weight:700">${esc(b)}</td>
-      <td class="num">${isOwner()?editable:fmt(c.initBal)}</td>
-      <td class="num td-mono">${fmt(c.tPC)}</td>
-      <td class="num td-mono num-neg">${fmt(c.tPCrOut)}</td>
-      <td class="num td-mono">${fmt(c.tSC)}</td>
-      <td class="num td-mono num-pos">${fmt(c.tSCrOut)}</td>
-      <td class="num td-mono">${fmt(c.tE)}</td>
-      <td class="num td-mono ${c.net>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.net)}</td>
-      <td class="num td-mono ${c.coh>=0?'num-pos':'num-neg'}" style="font-weight:700">${fmt(c.coh)}</td>
-    </tr>`;
+    const rows=[
+      {l:L('initBalance'),v:c.initBal,edit:true},
+      {l:L('totalPurchCash'),v:c.tPC},
+      {l:'Purchase Outstanding',v:c.tPCrOut,neg:true},
+      {l:L('totalSalesCash'),v:c.tSC},
+      {l:'Sales Outstanding',v:c.tSCrOut,pos:true},
+      {l:L('totalExpenses'),v:c.tE},
+      {l:L('netProfitLoss'),v:c.net,total:true},
+      {l:L('cashOnHand'),v:c.coh,total:true},
+    ];
+    return`<div style="margin:12px 14px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface)">
+      <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;font-weight:700;color:var(--text)">${esc(b)}</span>
+      </div>
+      ${rr(rows,b)}
+    </div>`;
   }).join('');
+
   const tot=S.branches.reduce((acc,b)=>{const c=_reportCalc(b);acc.ib+=c.initBal;acc.tPC+=c.tPC;acc.tPCrOut+=c.tPCrOut;acc.tSC+=c.tSC;acc.tSCrOut+=c.tSCrOut;acc.tE+=c.tE;acc.net+=c.net;acc.coh+=c.coh;return acc;},{ib:0,tPC:0,tPCrOut:0,tSC:0,tSCrOut:0,tE:0,net:0,coh:0});
-  const totRow=`<tr class="summary-row">
-    <td>${L('allBranches').toUpperCase()}</td>
-    <td class="num td-mono">${fmt(tot.ib)}</td>
-    <td class="num td-mono">${fmt(tot.tPC)}</td>
-    <td class="num td-mono num-neg">${fmt(tot.tPCrOut)}</td>
-    <td class="num td-mono">${fmt(tot.tSC)}</td>
-    <td class="num td-mono num-pos">${fmt(tot.tSCrOut)}</td>
-    <td class="num td-mono">${fmt(tot.tE)}</td>
-    <td class="num td-mono ${tot.net>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.net)}</td>
-    <td class="num td-mono ${tot.coh>=0?'num-pos':'num-neg'}" style="font-weight:800">${fmt(tot.coh)}</td>
-  </tr>`;
-  const {PR,SR,ER}=_reportCalc('');
+  const totRows=[
+    {l:L('initBalance'),v:tot.ib},
+    {l:L('totalPurchCash'),v:tot.tPC},
+    {l:'Purchase Outstanding',v:tot.tPCrOut,neg:true},
+    {l:L('totalSalesCash'),v:tot.tSC},
+    {l:'Sales Outstanding',v:tot.tSCrOut,pos:true},
+    {l:L('totalExpenses'),v:tot.tE},
+    {l:L('netProfitLoss'),v:tot.net,total:true},
+    {l:L('cashOnHand'),v:tot.coh,total:true},
+  ];
+  const totCard=`<div style="margin:12px 14px 20px;border-radius:14px;overflow:hidden;border:1.5px solid var(--success);background:var(--surface)">
+    <div style="padding:10px 16px;background:linear-gradient(90deg,rgba(16,185,129,.15),var(--surface2));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+      <span style="font-size:13px;font-weight:800;color:var(--success)">${L('allBranches').toUpperCase()} — COMBINED</span>
+    </div>
+    ${rr(totRows,'')}
+  </div>`;
+
   document.getElementById('tab-content').innerHTML=`
     ${branchTabsHtml}${datebar}
-    <div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
-      <span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em">📊 ALL BRANCHES SUMMARY</span>
-      ${isOwner()?`<span style="font-size:10px;color:var(--text3);margin-left:12px">${L('editBalanceHint')}</span>`:''}
+    <div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em">ALL BRANCHES SUMMARY</span>
+      ${isOwner()?`<span style="font-size:10px;color:var(--text3)">${L('editBalanceHint')}</span>`:''}
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>${L('branch')}</th><th class="num">${L('initBalShort')}</th>
-          <th class="num">${L('purchCashShort')}</th><th class="num">Purch Outstanding</th>
-          <th class="num">${L('salesCashShort')}</th><th class="num">Sales Outstanding</th>
-          <th class="num">${L('expensesShort')}</th>
-          <th class="num">${L('netPLShort')}</th><th class="num">${L('cashOnHand')}</th>
-        </tr></thead>
-        <tbody>${rows}${totRow}</tbody>
-      </table>
+    <div style="overflow-y:auto;padding-bottom:8px">
+      ${branchCards}${totCard}
     </div>`;
   document.getElementById('extras').innerHTML='';
 }

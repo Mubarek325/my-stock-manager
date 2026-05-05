@@ -2,18 +2,54 @@
 
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Accessibility: removed maximum-scale=1.0 + user-scalable=no so users can pinch-zoom (WCAG 1.4.4) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#070d18">
-<title>POWER-IMS</title>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<meta name="apple-mobile-web-app-title" content="POWER-IMS">
+<meta name="theme-color" content="#070d18" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f5fc" media="(prefers-color-scheme: light)">
+<meta name="description" content="POWER-IMS — Inventory Management System with multi-branch, store dispatch, and credit ledger.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!--
+  Content-Security-Policy
+  ─────────────────────────────────────────────────────────────────────────
+  'unsafe-inline' is currently REQUIRED in script-src because the body still
+  uses ~200 inline onclick="…" attributes. Removing those is on the roadmap.
+  When the migration to addEventListener is done, drop 'unsafe-inline' from
+  script-src and add a per-load nonce.
+
+  Even with 'unsafe-inline', this CSP still meaningfully:
+    • Blocks eval / new Function (no 'unsafe-eval')
+    • Whitelists script origins to known CDNs (no rogue script injection)
+    • Blocks plugins (object-src 'none')
+    • Prevents this page from being framed (frame-ancestors 'none' = clickjacking off)
+    • Forbids form posts to off-origin URLs
+    • Forces HTTPS upgrades on any http:// asset that slips in
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com data:;
+  img-src 'self' data: blob: https:;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://api.emailjs.com https://*.gstatic.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+  upgrade-insecure-requests;
+">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<title>POWER-IMS — Inventory Management</title>
+<script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -1006,7 +1042,14 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="page-loader" id="page-loader">
   <div class="loader-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
-  <image x="0" y="0" width="100" height="100"></image>
+  <defs>
+    <linearGradient id="pwrG_1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b8af8"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="88" height="88" rx="20" fill="url(#pwrG_1)"/>
+  <path d="M55 22 L33 54 H47 L42 78 L67 44 H53 Z" fill="#fff" opacity="0.97"/>
 </svg></div>
   <div class="loader-text">POWER</div>
   <div class="loader-sub" id="loader-sub-text">Loading accounts from cloud…</div>
@@ -1024,7 +1067,14 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="auth-hdr">
       <div class="auth-hdr-content">
         <div class="ah-icon"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
-  <image x="0" y="0" width="100" height="100"></image>
+  <defs>
+    <linearGradient id="pwrG_2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b8af8"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="88" height="88" rx="20" fill="url(#pwrG_2)"/>
+  <path d="M55 22 L33 54 H47 L42 78 L67 44 H53 Z" fill="#fff" opacity="0.97"/>
 </svg></div>
         <h1>POWER</h1>
         <p>Inventory Management System</p>
@@ -1032,8 +1082,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
     </div>
     <div class="auth-body">
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login-btn" onclick="setAuthMode('login')">Log In</button>
-        <button class="auth-tab" id="tab-signup-btn" onclick="setAuthMode('signup')">Request Access</button>
+        <button type="button" class="auth-tab active" id="tab-login-btn" onclick="setAuthMode('login')">Log In</button>
+        <button type="button" class="auth-tab" id="tab-signup-btn" onclick="setAuthMode('signup')">Request Access</button>
       </div>
       <div id="auth-signup-avatar" style="display:none">
         <div class="avatar-ring" id="auth-avatar-preview" onclick="document.getElementById('auth-avatar-file').click()">👤</div>
@@ -1042,25 +1092,26 @@ html[data-view="mobile"] .table-search-bar{display:none}
       </div>
       <div id="auth-type-toggle" style="display:none;margin-bottom:14px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button id="auth-type-biz" class="auth-type-btn active" onclick="setAuthSubMode('business')">🏢 New Business</button>
-          <button id="auth-type-emp" class="auth-type-btn" onclick="setAuthSubMode('employee')">👤 Employee</button>
+          <button type="button" id="auth-type-biz" class="auth-type-btn active" onclick="setAuthSubMode('business')">🏢 New Business</button>
+          <button type="button" id="auth-type-emp" class="auth-type-btn" onclick="setAuthSubMode('employee')">👤 Employee</button>
         </div>
         <div id="auth-type-hint" style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center">Register your business for a 14-day free trial</div>
       </div>
-      <div class="field" id="auth-shopname-wrap" style="display:none"><label>Business / Shop Name *</label><input id="auth-shopname" placeholder="e.g. Abebe General Trading"></div>
-      <div class="field" id="auth-email-wrap" style="display:none"><label>Email Address *</label><input id="auth-email" type="email" placeholder="your@email.com" autocomplete="email"></div>
-      <div class="field"><label id="auth-user-label">Username</label><input id="auth-user" placeholder="Enter your username" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
-      <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')submitAuth()"></div>
-      <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password"></div>
+      <div class="field" id="auth-shopname-wrap" style="display:none"><label>Business / Shop Name *</label><input id="auth-shopname" placeholder="e.g. Abebe General Trading" maxlength="80" autocomplete="organization"></div>
+      <div class="field" id="auth-email-wrap" style="display:none"><label>Email Address *</label><input id="auth-email" type="email" placeholder="your@email.com" autocomplete="email" maxlength="120"></div>
+      <div class="field" id="auth-phone-wrap" style="display:none"><label>Phone Number</label><input id="auth-phone" type="tel" placeholder="e.g. 0911 234 567" autocomplete="tel" maxlength="40"></div>
+      <div class="field"><label id="auth-user-label">Username</label><input id="auth-user" placeholder="Enter your username" autocomplete="username" maxlength="40" spellcheck="false" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()"></div>
+      <div class="field"><label>Password</label><input id="auth-pass" type="password" placeholder="Enter your password" autocomplete="current-password" maxlength="128" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+      <div class="field" id="auth-confirm-wrap" style="display:none"><label>Confirm Password</label><input id="auth-confirm" type="password" placeholder="Re-enter password" autocomplete="new-password" maxlength="128"></div>
       <div class="field" id="auth-admin-target-wrap" style="display:none">
         <label>Platform Owner Username <span style="color:var(--text3);font-size:9px">(who manages your account)</span></label>
-        <input id="auth-admin-target" placeholder="Enter the platform owner's username">
+        <input id="auth-admin-target" placeholder="Enter the platform owner's username" maxlength="40" spellcheck="false" autocomplete="off">
       </div>
       <div id="auth-otp-wrap" style="display:none">
         <div class="field"><label>Verification Code *</label><input id="auth-otp" maxlength="6" placeholder="Enter 6-digit code" style="letter-spacing:.2em;font-family:var(--mono);text-align:center" onkeydown="if(event.key==='Enter')submitAuth()"></div>
         <div id="auth-otp-hint" style="font-size:10px;color:var(--text3);margin:-6px 0 8px;text-align:center"></div>
       </div>
-      <button class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
+      <button type="button" class="modal-btn" onclick="submitAuth()" id="auth-btn">🔐 Log In</button>
       <div class="modal-error" id="auth-error"></div>
       <div class="modal-success" id="auth-success"></div>
       <div class="cloud-auth-note" id="cloud-auth-note">☁️ Accounts sync across all devices</div>
@@ -1072,7 +1123,14 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <div class="app-header owner-mode" id="app-header" style="display: none;">
   <div class="brand">
     <div class="brand-logo" id="brand-logo"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
-  <image x="0" y="0" width="100" height="100"></image>
+  <defs>
+    <linearGradient id="pwrG_3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b8af8"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="88" height="88" rx="20" fill="url(#pwrG_3)"/>
+  <path d="M55 22 L33 54 H47 L42 78 L67 44 H53 Z" fill="#fff" opacity="0.97"/>
 </svg></div>
     <div class="brand-text">
       <div class="t1">POWER</div>
@@ -1080,7 +1138,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     </div>
   </div>
   <div class="hdr-right">
-    <button class="back-btn no-print" id="owner-back-btn" onclick="exitOwnerDashboard()" style="display:none">
+    <button type="button" class="back-btn no-print" id="owner-back-btn" onclick="exitOwnerDashboard()" style="display:none">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       Back
     </button>
@@ -1110,84 +1168,92 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <div class="settings-drawer" id="settings-drawer">
   <div class="drawer-hdr owner-drawer-hdr" id="drawer-hdr">
     <h3 data-i18n="settingsTitle">Settings</h3>
-    <button class="modal-hdr-close" onclick="closeSettings()" style="background:var(--surface3)">✕</button>
+    <button type="button" class="modal-hdr-close" onclick="closeSettings()" style="background:var(--surface3)">✕</button>
   </div>
   <div class="drawer-body">
     <div class="drawer-section" data-i18n="settingsNav">Navigation</div>
-    <button class="drawer-item" id="drawer-items-btn" onclick="switchTab('ITEMS');closeSettings()">
+    <button type="button" class="drawer-item" id="drawer-items-btn" onclick="switchTab('ITEMS');closeSettings()">
       <span class="di-icon" style="background:var(--p-glass);color:var(--p)">📋</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsAddItems">Add Items</div><div class="di-sub" data-i18n="settingsAddItemsSub">Manage inventory catalog</div></div>
     </button>
     <div id="store-settings-section" style="display:none">
       <div class="drawer-divider"></div>
       <div class="drawer-section" data-i18n="settingsStore">Store</div>
-      <button class="drawer-item" onclick="switchTab('STORE');closeSettings()">
+      <button type="button" class="drawer-item" onclick="switchTab('STORE');closeSettings()">
         <span class="di-icon" style="background:var(--store-glass);color:var(--store)">🏪</span>
         <div class="di-info"><div class="di-label" data-i18n="settingsStore">Store</div><div class="di-sub" data-i18n="settingsStoreSub">Manage store inventory</div></div>
       </button>
-      <button class="drawer-item" onclick="switchTab('STOREBALANCE');closeSettings()">
+      <button type="button" class="drawer-item" onclick="switchTab('STOREBALANCE');closeSettings()">
         <span class="di-icon" style="background:var(--store-glass);color:var(--store)">📊</span>
         <div class="di-info"><div class="di-label" data-i18n="settingsStoreBalance">Store Balance</div><div class="di-sub" data-i18n="settingsStoreBalanceSub">Store stock levels</div></div>
       </button>
-      <button class="drawer-item" onclick="switchTab('STOREREPORT');closeSettings()">
+      <button type="button" class="drawer-item" onclick="switchTab('STOREREPORT');closeSettings()">
         <span class="di-icon" style="background:var(--store-glass);color:var(--store)">📋</span>
         <div class="di-info"><div class="di-label" data-i18n="settingsStoreReport">Store Report</div><div class="di-sub" data-i18n="settingsStoreReportSub">Store financial summary</div></div>
       </button>
-      <button class="drawer-item" onclick="switchTab('EXPENSE');closeSettings()">
+      <button type="button" class="drawer-item" onclick="switchTab('EXPENSE');closeSettings()">
         <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">💸</span>
         <div class="di-info"><div class="di-label" data-i18n="settingsStoreExpense">Store Expense</div><div class="di-sub" data-i18n="settingsStoreExpenseSub">Manage store expenses</div></div>
       </button>
     </div>
     <div class="drawer-divider"></div>
     <div class="drawer-section" data-i18n="settingsExport">Export Data</div>
-    <button class="drawer-item" onclick="openExportModal();closeSettings()">
+    <button type="button" class="drawer-item" onclick="openExportModal();closeSettings()">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📤</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsExportBtn">Export (PDF &amp; Excel)</div></div>
     </button>
+    <button type="button" class="drawer-item" onclick="openImportModal();closeSettings()">
+      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p2)">📥</span>
+      <div class="di-info"><div class="di-label">Import from Excel</div><div class="di-sub">Upload .xlsx to add records</div></div>
+    </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section" data-i18n="settingsAccount">Account</div>
-    <button class="drawer-item" onclick="openChangePass();closeSettings()">
+    <button type="button" class="drawer-item" onclick="openChangePass();closeSettings()">
       <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">🔑</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsChangePass">Change Password</div></div>
     </button>
-    <button class="drawer-item" onclick="openAvatarChange();closeSettings()">
+    <button type="button" class="drawer-item" onclick="openAvatarChange();closeSettings()">
       <span class="di-icon" style="background:rgba(139,92,246,.12);color:var(--accent2)">🖼️</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsPhoto">Profile Photo</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-dash" onclick="closeSettings();handleBrandClick()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-dash" onclick="closeSettings();handleBrandClick()" style="display:none">
       <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">🏪</span>
       <div class="di-info"><div class="di-label">Shop Owner Dashboard</div><div class="di-sub">Manage team, branches &amp; subscription</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-sub" onclick="openOwnerSubModal();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-sub" onclick="openOwnerSubModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">💳</span>
       <div class="di-info"><div class="di-label">Subscription</div><div class="di-sub" id="drawer-sub-hint">Manage your plan</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-shopname" onclick="openShopNameModal();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-shopname" onclick="openShopNameModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:var(--owner-glass);color:var(--owner)">🏪</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsShopName">Shop Name</div><div class="di-sub" data-i18n="settingsShopNameSub">Edit your business name</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-perms" onclick="openPermissions();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-perms" onclick="openPermissions();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(6,182,212,.12);color:var(--accent)">👥</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsPerms">User Permissions</div><div class="di-sub" data-i18n="settingsPermsSub">Owner only</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-branches" onclick="openBranches();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-branches" onclick="openBranches();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">🏢</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsBranches">Manage Branches</div><div class="di-sub" data-i18n="settingsPermsSub">Owner only</div></div>
     </button>
-    <button class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-owner-users" onclick="openAddUserModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">➕</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsAddUser">Add User</div><div class="di-sub" data-i18n="settingsAddUserSub">Create user for a branch</div></div>
     </button>
-    <button class="drawer-item" id="btn-request-store" onclick="openRequestItemModal();closeSettings()" style="display:none">
+    <button type="button" class="drawer-item" id="btn-request-store" onclick="openRequestItemModal();closeSettings()" style="display:none">
       <span class="di-icon" style="background:rgba(16,185,129,.12);color:var(--success)">📦</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsReqStore">Request from Store</div><div class="di-sub" data-i18n="settingsReqStoreSub">Request items for your branch</div></div>
     </button>
     <div id="danger-zone-wrap" style="display:none">
       <div class="drawer-divider"></div>
       <div class="drawer-section" style="color:var(--error)" data-i18n="settingsDanger">Danger Zone</div>
-      <button class="drawer-item" onclick="requestDataReset();closeSettings()">
+      <button type="button" class="drawer-item" onclick="requestDataReset();closeSettings()">
         <span class="di-icon" style="background:rgba(239,68,68,.12);color:var(--error)">🗑️</span>
         <div class="di-info"><div class="di-label" style="color:var(--error)" data-i18n="settingsResetReq">Request Data Reset</div><div class="di-sub" data-i18n="settingsResetReqSub">Requires software owner approval</div></div>
+      </button>
+      <button type="button" class="drawer-item" onclick="openResetDataModal();closeSettings()">
+        <span class="di-icon" style="background:rgba(239,68,68,.18);color:var(--error)">⚠️</span>
+        <div class="di-info"><div class="di-label" style="color:var(--error)">Reset All Data Entries</div><div class="di-sub">Permanently delete purchases, sales &amp; expenses</div></div>
       </button>
     </div>
     <div class="drawer-divider"></div>
@@ -1208,7 +1274,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
       </select>
     </div>
     <div class="drawer-divider"></div>
-    <button class="drawer-item" onclick="logout()" style="color:var(--error)">
+    <button type="button" class="drawer-item" onclick="logout()" style="color:var(--error)">
       <span class="di-icon" style="background:rgba(239,68,68,.1);color:var(--error)">🚪</span>
       <div class="di-info"><div class="di-label" style="color:var(--error)" data-i18n="settingsLogout">Log Out</div></div>
     </button>
@@ -1225,7 +1291,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
           <div class="exp-modal-title" data-i18n="expTitle">Export Report</div>
           <div class="exp-modal-sub" data-i18n="expSub">Download as PDF or Excel spreadsheet</div>
         </div>
-        <button class="exp-close" onclick="closeModal('export-modal')">✕</button>
+        <button type="button" class="exp-close" onclick="closeModal('export-modal')">✕</button>
       </div>
     </div>
     <div class="exp-body">
@@ -1255,9 +1321,86 @@ html[data-view="mobile"] .table-search-bar{display:none}
         <div class="exp-sheet-pill" id="exp-pill-ITEMS" onclick="selectExpSheet('ITEMS')">📋 Items</div>
       </div>
       <div class="exp-divider"></div>
-      <button class="exp-export-btn" onclick="doExport()">
+      <button type="button" class="exp-export-btn" onclick="doExport()">
         <span id="exp-btn-icon">📄</span>
         <span id="exp-btn-label" data-i18n="expBtnPdf">Download PDF</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reset-data-modal">
+  <div class="modal-box narrow">
+    <div class="modal-hdr" style="background:linear-gradient(135deg,rgba(239,68,68,.15),var(--surface2))">
+      <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">⚠️</span></div>
+      <div><h2 style="color:var(--error)">Reset Data Entries</h2><p style="color:var(--text2)">This cannot be undone</p></div>
+      <button type="button" class="modal-hdr-close" onclick="closeModal('reset-data-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:12px;font-weight:600;color:var(--text2)">Select what to clear</label>
+        <div style="display:flex;flex-wrap:wrap;gap:7px" id="reset-tab-pills">
+          <div class="exp-sheet-pill active" id="rst-pill-ALL"      onclick="selectRstTab('ALL')">🗑️ All Entries</div>
+          <div class="exp-sheet-pill"        id="rst-pill-PURCHASE" onclick="selectRstTab('PURCHASE')">🛒 Purchase</div>
+          <div class="exp-sheet-pill"        id="rst-pill-SALES"    onclick="selectRstTab('SALES')">💰 Sales</div>
+          <div class="exp-sheet-pill"        id="rst-pill-EXPENSE"  onclick="selectRstTab('EXPENSE')">💸 Expense</div>
+          <div class="exp-sheet-pill"        id="rst-pill-ITEMS"    onclick="selectRstTab('ITEMS')">📋 Items</div>
+          <div class="exp-sheet-pill"        id="rst-pill-STORE"    onclick="selectRstTab('STORE')">🏪 Store</div>
+        </div>
+      </div>
+      <div id="reset-warn-box" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:13px 15px;font-size:13px;color:var(--text)">
+        Loading…
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:12px;font-weight:600;color:var(--text2)">Confirmation</label>
+        <input id="reset-confirm-input" type="text" placeholder="Type RESET" autocomplete="off"
+          style="padding:10px 13px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;letter-spacing:.05em;outline:none;width:100%;box-sizing:border-box"
+          oninput="const ok=this.value.trim()==='RESET';const b=document.getElementById('reset-confirm-btn');b.disabled=!ok;b.style.opacity=ok?'1':'.5';b.style.cursor=ok?'pointer':'not-allowed'">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:4px">
+        <button type="button" class="modal-btn" onclick="closeModal('reset-data-modal')" style="background:var(--surface2);color:var(--text);border-color:var(--border2)">Cancel</button>
+        <button type="button" id="reset-confirm-btn" class="modal-btn" disabled onclick="confirmResetData()"
+          style="background:var(--error);border-color:var(--error);color:#fff;opacity:.5;cursor:not-allowed;transition:opacity .2s">
+          Delete Entries
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="import-modal">
+  <div class="modal-box narrow">
+    <div class="exp-modal-hdr">
+      <div class="exp-modal-hdr-row">
+        <div>
+          <div class="exp-modal-icon">📥</div>
+          <div class="exp-modal-title">Import from Excel</div>
+          <div class="exp-modal-sub">Upload an .xlsx file exported from POWER-IMS</div>
+        </div>
+        <button type="button" class="exp-close" onclick="closeModal('import-modal')">✕</button>
+      </div>
+    </div>
+    <div class="exp-body">
+      <div class="exp-section-label">Sheet Type</div>
+      <div class="exp-sheets" style="flex-wrap:wrap">
+        <div class="exp-sheet-pill active" id="imp-pill-PURCHASE" onclick="selectImpSheet('PURCHASE')">🛒 Purchase</div>
+        <div class="exp-sheet-pill" id="imp-pill-SALES" onclick="selectImpSheet('SALES')">💰 Sales</div>
+        <div class="exp-sheet-pill" id="imp-pill-EXPENSE" onclick="selectImpSheet('EXPENSE')">💸 Expense</div>
+        <div class="exp-sheet-pill" id="imp-pill-ITEMS" onclick="selectImpSheet('ITEMS')">📋 Items</div>
+        <div class="exp-sheet-pill" id="imp-pill-STORE" onclick="selectImpSheet('STORE')">🏪 Store</div>
+      </div>
+      <div class="exp-divider"></div>
+      <div class="exp-section-label">File</div>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface2);border:1.5px dashed var(--border2);border-radius:10px;cursor:pointer;font-size:13px;color:var(--text2)" for="imp-file-input">
+        <span style="font-size:20px">📂</span>
+        <span id="imp-file-label">Choose .xlsx file…</span>
+        <input type="file" id="imp-file-input" accept=".xlsx,.xls" style="display:none" onchange="onImpFileChange(this)">
+      </label>
+      <div id="imp-preview" style="margin-top:12px;font-size:12px;color:var(--text2);min-height:20px"></div>
+      <div class="exp-divider"></div>
+      <button type="button" class="exp-export-btn" onclick="doImport()" id="imp-do-btn" style="background:var(--p2);box-shadow:0 4px 18px rgba(59,130,246,.35)">
+        <span>📥</span>
+        <span>Import Data</span>
       </button>
     </div>
   </div>
@@ -1268,7 +1411,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr" id="add-form-hdr">
     <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon" id="add-form-icon">➕</span></div>
     <div><h2 id="add-form-title" data-i18n="addEntryTitle">Add Entry</h2><p id="add-form-sub" data-i18n="addEntrySub">Fill in the form below</p></div>
-    <button class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button>
+    <button type="button" class="modal-hdr-close" onclick="closeModal('add-row-modal')">✕</button>
   </div>
     <div class="modal-body" id="add-form-body"></div>
   </div>
@@ -1276,18 +1419,18 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="edit-row-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editEntryTitle">Edit Entry</h2><p data-i18n="editEntrySub">Update the fields below</p></div><button class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editEntryTitle">Edit Entry</h2><p data-i18n="editEntrySub">Update the fields below</p></div><button type="button" class="modal-hdr-close" onclick="closeModal('edit-row-modal')">✕</button></div>
     <div class="modal-body" id="edit-form-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="shopname-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2 data-i18n="shopNameTitle">Shop Name</h2></div><button class="modal-hdr-close" onclick="closeModal('shopname-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2 data-i18n="shopNameTitle">Shop Name</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('shopname-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label data-i18n="shopNameLabel">Business / Shop Name</label><input id="sn-input" data-i18n="shopNamePh" data-i18n-attr="placeholder" placeholder="e.g. Abebe General Trading"></div>
-      <button class="modal-btn" onclick="saveShopName()">💾 <span data-i18n="btnSave">Save</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('shopname-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="saveShopName()">💾 <span data-i18n="btnSave">Save</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('shopname-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="sn-error"></div>
     </div>
   </div>
@@ -1295,13 +1438,13 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="pass-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🔑</span></div><div><h2 data-i18n="changePassTitle">Change Password</h2></div><button class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🔑</span></div><div><h2 data-i18n="changePassTitle">Change Password</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('pass-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label data-i18n="changePassCurrent">Current Password</label><input id="cp-current" type="password"></div>
       <div class="field"><label data-i18n="changePassNew">New Password</label><input id="cp-new" type="password"></div>
       <div class="field"><label data-i18n="changePassConfirm">Confirm New</label><input id="cp-confirm" type="password"></div>
-      <button class="modal-btn" onclick="submitChangePass()">💾 <span data-i18n="changePassBtn">Save Password</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="submitChangePass()">💾 <span data-i18n="changePassBtn">Save Password</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('pass-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="cp-error"></div>
     </div>
   </div>
@@ -1309,27 +1452,27 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🖼️</span></div><div><h2 data-i18n="photoTitle">Profile Photo</h2></div><button class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🖼️</span></div><div><h2 data-i18n="photoTitle">Profile Photo</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('avatar-modal')">✕</button></div>
     <div class="modal-body">
       <div class="avatar-ring" id="avatar-modal-preview" onclick="document.getElementById('avatar-modal-file').click()">👤</div>
       <div class="avatar-hint" data-i18n="photoPh">Click to choose a photo</div>
       <input type="file" id="avatar-modal-file" accept="image/*" style="display:none" onchange="previewModalAvatar(this)">
-      <button class="modal-btn" onclick="saveAvatar()">💾 <span data-i18n="photoBtn">Save Photo</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="saveAvatar()">💾 <span data-i18n="photoBtn">Save Photo</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('avatar-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="perm-modal">
   <div class="modal-box wide">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👥</span></div><div><h2 data-i18n="permsTitle">User Permissions</h2><p data-i18n="permsSub">Control access per user</p></div><button class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👥</span></div><div><h2 data-i18n="permsTitle">User Permissions</h2><p data-i18n="permsSub">Control access per user</p></div><button type="button" class="modal-hdr-close" onclick="closeModal('perm-modal')">✕</button></div>
     <div class="modal-body" id="perm-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="add-user-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👤</span></div><div><h2 data-i18n="addUserTitle">Add User</h2><p data-i18n="addUserSub">Create a user under your account</p></div><button class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">👤</span></div><div><h2 data-i18n="addUserTitle">Add User</h2><p data-i18n="addUserSub">Create a user under your account</p></div><button type="button" class="modal-hdr-close" onclick="closeModal('add-user-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label data-i18n="addUsernameLbl">Full Name *</label><input id="nu-username" data-i18n="addUsernamePh" data-i18n-attr="placeholder" placeholder="Enter full name"></div>
       <div class="field"><label data-i18n="addPassLbl">Password *</label><input id="nu-password" type="password" data-i18n="addPassPh" data-i18n-attr="placeholder" placeholder="Set password"></div>
@@ -1340,8 +1483,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
         </select>
       </div>
       <div class="field" id="nu-branch-wrap"><label data-i18n="addBranchLbl">Assigned Branch *</label><select id="nu-branch"></select></div>
-      <button class="modal-btn" onclick="submitAddUser()">✅ <span data-i18n="addUserBtn">Create User</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="submitAddUser()">✅ <span data-i18n="addUserBtn">Create User</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('add-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="nu-error"></div>
     </div>
   </div>
@@ -1349,7 +1492,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="edit-user-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editUserTitle">Edit User</h2><p data-i18n="editUserSub">Update user details</p></div><button class="modal-hdr-close" onclick="closeModal('edit-user-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✏️</span></div><div><h2 data-i18n="editUserTitle">Edit User</h2><p data-i18n="editUserSub">Update user details</p></div><button type="button" class="modal-hdr-close" onclick="closeModal('edit-user-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label data-i18n="addUsernameLbl">Username *</label><input id="eu-username" disabled="" style="background:var(--surface3);cursor:not-allowed;opacity:.7"></div>
       <div class="field"><label data-i18n="changePassNew">New Password</label> <span style="color:var(--text3);font-size:9px" data-i18n="editUserPassSub">(leave blank to keep current)</span><input id="eu-password" type="password" data-i18n="editUserPassPh" data-i18n-attr="placeholder" placeholder="Enter new password (optional)"></div>
@@ -1360,8 +1503,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
         </select>
       </div>
       <div class="field" id="eu-branch-wrap"><label data-i18n="addBranchLbl">Assigned Branch *</label><select id="eu-branch"></select></div>
-      <button class="modal-btn" onclick="submitEditUser()">💾 <span data-i18n="editUserBtn">Save Changes</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('edit-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="submitEditUser()">💾 <span data-i18n="editUserBtn">Save Changes</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('edit-user-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="eu-error"></div>
     </div>
   </div>
@@ -1370,7 +1513,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
 <!-- REQUEST FROM STORE MODAL -->
 <div class="modal-overlay" id="request-item-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📦</span></div><div><h2 data-i18n="reqStoreTitle">Request from Store</h2><p data-i18n="reqStoreSub">Submit a request for branch supplies</p></div><button class="modal-hdr-close" onclick="closeModal('request-item-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📦</span></div><div><h2 data-i18n="reqStoreTitle">Request from Store</h2><p data-i18n="reqStoreSub">Submit a request for branch supplies</p></div><button type="button" class="modal-hdr-close" onclick="closeModal('request-item-modal')">✕</button></div>
     <div class="modal-body">
       <div class="field"><label data-i18n="reqCatalogLbl">Item from Catalog</label>
         <select id="req-item" onchange="onReqItemChange()">
@@ -1386,8 +1529,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="field"><label data-i18n="reqNoteLbl">Note / Reason</label>
         <input id="req-note" data-i18n="reqNotePh" data-i18n-attr="placeholder" placeholder="Optional reason for request…">
       </div>
-      <button class="modal-btn" onclick="submitItemRequest()">📨 <span data-i18n="reqSubmitBtn">Submit Request</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('request-item-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" onclick="submitItemRequest()">📨 <span data-i18n="reqSubmitBtn">Submit Request</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('request-item-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
       <div class="modal-error" id="req-error"></div>
     </div>
   </div>
@@ -1395,14 +1538,14 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <div class="modal-overlay" id="branch-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏢</span></div><div><h2 data-i18n="branchTitle">Manage Branches</h2></div><button class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏢</span></div><div><h2 data-i18n="branchTitle">Manage Branches</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('branch-modal')">✕</button></div>
     <div class="modal-body">
       <div id="branch-list-ui"></div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <input id="new-branch-input" style="flex:1;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:var(--font);font-size:13px;outline:none" data-i18n="branchPh" data-i18n-attr="placeholder" placeholder="New branch name…">
-        <button class="btn btn-primary" onclick="addBranch()" data-i18n="branchAdd">+ Add</button>
+        <button type="button" class="btn btn-primary" onclick="addBranch()" data-i18n="branchAdd">+ Add</button>
       </div>
-      <button class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:12px" data-i18n="btnClose">Close</button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('branch-modal')" style="margin-top:12px" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
@@ -1412,64 +1555,64 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="confirm-icon" id="confirm-icon">🗑️</div>
     <div class="confirm-title" id="confirm-title" data-i18n="confirmDelete">Delete?</div>
     <div class="confirm-msg" id="confirm-msg" data-i18n="confirmUndone">This action cannot be undone.</div>
-    <div class="confirm-actions"><button onclick="cancelConfirm()" data-i18n="btnCancel">Cancel</button><button id="confirm-ok-btn" onclick="doConfirm()" data-i18n="confirmDeleteBtn">Delete</button></div>
+    <div class="confirm-actions"><button type="button" onclick="cancelConfirm()" data-i18n="btnCancel">Cancel</button><button type="button" id="confirm-ok-btn" onclick="doConfirm()" data-i18n="confirmDeleteBtn">Delete</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="dispatch-approve-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✅</span></div><div><h2 data-i18n="approveTitle">Approve & Dispatch</h2></div><button class="modal-hdr-close" onclick="closeModal('dispatch-approve-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">✅</span></div><div><h2 data-i18n="approveTitle">Approve & Dispatch</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('dispatch-approve-modal')">✕</button></div>
     <div class="modal-body">
       <div id="dispatch-approve-info" style="padding:10px 0 14px;font-size:12.5px;color:var(--text2);line-height:1.7"></div>
       <div class="field"><label data-i18n="approvePriceLbl">Dispatch Price (per unit) *</label><input type="number" id="dispatch-approve-price" placeholder="0.00" step="any" min="0"></div>
       <div class="modal-error" id="dispatch-approve-error"></div>
-      <button class="modal-btn" style="background:var(--success);border-color:var(--success)" onclick="confirmApproveItemRequest()">✅ <span data-i18n="approveBtn">Approve & Dispatch</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('dispatch-approve-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
+      <button type="button" class="modal-btn" style="background:var(--success);border-color:var(--success)" onclick="confirmApproveItemRequest()">✅ <span data-i18n="approveBtn">Approve & Dispatch</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('dispatch-approve-modal')" style="margin-top:5px" data-i18n="btnCancel">Cancel</button>
     </div>
   </div>
 </div>
 
 <div class="approval-overlay" id="approval-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title" data-i18n="notifPendingUsers">🔔 Pending User Requests</span><button class="apv-close" onclick="closeApprovals()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifPendingUsers">🔔 Pending User Requests</span><button type="button" class="apv-close" onclick="closeApprovals()">✕</button></div>
     <div id="approval-list"></div>
   </div>
 </div>
 
 <div class="approval-overlay" id="store-receipt-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title" data-i18n="notifStoreReceipts">🏪 Store Receipts</span><button class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifStoreReceipts">🏪 Store Receipts</span><button type="button" class="apv-close" onclick="closeStoreReceipts()">✕</button></div>
     <div id="store-receipt-list"></div>
   </div>
 </div>
 
 <div class="approval-overlay" id="store-requests-overlay">
   <div class="approval-panel">
-    <div class="apv-hdr"><span class="apv-title" data-i18n="notifBranchRequests">🛒 Branch Store Requests</span><button class="apv-close" onclick="closeStoreRequestsPanel()">✕</button></div>
+    <div class="apv-hdr"><span class="apv-title" data-i18n="notifBranchRequests">🛒 Branch Store Requests</span><button type="button" class="apv-close" onclick="closeStoreRequestsPanel()">✕</button></div>
     <div id="store-requests-list"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="receipt-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🧾</span></div><div><h2>Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🧾</span></div><div><h2>Receipt</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('receipt-modal')">✕</button></div>
     <div class="receipt-body" id="receipt-content"></div>
     <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="modal-btn" onclick="printReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
-      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('receipt-modal')" data-i18n="btnClose">Close</button>
+      <button type="button" class="modal-btn" onclick="printReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
+      <button type="button" class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('receipt-modal')" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="store-receipt-print-modal">
   <div class="modal-box narrow">
-    <div class="modal-hdr store-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2>Store Dispatch Receipt</h2></div><button class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
+    <div class="modal-hdr store-hdr"><div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">🏪</span></div><div><h2>Store Dispatch Receipt</h2></div><button type="button" class="modal-hdr-close" onclick="closeModal('store-receipt-print-modal')">✕</button></div>
     <div class="receipt-body" id="store-receipt-print-content"></div>
     <div style="padding:0 24px 22px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="modal-btn store-btn" onclick="printStoreReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
-      <button class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportStoreReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
-      <button class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')" data-i18n="btnClose">Close</button>
+      <button type="button" class="modal-btn store-btn" onclick="printStoreReceiptDirectly()"><span data-i18n="btnPrint">🖨️ Print</span></button>
+      <button type="button" class="modal-btn" style="background:var(--error);border-color:var(--error)" onclick="exportStoreReceiptPDF()"><span data-i18n="btnExportPdf">📄 Export PDF (A6)</span></button>
+      <button type="button" class="modal-btn secondary" onclick="closeModal('store-receipt-print-modal')" data-i18n="btnClose">Close</button>
     </div>
   </div>
 </div>
@@ -1480,7 +1623,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr">
       <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">💳</span></div>
       <div><h2>Record Payment</h2><p id="credit-pay-subtitle" style="font-size:12px;color:var(--text2)"></p></div>
-      <button class="modal-hdr-close" onclick="closeModal('credit-pay-modal')">✕</button>
+      <button type="button" class="modal-hdr-close" onclick="closeModal('credit-pay-modal')">✕</button>
     </div>
     <div class="modal-body">
       <div id="credit-pay-summary" style="background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.8;border:1px solid var(--border2)"></div>
@@ -1494,8 +1637,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
       </div>
       <div class="modal-error" id="credit-pay-error"></div>
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="modal-btn secondary" onclick="closeModal('credit-pay-modal')" style="flex:0 0 auto;padding:11px 20px">Cancel</button>
-        <button class="modal-btn btn-primary" onclick="saveCreditPayment()" style="flex:1">✅ Save Payment</button>
+        <button type="button" class="modal-btn secondary" onclick="closeModal('credit-pay-modal')" style="flex:0 0 auto;padding:11px 20px">Cancel</button>
+        <button type="button" class="modal-btn btn-primary" onclick="saveCreditPayment()" style="flex:1">✅ Save Payment</button>
       </div>
     </div>
   </div>
@@ -1510,7 +1653,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
           <h1 id="owner-dash-title">👑 Platform Dashboard</h1>
           <p id="owner-dash-sub">POWER — Full visibility over all users on your platform</p>
         </div>
-        <button class="owner-logout-btn" onclick="logout()">🚪 Log Out</button>
+        <button type="button" class="owner-logout-btn" onclick="logout()">🚪 Log Out</button>
       </div>
     </div>
     <div id="owner-sub-banner"></div>
@@ -1523,7 +1666,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="owner-section">
       <div class="owner-section-hdr">
         <h3 id="owner-users-title">👤 All Users</h3>
-        <button class="btn btn-owner" onclick="openAddUserModal()">➕ Add User</button>
+        <button type="button" class="btn btn-owner" onclick="openAddUserModal()">➕ Add User</button>
       </div>
       <div id="user-list-body"><div class="user-card" style="animation-delay:0s;">
       <div class="user-avatar">O</div>
@@ -1535,9 +1678,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
           
         </div>
       </div>
-      <button class="btn btn-sm" onclick="openSubModal('owner')" style="margin-left:8px">💎 Manage</button>
-      <button class="btn btn-sm btn-danger" onclick="suspendUser('owner')" style="margin-left:4px" title="Suspend">🚫</button>
-      <button class="btn btn-sm" onclick="deleteOwner('owner')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openSubModal('owner')" style="margin-left:8px">💎 Manage</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="suspendUser('owner')" style="margin-left:4px" title="Suspend">🚫</button>
+      <button type="button" class="btn btn-sm" onclick="deleteOwner('owner')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div><div class="user-card" style="animation-delay:0.06s;">
       <div class="user-avatar">M</div>
       <div class="user-info">
@@ -1548,9 +1691,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
           
         </div>
       </div>
-      <button class="btn btn-sm" onclick="openSubModal('Mb')" style="margin-left:8px">💎 Manage</button>
-      <button class="btn btn-sm btn-danger" onclick="suspendUser('Mb')" style="margin-left:4px" title="Suspend">🚫</button>
-      <button class="btn btn-sm" onclick="deleteOwner('Mb')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openSubModal('Mb')" style="margin-left:8px">💎 Manage</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="suspendUser('Mb')" style="margin-left:4px" title="Suspend">🚫</button>
+      <button type="button" class="btn btn-sm" onclick="deleteOwner('Mb')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div><div class="user-card" style="animation-delay:0.12s;">
       <div class="user-avatar">F</div>
       <div class="user-info">
@@ -1561,9 +1704,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
           <span style="font-size:10px;color:var(--text3)">Until 2026-06-02</span>
         </div>
       </div>
-      <button class="btn btn-sm" onclick="openSubModal('FGT')" style="margin-left:8px">💎 Manage</button>
-      <button class="btn btn-sm btn-danger" onclick="suspendUser('FGT')" style="margin-left:4px" title="Suspend">🚫</button>
-      <button class="btn btn-sm" onclick="deleteOwner('FGT')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openSubModal('FGT')" style="margin-left:8px">💎 Manage</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="suspendUser('FGT')" style="margin-left:4px" title="Suspend">🚫</button>
+      <button type="button" class="btn btn-sm" onclick="deleteOwner('FGT')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div><div class="user-card" style="animation-delay:0.18s;">
       <div class="user-avatar">G</div>
       <div class="user-info">
@@ -1574,9 +1717,9 @@ html[data-view="mobile"] .table-search-bar{display:none}
           <span style="font-size:10px;color:var(--text3)">Until 2080-01-05</span>
         </div>
       </div>
-      <button class="btn btn-sm" onclick="openSubModal('Getnet')" style="margin-left:8px">💎 Manage</button>
-      <button class="btn btn-sm btn-danger" onclick="suspendUser('Getnet')" style="margin-left:4px" title="Suspend">🚫</button>
-      <button class="btn btn-sm" onclick="deleteOwner('Getnet')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openSubModal('Getnet')" style="margin-left:8px">💎 Manage</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="suspendUser('Getnet')" style="margin-left:4px" title="Suspend">🚫</button>
+      <button type="button" class="btn btn-sm" onclick="deleteOwner('Getnet')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div></div>
     </div>
     <div class="owner-section">
@@ -1594,7 +1737,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div id="banned-owner-list"><div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div></div>
     </div>
     <div class="owner-section" id="section-branches" style="animation-delay:.28s">
-      <div class="owner-section-hdr"><h3>🏢 Branches</h3><button class="btn" onclick="openBranches()">Manage</button></div>
+      <div class="owner-section-hdr"><h3>🏢 Branches</h3><button type="button" class="btn" onclick="openBranches()">Manage</button></div>
       <div id="owner-branch-list"><div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div></div>
     </div>
     <div class="owner-section" id="section-reset-reqs" style="animation-delay:.30s;border:1.5px solid rgba(239,68,68,.3);border-radius:var(--radius)">
@@ -1614,7 +1757,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="owner-section" id="section-email-settings" style="animation-delay:.36s">
       <div class="owner-section-hdr">
         <h3>📧 Email Settings</h3>
-        <button class="btn btn-owner" onclick="openEmailConfigModal()">⚙️ Configure</button>
+        <button type="button" class="btn btn-owner" onclick="openEmailConfigModal()">⚙️ Configure</button>
       </div>
       <div id="email-config-status" style="padding:14px 18px;color:var(--text3);font-size:13px">Loading…</div>
     </div>
@@ -1626,7 +1769,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr owner-hdr">
       <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">📧</span></div>
       <div><h2>Email Settings</h2><p>Configure EmailJS to send real OTP codes</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('emailjs-modal')">✕</button>
+      <button type="button" class="modal-hdr-close" onclick="closeModal('emailjs-modal')">✕</button>
     </div>
     <div class="modal-body">
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:var(--text2);line-height:1.6">
@@ -1643,8 +1786,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="field"><label>Service ID</label><input id="ejs-service" placeholder="e.g. service_abc123"></div>
       <div class="field"><label>Template ID</label><input id="ejs-template" placeholder="e.g. template_xyz789"></div>
       <div class="field"><label>Public Key</label><input id="ejs-pubkey" placeholder="From Account → API Keys"></div>
-      <button class="modal-btn" onclick="saveEmailConfig()">💾 Save Configuration</button>
-      <button class="modal-btn secondary" onclick="clearEmailConfig()" style="margin-top:5px">🗑️ Clear</button>
+      <button type="button" class="modal-btn" onclick="saveEmailConfig()">💾 Save Configuration</button>
+      <button type="button" class="modal-btn secondary" onclick="clearEmailConfig()" style="margin-top:5px">🗑️ Clear</button>
       <div class="modal-error" id="ejs-error"></div>
       <div class="modal-success" id="ejs-success"></div>
     </div>
@@ -1657,7 +1800,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr owner-hdr">
       <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">💳</span></div>
       <div><h2>Subscription</h2><p id="owner-sub-self-title">Choose a plan</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('owner-sub-self-modal')">✕</button>
+      <button type="button" class="modal-hdr-close" onclick="closeModal('owner-sub-self-modal')">✕</button>
     </div>
     <div class="modal-body" id="owner-sub-self-body">
       <!-- rendered by renderOwnerSubModal() -->
@@ -1670,7 +1813,7 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="modal-hdr owner-hdr">
       <div class="modal-hdr-icon-wrap"><span class="modal-hdr-icon">💎</span></div>
       <div><h2>Manage Subscription</h2><p id="sub-modal-user-name">User</p></div>
-      <button class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button>
+      <button type="button" class="modal-hdr-close" onclick="closeModal('sub-modal')">✕</button>
     </div>
     <div class="modal-body">
       <div id="sub-status-badge-wrap" style="margin-bottom:14px"></div>
@@ -1709,8 +1852,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
       </div>
       <div class="field"><label>Note (optional)</label><input id="sub-notes" placeholder="e.g. Bank transfer ref #123"></div>
       <div style="display:flex;gap:8px;margin-top:4px">
-        <button class="modal-btn owner-btn" style="flex:1" onclick="saveSubscription()">💾 Save</button>
-        <button class="modal-btn secondary" style="flex:0 0 auto;width:auto;padding:12px 16px" onclick="closeModal('sub-modal')">Cancel</button>
+        <button type="button" class="modal-btn owner-btn" style="flex:1" onclick="saveSubscription()">💾 Save</button>
+        <button type="button" class="modal-btn secondary" style="flex:0 0 auto;width:auto;padding:12px 16px" onclick="closeModal('sub-modal')">Cancel</button>
       </div>
       <div id="sub-pay-history-wrap" style="margin-top:16px;display:none">
         <div class="exp-section-label" style="margin-bottom:8px">Payment History</div>
@@ -1727,8 +1870,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <div class="sub-gate-title" id="sub-gate-title">Subscription Expired</div>
     <div class="sub-gate-sub" id="sub-gate-sub">Your subscription has expired. Please contact the platform administrator to renew your access.</div>
     <div class="sub-gate-contact">Contact your <strong>POWER-IMS Administrator</strong> to renew your subscription and restore access to the platform.</div>
-    <button class="sub-gate-btn" id="sub-gate-renew-btn" onclick="openOwnerSubModal()" style="background:var(--owner-gradient);color:#fff;border-color:transparent;margin-bottom:10px">💳 Request Subscription Renewal</button><br>
-    <button class="sub-gate-btn" onclick="logout()">← Return to Login</button>
+    <button type="button" class="sub-gate-btn" id="sub-gate-renew-btn" onclick="openOwnerSubModal()" style="background:var(--owner-gradient);color:#fff;border-color:transparent;margin-bottom:10px">💳 Request Subscription Renewal</button><br>
+    <button type="button" class="sub-gate-btn" onclick="logout()">← Return to Login</button>
   </div>
 </div>
 
@@ -1754,43 +1897,43 @@ html[data-view="mobile"] .table-search-bar{display:none}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE">
+  <button type="button" class="nav-item" data-tab="PURCHASE" onclick="switchTab('PURCHASE')" id="nav-PURCHASE">
     <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
     <span class="ni-label" data-i18n="navPurchase">Purchase</span>
   </button>
-  <button class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES">
+  <button type="button" class="nav-item" data-tab="SALES" onclick="switchTab('SALES')" id="nav-SALES">
     <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
     <span class="ni-label" data-i18n="navSales">Sales</span>
   </button>
-  <button class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE">
+  <button type="button" class="nav-item" data-tab="BALANCE" onclick="switchTab('BALANCE')" id="nav-BALANCE">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
     <span class="ni-label" data-i18n="navBalance">Balance</span>
   </button>
-  <button class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE">
+  <button type="button" class="nav-item" data-tab="EXPENSE" onclick="switchTab('EXPENSE')" id="nav-EXPENSE">
     <svg viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
     <span class="ni-label" data-i18n="navExpense">Expense</span>
   </button>
-  <button class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT">
+  <button type="button" class="nav-item" data-tab="REPORT" onclick="switchTab('REPORT')" id="nav-REPORT">
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span class="ni-label" data-i18n="navReport">Report</span>
   </button>
-  <button class="nav-item" data-tab="CREDIT" onclick="switchTab('CREDIT')" id="nav-CREDIT">
+  <button type="button" class="nav-item" data-tab="CREDIT" onclick="switchTab('CREDIT')" id="nav-CREDIT">
     <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
     <span class="ni-label">Credit</span>
   </button>
-  <button class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS">
+  <button type="button" class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS">
     <svg viewBox="0 0 24 24"><path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
     <span class="ni-label" data-i18n="navItems">Items</span>
   </button>
-  <button class="nav-item" data-tab="STORE" onclick="switchTab('STORE')" id="nav-STORE" style="display:none">
+  <button type="button" class="nav-item" data-tab="STORE" onclick="switchTab('STORE')" id="nav-STORE" style="display:none">
     <svg viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5"/><path d="M3 9h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="14" x2="9" y2="18"/><line x1="15" y1="14" x2="15" y2="18"/></svg>
     <span class="ni-label" data-i18n="navStore">Store</span>
   </button>
-  <button class="nav-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none">
+  <button type="button" class="nav-item" data-tab="STOREBALANCE" onclick="switchTab('STOREBALANCE')" id="nav-STOREBALANCE" style="display:none">
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
     <span class="ni-label" data-i18n="navStoreBalance">Balance</span>
   </button>
-  <button class="nav-item" data-tab="STOREREPORT" onclick="switchTab('STOREREPORT')" id="nav-STOREREPORT" style="display:none">
+  <button type="button" class="nav-item" data-tab="STOREREPORT" onclick="switchTab('STOREREPORT')" id="nav-STOREREPORT" style="display:none">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
     <span class="ni-label" data-i18n="navStoreReport">Report</span>
   </button>
@@ -1804,17 +1947,18 @@ const PERM_TABS = ['ITEMS','PURCHASE','SALES','BALANCE','STORE','EXPENSE','REPOR
 const PERM_OPTS = [{v:'full',l:'Full'},{v:'add_only',l:'Add Only'},{v:'read',l:'Read Only'},{v:'none',l:'No Access'}];
 const PAYMENT_METHODS = ['CASH','CREDIT'];
 
-// ★ CHANGE 1: Added STOREBALANCE to TAB_META
+// TAB_META — distinct icons per tab so users can read them at a glance.
+// Previously REPORT and STOREBALANCE shared 📊, ITEMS and STOREREPORT shared 📋.
 const TAB_META = {
   ITEMS:{icon:'📋',get title(){return L('titleItems')},get sub(){return L('subItems')}},
   PURCHASE:{icon:'🛒',get title(){return L('titlePurchase')},get sub(){return L('subPurchase')}},
   SALES:{icon:'💰',get title(){return L('titleSales')},get sub(){return L('subSales')}},
   BALANCE:{icon:'⚖️',get title(){return L('titleBalance')},get sub(){return L('subBalance')}},
   STORE:{icon:'🏪',get title(){return L('titleStore')},get sub(){return L('subStore')}},
-  STOREBALANCE:{icon:'📊',get title(){return L('titleStoreBalance')},get sub(){return L('subStoreBalance')}},
+  STOREBALANCE:{icon:'📦',get title(){return L('titleStoreBalance')},get sub(){return L('subStoreBalance')}},
   EXPENSE:{icon:'💸',get title(){return L('titleExpense')},get sub(){return L('subExpense')}},
-  REPORT:{icon:'📊',get title(){return L('titleReport')},get sub(){return L('subReport')}},
-  STOREREPORT:{icon:'📋',get title(){return L('titleStoreReport')},get sub(){return L('subStoreReport')}},
+  REPORT:{icon:'📈',get title(){return L('titleReport')},get sub(){return L('subReport')}},
+  STOREREPORT:{icon:'📑',get title(){return L('titleStoreReport')},get sub(){return L('subStoreReport')}},
   CREDIT:{icon:'💳',title:'Credit Ledger',sub:'Manage credit purchases & sales'}
 };
 
@@ -1909,10 +2053,34 @@ const L=k=>(LANG[S.lang]||LANG.en)[k]||k;
 
 const FIREBASE_CONFIG={apiKey:'AIzaSyByTcdFcZDo0Cv_Dmo_IW3EeP2KTe-K_dQ',authDomain:'powerims.firebaseapp.com',projectId:'powerims',appId:'1:306983469410:web:d65eedf6eb78602a8e6c3b'};
 
+/* ═══════════════════════════════════════════════════════
+   ⚠️ SECURITY NOTICE
+   This is a client-side HTML app. Anything in this file is
+   visible to anyone who views source. The following measures
+   are defense-in-depth, NOT real security:
+     • Passwords are SHA-256 hashed before storage/comparison
+     • OTPs use crypto.getRandomValues (not Math.random)
+     • Failed login attempts are rate-limited
+   For production: move auth to Firebase Auth + Cloud Functions
+   and lock down Firestore security rules.
+═══════════════════════════════════════════════════════ */
 const OWNER_USERNAME = 'Mb';
-const OWNER_PASSWORD = '1194';
+// SHA-256 hash of the original system-owner password.
+// To rotate: in console run
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('newPass')).then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+const OWNER_PASSWORD_HASH = '6d6e1059500ddb11aefec9d93e6847aab619cc084be4a20d11ffa1e58ec4a137';
 
-const LOGO_SVG = '<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 100 100\">  <image x=\"0\" y=\"0\" width=\"100\" height=\"100\"></image></svg>';
+// Per-field length caps to keep Firestore docs under 1 MB and prevent UI breakage
+const MAX_USERNAME_LEN = 40;
+const MAX_PASSWORD_LEN = 128;
+const MAX_NAME_LEN = 80;
+const MAX_NOTE_LEN = 500;
+
+if(typeof console!=='undefined'){
+  console.warn('%c⚠️ POWER-IMS','font-size:14px;font-weight:bold;color:#f59e0b','— Client-side auth is defense-in-depth only. Do not store secrets in the browser. Lock down Firestore rules server-side.');
+}
+
+const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="pwrG2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5b8af8"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs><rect x="6" y="6" width="88" height="88" rx="20" fill="url(#pwrG2)"/><path d="M55 22 L33 54 H47 L42 78 L67 44 H53 Z" fill="#fff" opacity="0.97"/></svg>';
 
 const S={
   user:null,ownerId:null,role:null,
@@ -1929,6 +2097,9 @@ const S={
   db:null,dbConnected:false,_unsubscribe:null,
   userMeta:{},
   storeReportRange:{from:'',to:''},
+  // Declared explicitly (previously implicit, set by loadUserData)
+  creditPayments:[],
+  deletedUsers:[],
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -1936,11 +2107,77 @@ const S={
 ═══════════════════════════════════════════════════════ */
 const fmt=n=>{const v=parseFloat(n)||0;return v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})};
 const fmtQ=n=>(parseFloat(n)||0).toLocaleString();
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
 const nowDt=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
 const sum=(arr,fn)=>arr.reduce((a,b)=>a+(parseFloat(fn(b))||0),0);
 const colorClass=n=>parseFloat(n)<0?'num-neg':parseFloat(n)>0?'num-pos':'num-zero';
-const genCode=()=>Math.random().toString(36).substr(2,8).toUpperCase();
+// Use crypto-quality randomness; substr() replaced with slice() (substr is deprecated)
+const genCode=()=>{
+  try{
+    const a=new Uint8Array(6);crypto.getRandomValues(a);
+    return Array.from(a,b=>b.toString(36)).join('').slice(0,8).toUpperCase().padEnd(8,'0');
+  }catch(e){
+    return Math.random().toString(36).slice(2,10).toUpperCase().padEnd(8,'0');
+  }
+};
+// 6-digit OTP using CSPRNG (replaces Math.floor(100000+Math.random()*900000))
+const genOTP=()=>{
+  try{
+    const a=new Uint32Array(1);crypto.getRandomValues(a);
+    return String(100000+(a[0]%900000));
+  }catch(e){
+    return String(Math.floor(100000+Math.random()*900000));
+  }
+};
+// SHA-256 hex via SubtleCrypto. Used for password hashing.
+async function sha256Hex(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(str)));
+  return Array.from(new Uint8Array(buf),b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Detect whether a stored value looks like a SHA-256 hex (64 hex chars) so
+// we can transparently migrate legacy plaintext passwords on next save.
+const isHashed=v=>typeof v==='string'&&/^[a-f0-9]{64}$/i.test(v);
+// Compare a candidate password to a stored value; supports legacy plaintext.
+async function passwordMatches(candidate,stored){
+  if(stored==null)return false;
+  if(isHashed(stored)){
+    const h=await sha256Hex(candidate);
+    return h===stored;
+  }
+  // Legacy plaintext — direct compare. Caller is responsible for migrating.
+  return String(candidate)===String(stored);
+}
+// Truncate untrusted input to a safe length
+const cap=(s,n)=>String(s==null?'':s).slice(0,n);
+
+/* ═══════════════════════════════════════════════════════
+   RATE LIMITING — failed login attempts
+   Stored in localStorage so closing the tab doesn't reset it.
+═══════════════════════════════════════════════════════ */
+const RL_KEY='ims_login_attempts';
+const RL_MAX=8;          // attempts allowed
+const RL_WINDOW=15*60*1000; // 15 min
+function _rlGet(){try{return _lsGet(RL_KEY,{});}catch(e){return{};}}
+function _rlSave(d){try{_lsSet(RL_KEY,d);}catch(e){}}
+function checkLoginRateLimit(username){
+  const d=_rlGet();const now=Date.now();const e=d[username];
+  if(!e)return{allowed:true};
+  if(now-e.first>RL_WINDOW){delete d[username];_rlSave(d);return{allowed:true};}
+  if(e.count>=RL_MAX){
+    const remain=Math.ceil((RL_WINDOW-(now-e.first))/60000);
+    return{allowed:false,minutes:remain};
+  }
+  return{allowed:true};
+}
+function recordLoginFailure(username){
+  const d=_rlGet();const now=Date.now();
+  if(!d[username]||now-d[username].first>RL_WINDOW){d[username]={first:now,count:1};}
+  else{d[username].count++;}
+  _rlSave(d);
+}
+function clearLoginFailures(username){
+  const d=_rlGet();if(d[username]){delete d[username];_rlSave(d);}
+}
 
 function showToast(msg,type='',dur=2800){
   const w=document.getElementById('toast-wrap');
@@ -1953,80 +2190,108 @@ function showToast(msg,type='',dur=2800){
    Local registry is the primary store.
    Cloud registry is synced on login and on save.
 ═══════════════════════════════════════════════════════ */
-const getRegistry=()=>JSON.parse(localStorage.getItem('ims_reg')||'{}');
+const getRegistry=()=>{
+  try{return _lsGet('ims_reg',{});}
+  catch(e){console.error('getRegistry parse failed:',e);return{};}
+};
 const saveRegistry=r=>{
-  localStorage.setItem('ims_reg',JSON.stringify(r));
-  // ★ CHANGE 3: Also push registry to cloud so any device can authenticate
+  // Stamp every entry that's missing updatedAt so the merge logic in
+  // loadRegistryFromCloud has something to compare against.
+  const now=new Date().toISOString();
+  Object.values(r).forEach(v=>{if(v&&typeof v==='object'&&!v.updatedAt)v.updatedAt=now;});
+  try{_lsSet('ims_reg',r);}catch(e){console.error('saveRegistry:',e);}
+  // Push registry to cloud so any device can authenticate
   saveRegistryToCloud(r);
 };
 
-// ★ NEW: Push registry to Firestore
+// Push registry to Firestore
 function saveRegistryToCloud(reg){
   if(!S.db)return;
   try{
     S.db.collection('power_ims5').doc('_global_registry').set({
       registry:JSON.stringify(reg),
       updatedAt:new Date().toISOString()
-    },{merge:true}).catch(()=>{});
-  }catch(e){}
+    },{merge:true}).catch(err=>console.warn('registry cloud save:',err));
+  }catch(e){console.warn('registry cloud save threw:',e);}
 }
 
-// ★ NEW: Pull registry from Firestore and merge with local
+// Pull registry from Firestore and merge with local.
+// Conflict resolution: strict ">" means local wins on tie (avoids overwriting
+// fresh local edits made offline with a stale cloud snapshot of equal time).
 async function loadRegistryFromCloud(){
   if(!S.db)return getRegistry();
   try{
     const doc=await S.db.collection('power_ims5').doc('_global_registry').get();
     if(doc.exists&&doc.data().registry){
-      const cloudReg=JSON.parse(doc.data().registry);
+      const cloudReg=_safeJSON(doc.data().registry,{},'cloud registry');
       const localReg=getRegistry();
-      // Merge: cloud takes precedence for existing users, local for new local-only entries
       const merged={...localReg};
       Object.keys(cloudReg).forEach(u=>{
-        // Cloud wins if the entry is newer or local doesn't have it
-        if(!merged[u]||cloudReg[u].updatedAt>=(merged[u].updatedAt||'')){
+        const cloudT=cloudReg[u]?.updatedAt||'';
+        const localT=merged[u]?.updatedAt||'';
+        if(!merged[u]||cloudT>localT){
           merged[u]=cloudReg[u];
         }
       });
-      localStorage.setItem('ims_reg',JSON.stringify(merged));
+      try{_lsSet('ims_reg',merged);}catch(e){console.error('merged save:',e);}
       return merged;
     }
-  }catch(e){}
+  }catch(e){console.warn('loadRegistryFromCloud:',e);}
   return getRegistry();
 }
 
 function ensureDefaults(){
+  // Previously seeded a default {owner / owner123} account on every load.
+  // That is a permanent backdoor — removed. New owners must register through
+  // the signup flow and be approved by the system owner.
+  // Clean up the legacy default if it's still there.
   const reg=getRegistry();
-  if(!reg['owner']){
-    reg['owner']={password:'owner123',ownerId:'owner',role:'owner'};
-    saveRegistry(reg);
+  if(reg['owner']&&(reg['owner'].password==='owner123'||(typeof reg['owner'].password==='string'&&reg['owner'].password.length<10))){
+    delete reg['owner'];
+    try{_lsSet('ims_reg',reg);}catch(e){}
   }
 }
 
 const ownerNS=()=>S.ownerId||'default';
 const lsKey=k=>`ims_${ownerNS()}_${k}`;
+// Safe JSON parse — logs corruption instead of throwing past the caller
+function _safeJSON(str,fallback,where){
+  if(str==null)return fallback;
+  try{return JSON.parse(str);}
+  catch(e){console.warn(`Corrupt JSON for ${where||'unknown'} — using fallback. Raw value will be replaced on next save.`,e);return fallback;}
+}
+function _lsGet(key,fallback){return _safeJSON(localStorage.getItem(key),fallback,key);}
+function _lsSet(key,value){
+  try{localStorage.setItem(key,typeof value==='string'?value:JSON.stringify(value));}
+  catch(e){
+    // QuotaExceededError is the most likely cause; surface it to the user.
+    console.error(`localStorage write failed for ${key}:`,e);
+    if(typeof showToast==='function')showToast('💾 Storage full — could not save.','error');
+  }
+}
 
 function loadUserData(){
   const ns=ownerNS();
-  S.items=JSON.parse(localStorage.getItem(`ims_${ns}_items`)||'[]');
-  S.purchase=JSON.parse(localStorage.getItem(`ims_${ns}_purchase`)||'[]');
-  S.sales=JSON.parse(localStorage.getItem(`ims_${ns}_sales`)||'[]');
-  S.expense=JSON.parse(localStorage.getItem(`ims_${ns}_expense`)||'[]');
-  S.storeItems=JSON.parse(localStorage.getItem(`ims_${ns}_storeItems`)||'[]');
-  S.storeDispatches=JSON.parse(localStorage.getItem(`ims_${ns}_storeDispatches`)||'[]');
-  S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0');
-  S.branchBeginBal=JSON.parse(localStorage.getItem(`ims_${ns}_branchBeginBal`)||'{}');
+  S.items=_lsGet(`ims_${ns}_items`,[]);
+  S.purchase=_lsGet(`ims_${ns}_purchase`,[]);
+  S.sales=_lsGet(`ims_${ns}_sales`,[]);
+  S.expense=_lsGet(`ims_${ns}_expense`,[]);
+  S.storeItems=_lsGet(`ims_${ns}_storeItems`,[]);
+  S.storeDispatches=_lsGet(`ims_${ns}_storeDispatches`,[]);
+  S.beginBal=parseFloat(localStorage.getItem(`ims_${ns}_beginBal`)||'0')||0;
+  S.branchBeginBal=_lsGet(`ims_${ns}_branchBeginBal`,{});
   // Migrate legacy single beginBal → first branch if branchBeginBal is empty
   if(S.beginBal&&Object.keys(S.branchBeginBal).length===0){
-    const firstBranch=(JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]'))[0]||'Main';
+    const firstBranch=(_lsGet(`ims_${ns}_branches`,['Main']))[0]||'Main';
     S.branchBeginBal[firstBranch]=S.beginBal;
-    localStorage.setItem(`ims_${ns}_branchBeginBal`,JSON.stringify(S.branchBeginBal));
+    _lsSet(`ims_${ns}_branchBeginBal`,S.branchBeginBal);
   }
-  S.perms=JSON.parse(localStorage.getItem(`ims_${ns}_perms`)||'{}');
-  S.exportPerms=JSON.parse(localStorage.getItem(`ims_${ns}_exportperms`)||'{}');
-  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-  S.branches=JSON.parse(localStorage.getItem(`ims_${ns}_branches`)||'["Main"]');
-  S.creditPayments=JSON.parse(localStorage.getItem(`ims_${ns}_creditPayments`)||'[]');
-  S.deletedUsers=JSON.parse(localStorage.getItem(`ims_${ns}_deletedUsers`)||'[]');
+  S.perms=_lsGet(`ims_${ns}_perms`,{});
+  S.exportPerms=_lsGet(`ims_${ns}_exportperms`,{});
+  S.pendingSignups=_lsGet(`ims_${ns}_pending`,[]);
+  S.branches=_lsGet(`ims_${ns}_branches`,['Main']);
+  S.creditPayments=_lsGet(`ims_${ns}_creditPayments`,[]);
+  S.deletedUsers=_lsGet(`ims_${ns}_deletedUsers`,[]);
   S.avatarDataUrl=localStorage.getItem(`ims_${S.user}_avatar`)||null;
   // Backfill _cid for existing CREDIT records that pre-date this feature
   let _cidChanged=false;
@@ -2034,8 +2299,8 @@ function loadUserData(){
   S.purchase.forEach(r=>{if(r.payment==='CREDIT'&&!r._cid){r._cid=_mkCid('p');_cidChanged=true;}});
   S.sales.forEach(r=>{if(r.payment==='CREDIT'&&!r._cid){r._cid=_mkCid('s');_cidChanged=true;}});
   if(_cidChanged){
-    localStorage.setItem(`ims_${ns}_purchase`,JSON.stringify(S.purchase));
-    localStorage.setItem(`ims_${ns}_sales`,JSON.stringify(S.sales));
+    _lsSet(`ims_${ns}_purchase`,S.purchase);
+    _lsSet(`ims_${ns}_sales`,S.sales);
   }
   if(S.userBranch){
     S.branchReceipts=loadBranchReceipts(S.userBranch);
@@ -2044,28 +2309,29 @@ function loadUserData(){
 
 function saveUserData(){
   const ns=ownerNS();
-  localStorage.setItem(`ims_${ns}_items`,JSON.stringify(S.items));
-  localStorage.setItem(`ims_${ns}_purchase`,JSON.stringify(S.purchase));
-  localStorage.setItem(`ims_${ns}_sales`,JSON.stringify(S.sales));
-  localStorage.setItem(`ims_${ns}_expense`,JSON.stringify(S.expense));
-  localStorage.setItem(`ims_${ns}_storeItems`,JSON.stringify(S.storeItems));
-  localStorage.setItem(`ims_${ns}_storeDispatches`,JSON.stringify(S.storeDispatches));
-  localStorage.setItem(`ims_${ns}_beginBal`,S.beginBal);
-  localStorage.setItem(`ims_${ns}_branchBeginBal`,JSON.stringify(S.branchBeginBal||{}));
-  localStorage.setItem(`ims_${ns}_perms`,JSON.stringify(S.perms));
-  localStorage.setItem(`ims_${ns}_exportperms`,JSON.stringify(S.exportPerms));
-  localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(S.pendingSignups));
-  localStorage.setItem(`ims_${ns}_branches`,JSON.stringify(S.branches));
-  localStorage.setItem(`ims_${ns}_creditPayments`,JSON.stringify(S.creditPayments||[]));
-  localStorage.setItem(`ims_${ns}_deletedUsers`,JSON.stringify(S.deletedUsers||[]));
+  _lsSet(`ims_${ns}_items`,S.items);
+  _lsSet(`ims_${ns}_purchase`,S.purchase);
+  _lsSet(`ims_${ns}_sales`,S.sales);
+  _lsSet(`ims_${ns}_expense`,S.expense);
+  _lsSet(`ims_${ns}_storeItems`,S.storeItems);
+  _lsSet(`ims_${ns}_storeDispatches`,S.storeDispatches);
+  // beginBal must be stringified explicitly so reload via parseFloat is consistent
+  _lsSet(`ims_${ns}_beginBal`,String(S.beginBal||0));
+  _lsSet(`ims_${ns}_branchBeginBal`,S.branchBeginBal||{});
+  _lsSet(`ims_${ns}_perms`,S.perms);
+  _lsSet(`ims_${ns}_exportperms`,S.exportPerms);
+  _lsSet(`ims_${ns}_pending`,S.pendingSignups);
+  _lsSet(`ims_${ns}_branches`,S.branches);
+  _lsSet(`ims_${ns}_creditPayments`,S.creditPayments||[]);
+  _lsSet(`ims_${ns}_deletedUsers`,S.deletedUsers||[]);
   syncToCloud();
 }
 
 function saveBranchReceipts(branch,receipts){
-  localStorage.setItem(`ims_${ownerNS()}_branchreceipts_${branch}`,JSON.stringify(receipts));
+  _lsSet(`ims_${ownerNS()}_branchreceipts_${branch}`,receipts);
 }
 function loadBranchReceipts(branch){
-  return JSON.parse(localStorage.getItem(`ims_${ownerNS()}_branchreceipts_${branch}`)||'[]');
+  return _lsGet(`ims_${ownerNS()}_branchreceipts_${branch}`,[]);
 }
 
 async function loadFromCloud(ns){
@@ -2076,20 +2342,31 @@ async function loadFromCloud(ns){
     const d=doc.data();
     if(d.updatedAt)_lastWrittenAt=d.updatedAt;
     applyCloudSnapshot(ns,d);
-  }catch(e){}
+  }catch(e){console.warn('loadFromCloud:',e);}
 }
 
 /* ═══════════════════════════════════════════════════════
    FIREBASE
 ═══════════════════════════════════════════════════════ */
-function initFirebase(){
-  try{
-    let app;try{app=firebase.app('pims5');}catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims5');}
-    S.db=firebase.firestore(app);S.dbConnected=true;setSyncRing(true);return true;
-  }catch(e){setSyncRing(false);return false;}
-}
+// Module-scoped sync coordination state. Declared before any function that uses them.
 let _syncT=null;
 let _lastWrittenAt='';
+
+function initFirebase(){
+  try{
+    if(typeof firebase==='undefined'){
+      console.warn('Firebase SDK not loaded yet — sync disabled.');
+      setSyncRing(false);return false;
+    }
+    let app;
+    try{app=firebase.app('pims5');}
+    catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims5');}
+    S.db=firebase.firestore(app);S.dbConnected=true;setSyncRing(true);return true;
+  }catch(e){
+    console.error('initFirebase:',e);
+    setSyncRing(false);return false;
+  }
+}
 
 function syncToCloud(){
   if(!S.dbConnected||!S.db)return;
@@ -2106,7 +2383,7 @@ function syncToCloud(){
       perms:JSON.stringify(S.perms),
       exportPerms:JSON.stringify(S.exportPerms),branches:JSON.stringify(S.branches),
       registry:JSON.stringify(getRegistry()),
-      storereqs:JSON.stringify(loadStoreRequests()),
+      storereqs:JSON.stringify(typeof loadStoreRequests==='function'?loadStoreRequests():[]),
       creditPayments:JSON.stringify(S.creditPayments||[]),
       deletedUsers:JSON.stringify(S.deletedUsers||[]),
       updatedAt:now
@@ -2115,7 +2392,8 @@ function syncToCloud(){
       payload[`br_${b}`]=JSON.stringify(loadBranchReceipts(b));
     });
     S.db.collection('power_ims5').doc(ns).set(payload,{merge:true})
-      .then(()=>setSyncRing(true)).catch(()=>setSyncRing(false));
+      .then(()=>setSyncRing(true))
+      .catch(err=>{console.warn('syncToCloud:',err);setSyncRing(false);});
     saveRegistryToCloud(getRegistry());
   },1200);
 }
@@ -2123,31 +2401,37 @@ function setSyncRing(ok){const r=document.getElementById('sync-ring');if(r)r.cla
 function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
 
 function applyCloudSnapshot(ns,d){
-  if(d.items!==undefined) localStorage.setItem(`ims_${ns}_items`,d.items);
-  if(d.purchase!==undefined) localStorage.setItem(`ims_${ns}_purchase`,d.purchase);
-  if(d.sales!==undefined) localStorage.setItem(`ims_${ns}_sales`,d.sales);
-  if(d.expense!==undefined) localStorage.setItem(`ims_${ns}_expense`,d.expense);
-  if(d.storeItems!==undefined) localStorage.setItem(`ims_${ns}_storeItems`,d.storeItems);
-  if(d.storeDispatches!==undefined) localStorage.setItem(`ims_${ns}_storeDispatches`,d.storeDispatches);
-  if(d.beginBal!==undefined) localStorage.setItem(`ims_${ns}_beginBal`,d.beginBal);
-  if(d.branchBeginBal!==undefined) localStorage.setItem(`ims_${ns}_branchBeginBal`,d.branchBeginBal);
-  if(d.perms!==undefined) localStorage.setItem(`ims_${ns}_perms`,d.perms);
-  if(d.exportPerms!==undefined) localStorage.setItem(`ims_${ns}_exportperms`,d.exportPerms);
-  if(d.pending!==undefined) localStorage.setItem(`ims_${ns}_pending`,d.pending);
-  if(d.branches!==undefined) localStorage.setItem(`ims_${ns}_branches`,d.branches);
-  if(d.storereqs!==undefined) localStorage.setItem(`ims_${ns}_storereqs`,d.storereqs);
-  if(d.creditPayments!==undefined) localStorage.setItem(`ims_${ns}_creditPayments`,d.creditPayments);
-  if(d.deletedUsers!==undefined) localStorage.setItem(`ims_${ns}_deletedUsers`,d.deletedUsers);
-  const branches=d.branches?JSON.parse(d.branches):['Main'];
-  branches.forEach(b=>{if(d[`br_${b}`]!==undefined) localStorage.setItem(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
+  // Cloud values are pre-stringified payloads; write through verbatim.
+  // Route through _lsSet so a QuotaExceededError surfaces a toast.
+  if(d.items!==undefined) _lsSet(`ims_${ns}_items`,d.items);
+  if(d.purchase!==undefined) _lsSet(`ims_${ns}_purchase`,d.purchase);
+  if(d.sales!==undefined) _lsSet(`ims_${ns}_sales`,d.sales);
+  if(d.expense!==undefined) _lsSet(`ims_${ns}_expense`,d.expense);
+  if(d.storeItems!==undefined) _lsSet(`ims_${ns}_storeItems`,d.storeItems);
+  if(d.storeDispatches!==undefined) _lsSet(`ims_${ns}_storeDispatches`,d.storeDispatches);
+  // beginBal can be a number from older payloads; coerce to string for consistency
+  if(d.beginBal!==undefined) _lsSet(`ims_${ns}_beginBal`,String(d.beginBal));
+  if(d.branchBeginBal!==undefined) _lsSet(`ims_${ns}_branchBeginBal`,d.branchBeginBal);
+  if(d.perms!==undefined) _lsSet(`ims_${ns}_perms`,d.perms);
+  if(d.exportPerms!==undefined) _lsSet(`ims_${ns}_exportperms`,d.exportPerms);
+  if(d.pending!==undefined) _lsSet(`ims_${ns}_pending`,d.pending);
+  if(d.branches!==undefined) _lsSet(`ims_${ns}_branches`,d.branches);
+  if(d.storereqs!==undefined) _lsSet(`ims_${ns}_storereqs`,d.storereqs);
+  if(d.creditPayments!==undefined) _lsSet(`ims_${ns}_creditPayments`,d.creditPayments);
+  if(d.deletedUsers!==undefined) _lsSet(`ims_${ns}_deletedUsers`,d.deletedUsers);
+  const branches=d.branches?_safeJSON(d.branches,['Main'],'cloud branches'):['Main'];
+  branches.forEach(b=>{if(d[`br_${b}`]!==undefined) _lsSet(`ims_${ns}_branchreceipts_${b}`,d[`br_${b}`]);});
   if(d.resetAt&&d.resetAt!==localStorage.getItem(`ims_${ns}_lastResetAt`)){
-    localStorage.setItem(`ims_${ns}_lastResetAt`,d.resetAt);
+    _lsSet(`ims_${ns}_lastResetAt`,d.resetAt);
     setTimeout(()=>showToast('⚠️ Your data has been reset by the software owner.','warn'),800);
   }
 }
 
 function startRealtimeSync(){
-  if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
+  if(S._unsubscribe){
+    try{S._unsubscribe();}catch(e){console.warn('unsubscribe:',e);}
+    S._unsubscribe=null;
+  }
   const ns=ownerNS();
   if(!S.db||!ns||ns==='_system_')return;
   S._unsubscribe=S.db.collection('power_ims5').doc(ns).onSnapshot(doc=>{
@@ -2162,7 +2446,7 @@ function startRealtimeSync(){
     updateNotifBadge();
     updateStoreNotifBadge();
     updateRequestBadge();
-  },()=>{});
+  },err=>console.warn('realtime sync error:',err));
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2190,7 +2474,7 @@ let authSubMode='business';
 // ── EmailJS — credentials stored via Platform Dashboard ──
 const EJS_LS_KEY='ims_emailjs_config';
 function getEmailConfig(){
-  const s=JSON.parse(localStorage.getItem(EJS_LS_KEY)||'null');
+  const s=_safeJSON(localStorage.getItem(EJS_LS_KEY),null,'emailjs config');
   if(s&&s.serviceId&&s.templateId&&s.publicKey)return s;
   return null;
 }
@@ -2199,16 +2483,41 @@ function initEmailJS(){
   if(cfg&&typeof emailjs!=='undefined')emailjs.init(cfg.publicKey);
 }
 
-// OTP state for owner email verification
+// OTP state for owner email verification — persisted to sessionStorage so a
+// page refresh during signup doesn't drop the user back to step 1.
 let _ownerOTP=null,_ownerOTPEmail=null,_ownerOTPExpiry=null;
+const _OTP_SS_KEY='ims_owner_otp_state';
+function _saveOTPState(){
+  try{
+    if(_ownerOTP){
+      sessionStorage.setItem(_OTP_SS_KEY,JSON.stringify({otp:_ownerOTP,email:_ownerOTPEmail,exp:_ownerOTPExpiry}));
+    }else{
+      sessionStorage.removeItem(_OTP_SS_KEY);
+    }
+  }catch(e){/* sessionStorage may be unavailable in some browsers */}
+}
+function _restoreOTPState(){
+  try{
+    const raw=sessionStorage.getItem(_OTP_SS_KEY);
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s&&s.otp&&s.exp&&Date.now()<s.exp){
+      _ownerOTP=s.otp;_ownerOTPEmail=s.email;_ownerOTPExpiry=s.exp;
+    }else{
+      sessionStorage.removeItem(_OTP_SS_KEY);
+    }
+  }catch(e){/* corrupt session — ignore */}
+}
+_restoreOTPState();
 function setAuthSubMode(m){
   authSubMode=m;
-  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
+  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;_saveOTPState();
   document.getElementById('auth-type-biz').classList.toggle('active',m==='business');
   document.getElementById('auth-type-emp').classList.toggle('active',m==='employee');
   document.getElementById('auth-admin-target-wrap').style.display=m==='employee'?'':'none';
   document.getElementById('auth-shopname-wrap').style.display=m==='business'?'':'none';
   document.getElementById('auth-email-wrap').style.display=m==='business'?'':'none';
+  document.getElementById('auth-phone-wrap').style.display=m==='employee'?'':'none';
   document.getElementById('auth-otp-wrap').style.display='none';
   document.getElementById('auth-user-label').textContent=m==='employee'?'Full Name':'Username';
   document.getElementById('auth-user').placeholder=m==='employee'?'Enter your full name':'Enter your username';
@@ -2219,7 +2528,7 @@ function setAuthSubMode(m){
 }
 function setAuthMode(m){
   authMode=m;
-  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
+  _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;_saveOTPState();
   document.getElementById('tab-login-btn').classList.toggle('active',m==='login');
   document.getElementById('tab-signup-btn').classList.toggle('active',m==='signup');
   document.getElementById('auth-confirm-wrap').style.display=m==='signup'?'':'none';
@@ -2230,6 +2539,7 @@ function setAuthMode(m){
   else{
     document.getElementById('auth-admin-target-wrap').style.display='none';
     document.getElementById('auth-email-wrap').style.display='none';
+    document.getElementById('auth-phone-wrap').style.display='none';
     document.getElementById('auth-user-label').textContent='Username';
     document.getElementById('auth-user').placeholder='Enter your username';
   }
@@ -2237,15 +2547,33 @@ function setAuthMode(m){
   hideMsg('auth-error');hideMsg('auth-success');
 }
 
-// ★ CHANGE 4: submitAuth now checks cloud registry for cross-device login
+// submitAuth — checks cloud registry for cross-device login.
+// Passwords are hashed (SHA-256) before storage and on comparison.
+// Legacy plaintext entries are auto-migrated to hashes on successful login.
 async function submitAuth(){
-  const u=document.getElementById('auth-user').value.trim();
-  const p=document.getElementById('auth-pass').value;
+  // Cap inputs at the source so they can't break UI or bloat the DB
+  const u=cap(document.getElementById('auth-user').value.trim(),MAX_USERNAME_LEN);
+  const p=cap(document.getElementById('auth-pass').value,MAX_PASSWORD_LEN);
   if(!u||!p){showMsg('auth-error','Please enter username and password');return;}
 
-  // System owner — hardcoded, no cloud check needed
-  if(u===OWNER_USERNAME&&p===OWNER_PASSWORD){
-    doLoginSystemOwner();return;
+  // Rate-limit failed login attempts (login mode only; signup is OTP-gated)
+  if(authMode==='login'){
+    const rl=checkLoginRateLimit(u);
+    if(!rl.allowed){
+      showMsg('auth-error',`⏳ Too many failed attempts. Try again in ${rl.minutes} minute(s).`);
+      return;
+    }
+  }
+
+  // System owner — hash comparison (no plaintext credential in source)
+  if(u===OWNER_USERNAME){
+    let ok=false;
+    try{ok=(await sha256Hex(p))===OWNER_PASSWORD_HASH;}catch(e){ok=false;}
+    if(ok){clearLoginFailures(u);doLoginSystemOwner();return;}
+    // fall through to record failure if it wasn't right
+    recordLoginFailure(u);
+    showMsg('auth-error','Incorrect password.');
+    return;
   }
 
   // Show loading state
@@ -2256,7 +2584,7 @@ async function submitAuth(){
 
   try{
     ensureDefaults();
-    // ★ Pull cloud registry first so credentials work on any device
+    // Pull cloud registry first so credentials work on any device
     const reg=await loadRegistryFromCloud();
 
     if(authMode==='login'){
@@ -2264,24 +2592,39 @@ async function submitAuth(){
       if(!entry){
         const isBanned=getBannedOwners().find(b=>b.username===u);
         if(isBanned){showMsg('auth-error','⛔ This account has been removed. Contact the platform administrator.');return;}
+        recordLoginFailure(u);
         showMsg('auth-error','Username not found.');return;
       }
-      if(entry.password!==p){showMsg('auth-error','Incorrect password.');return;}
+      const matches=await passwordMatches(p,entry.password);
+      if(!matches){
+        recordLoginFailure(u);
+        showMsg('auth-error','Incorrect password.');return;
+      }
       if(entry.status==='suspended'){showMsg('auth-error','⛔ Account suspended. Contact your platform owner.');return;}
+      // Legacy plaintext → migrate to hash now that we know it's correct
+      if(!isHashed(entry.password)){
+        try{
+          entry.password=await sha256Hex(p);
+          entry.updatedAt=new Date().toISOString();
+          reg[u]=entry;
+          saveRegistry(reg);
+        }catch(e){/* migration is best-effort */}
+      }
+      clearLoginFailures(u);
       doLogin(u,entry.ownerId||u,entry.role||'user');
     }else{
-      const c=document.getElementById('auth-confirm').value;
+      const c=cap(document.getElementById('auth-confirm').value,MAX_PASSWORD_LEN);
       if(p!==c){showMsg('auth-error','Passwords do not match.');return;}
       if(p.length<4){showMsg('auth-error','Password must be at least 4 characters.');return;}
       if(reg[u]||u===OWNER_USERNAME){showMsg('auth-error','Username already taken. Choose a different username.');return;}
       if(authSubMode==='business'){
-        const shopName=document.getElementById('auth-shopname')?.value.trim()||'';
-        const email=(document.getElementById('auth-email')?.value||'').trim().toLowerCase();
+        const shopName=cap(document.getElementById('auth-shopname')?.value.trim()||'',MAX_NAME_LEN);
+        const email=cap((document.getElementById('auth-email')?.value||'').trim().toLowerCase(),120);
         if(!shopName){showMsg('auth-error','Please enter your business/shop name.');return;}
         if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showMsg('auth-error','Please enter a valid email address.');return;}
         // Forbid duplicate email in registry
         if(Object.values(reg).some(v=>v.email&&v.email.toLowerCase()===email)){showMsg('auth-error','This email address is already registered.');return;}
-        const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+        const pending=_lsGet('ims_pending_owners',[]);
         if(pending.find(x=>x.email&&x.email.toLowerCase()===email)){showMsg('auth-error','This email address already has a pending request.');return;}
         if(pending.find(x=>x.username===u)){showMsg('auth-error','A request with this username is already pending.');return;}
         // Block banned owners from re-registering
@@ -2290,10 +2633,11 @@ async function submitAuth(){
         if(email&&banned.find(b=>b.email&&b.email.toLowerCase()===email)){showMsg('auth-error','⛔ This email address has been removed from the platform. Contact the platform administrator.');return;}
 
         if(_ownerOTP===null){
-          // Phase 1 — validate fields then send OTP
-          _ownerOTP=String(Math.floor(100000+Math.random()*900000));
+          // Phase 1 — validate fields then send OTP (CSPRNG-backed)
+          _ownerOTP=genOTP();
           _ownerOTPEmail=email;
           _ownerOTPExpiry=Date.now()+10*60*1000;
+          _saveOTPState();
           let emailSent=false;
           const ejsCfg=getEmailConfig();
           if(ejsCfg&&typeof emailjs!=='undefined'){
@@ -2320,40 +2664,46 @@ async function submitAuth(){
           const entered=(document.getElementById('auth-otp')?.value||'').trim();
           if(!entered){showMsg('auth-error','Please enter the 6-digit verification code.');return;}
           if(Date.now()>_ownerOTPExpiry){
-            _ownerOTP=null;_ownerOTPEmail=null;
+            _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;_saveOTPState();
             document.getElementById('auth-otp-wrap').style.display='none';
             origText='📧 Send Verification Code';
             showMsg('auth-error','Verification code expired. Please request a new one.');return;
           }
           if(entered!==_ownerOTP){showMsg('auth-error','Incorrect verification code. Try again.');return;}
-          // OTP verified — push to pending queue
-          pending.push({username:u,password:p,shopName,email,requestedAt:new Date().toISOString()});
-          localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
+          // OTP verified — push to pending queue with HASHED password
+          const pwdHash=await sha256Hex(p);
+          pending.push({username:u,password:pwdHash,shopName,email,requestedAt:new Date().toISOString()});
+          _lsSet('ims_pending_owners',pending);
           if(S.db){
-            S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+            S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.error('pending sync:',err));
           }
-          _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;
+          _ownerOTP=null;_ownerOTPEmail=null;_ownerOTPExpiry=null;_saveOTPState();
           document.getElementById('auth-otp-wrap').style.display='none';
           origText='📧 Send Verification Code';
           showMsg('auth-success','✅ Email verified! Your registration is pending administrator approval.','success');
         }
       }else{
         // Employee/user signup — goes to their owner's pending queue
-        const ownerTarget=document.getElementById('auth-admin-target').value.trim();
+        const ownerTarget=cap(document.getElementById('auth-admin-target').value.trim(),MAX_USERNAME_LEN);
         if(!ownerTarget){showMsg('auth-error','Please enter your platform owner username.');return;}
         if(!reg[ownerTarget]||reg[ownerTarget].role!=='owner'){showMsg('auth-error','Platform owner not found. Check username spelling.');return;}
         const ns=reg[ownerTarget].ownerId||ownerTarget;
-        const _delList=JSON.parse(localStorage.getItem(`ims_${ns}_deletedUsers`)||'[]');
+        const _delList=_lsGet(`ims_${ns}_deletedUsers`,[]);
         if(_delList.includes(u)){showMsg('auth-error','⛔ This username has been removed from this account and cannot rejoin.');return;}
-        const pending=JSON.parse(localStorage.getItem(`ims_${ns}_pending`)||'[]');
-        pending.push({username:u,password:p,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null});
-        localStorage.setItem(`ims_${ns}_pending`,JSON.stringify(pending));
+        const pending=_lsGet(`ims_${ns}_pending`,[]);
+        const phone=cap((document.getElementById('auth-phone')?.value||'').trim(),40);
+        const pwdHash=await sha256Hex(p);
+        pending.push({username:u,password:pwdHash,role:'user',ownerId:ns,requestedAt:new Date().toISOString(),avatar:_authAvatar||null,phone:phone||null});
+        _lsSet(`ims_${ns}_pending`,pending);
         if(S.db){
-          S.db.collection('power_ims5').doc(ns).set({pending:JSON.stringify(pending)},{merge:true}).catch(()=>{});
+          S.db.collection('power_ims5').doc(ns).set({pending:JSON.stringify(pending)},{merge:true}).catch(err=>console.error('user pending sync:',err));
         }
         showMsg('auth-success','✅ Request sent! Your platform owner will approve your account.','success');
       }
     }
+  }catch(e){
+    console.error('submitAuth:',e);
+    showMsg('auth-error','Something went wrong. Please try again.');
   }finally{
     btn.innerHTML=origText;
     btn.disabled=false;
@@ -2361,6 +2711,7 @@ async function submitAuth(){
 }
 
 async function doLogin(u,ownerId,role){
+  try{
   S.user=u;S.ownerId=ownerId;S.role=role;
   localStorage.setItem('ims_currentUser',u);
   localStorage.setItem('ims_currentOwner',ownerId);
@@ -2368,7 +2719,6 @@ async function doLogin(u,ownerId,role){
   const reg=getRegistry();
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   initFirebase();
-  await loadFromCloud(ownerId);
   startRealtimeSync();
   // Subscription gate — block expired/suspended owners and their users
   if(role!=='system_owner'){
@@ -2416,13 +2766,13 @@ async function doLogin(u,ownerId,role){
     // Pull latest sub_requests so owner sees their code status
     if(S.db)S.db.collection('power_ims5').doc('_sub_requests').get().then(d=>{
       if(d.exists&&d.data().requests){
-        const cr=JSON.parse(d.data().requests||'[]');
-        const lr=JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');
+        const cr=_safeJSON(d.data().requests,[],'sub_requests');
+        const lr=_lsGet(SUB_REQ_KEY,[]);
         const mg=[...lr];
         cr.forEach(c=>{const li=mg.findIndex(l=>l.id===c.id);if(li===-1)mg.push(c);else if(c.status!=='pending')mg[li]=c;});
-        localStorage.setItem(SUB_REQ_KEY,JSON.stringify(mg));
+        _lsSet(SUB_REQ_KEY,mg);
       }
-    }).catch(()=>{});
+    }).catch(err=>console.warn('sub_requests sync:',err));
   }
   updateStoreNotifBadge();
   updateRequestBadge();
@@ -2435,7 +2785,21 @@ async function doLogin(u,ownerId,role){
     startTab=canRead(lastTab)?lastTab:'ITEMS';
   }
   switchTab(startTab);
-  hideLoader();
+  }catch(e){
+    console.error('doLogin failed:',e);
+    // Restore the auth screen so the user can retry instead of staring at a half-rendered app
+    try{
+      S.user=null;S.ownerId=null;S.role=null;
+      localStorage.removeItem('ims_currentUser');
+      localStorage.removeItem('ims_currentOwner');
+      localStorage.removeItem('ims_currentRole');
+      const auth=document.getElementById('auth-screen');if(auth)auth.style.display='flex';
+      const hdr=document.getElementById('app-header');if(hdr)hdr.style.display='none';
+      const nav=document.getElementById('bottom-nav');if(nav)nav.style.display='none';
+      const content=document.getElementById('content');if(content)content.style.display='none';
+    }catch(_){/* best-effort cleanup */}
+    showToast('Login failed — please try again.','error',4000);
+  }finally{hideLoader();}
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2563,56 +2927,56 @@ async function loadPendingOwnersFromCloud(){
   try{
     const doc=await S.db.collection('power_ims5').doc('_pending_owners').get();
     if(doc.exists&&doc.data().pending){
-      const cloud=JSON.parse(doc.data().pending||'[]');
-      const local=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+      const cloud=_safeJSON(doc.data().pending,[],'cloud pending owners');
+      const local=_safeJSON(localStorage.getItem('ims_pending_owners'),[],'local pending owners');
       const merged=[...local];
       cloud.forEach(c=>{if(!merged.find(l=>l.username===c.username))merged.push(c);});
-      localStorage.setItem('ims_pending_owners',JSON.stringify(merged));
+      _lsSet('ims_pending_owners',merged);
     }
-  }catch(e){}
+  }catch(e){console.warn('pending_owners fetch:',e);}
   try{
     const rdoc=await S.db.collection('power_ims5').doc('_reset_requests').get();
     if(rdoc.exists&&rdoc.data().requests){
-      const cloudReqs=JSON.parse(rdoc.data().requests||'[]');
-      const localReqs=JSON.parse(localStorage.getItem('ims_reset_requests')||'[]');
+      const cloudReqs=_safeJSON(rdoc.data().requests,[],'reset requests');
+      const localReqs=_safeJSON(localStorage.getItem('ims_reset_requests'),[],'local reset requests');
       const merged=[...localReqs];
       cloudReqs.forEach(c=>{
         const li=merged.findIndex(l=>l.ownerId===c.ownerId&&l.requestedAt===c.requestedAt);
         if(li===-1)merged.push(c);else if(c.status!=='pending')merged[li]=c;
       });
-      localStorage.setItem('ims_reset_requests',JSON.stringify(merged));
+      _lsSet('ims_reset_requests',merged);
     }
-  }catch(e){}
+  }catch(e){console.warn('reset_requests fetch:',e);}
   try{
     const bdoc=await S.db.collection('power_ims5').doc('_banned_owners').get();
     if(bdoc.exists&&bdoc.data().banned){
-      const cloudBanned=JSON.parse(bdoc.data().banned||'[]');
-      const localBanned=JSON.parse(localStorage.getItem(BANNED_LS_KEY)||'[]');
+      const cloudBanned=_safeJSON(bdoc.data().banned,[],'banned owners');
+      const localBanned=_safeJSON(localStorage.getItem(BANNED_LS_KEY),[],'local banned owners');
       const merged=[...localBanned];
       cloudBanned.forEach(c=>{if(!merged.find(l=>l.username===c.username))merged.push(c);});
-      localStorage.setItem(BANNED_LS_KEY,JSON.stringify(merged));
+      _lsSet(BANNED_LS_KEY,merged);
     }
-  }catch(e){}
+  }catch(e){console.warn('banned_owners fetch:',e);}
   try{
     const srdoc=await S.db.collection('power_ims5').doc('_sub_requests').get();
     if(srdoc.exists&&srdoc.data().requests){
-      const cloudReqs=JSON.parse(srdoc.data().requests||'[]');
-      const localReqs=JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');
+      const cloudReqs=_safeJSON(srdoc.data().requests,[],'sub requests');
+      const localReqs=_safeJSON(localStorage.getItem(SUB_REQ_KEY),[],'local sub requests');
       const merged=[...localReqs];
       cloudReqs.forEach(c=>{
         const li=merged.findIndex(l=>l.id===c.id);
         if(li===-1)merged.push(c);else if(c.status!=='pending')merged[li]=c;
       });
-      localStorage.setItem(SUB_REQ_KEY,JSON.stringify(merged));
+      _lsSet(SUB_REQ_KEY,merged);
     }
-  }catch(e){}
+  }catch(e){console.warn('sub_requests fetch:',e);}
 }
 
 const BANNED_LS_KEY='ims_banned_owners';
-function getBannedOwners(){return JSON.parse(localStorage.getItem(BANNED_LS_KEY)||'[]');}
+function getBannedOwners(){return _lsGet(BANNED_LS_KEY,[]);}
 function saveBannedOwners(list){
-  localStorage.setItem(BANNED_LS_KEY,JSON.stringify(list));
-  if(S.db)S.db.collection('power_ims5').doc('_banned_owners').set({banned:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+  _lsSet(BANNED_LS_KEY,list);
+  if(S.db)S.db.collection('power_ims5').doc('_banned_owners').set({banned:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.warn('banned cloud sync:',err));
 }
 function restoreOwner(i){
   const banned=getBannedOwners();
@@ -2663,7 +3027,7 @@ function saveEmailConfig(){
   const templateId=document.getElementById('ejs-template').value.trim();
   const publicKey=document.getElementById('ejs-pubkey').value.trim();
   if(!serviceId||!templateId||!publicKey){showMsg('ejs-error','All three fields are required.');return;}
-  localStorage.setItem(EJS_LS_KEY,JSON.stringify({serviceId,templateId,publicKey}));
+  _lsSet(EJS_LS_KEY,{serviceId,templateId,publicKey});
   initEmailJS();
   showMsg('ejs-success','✅ Saved! New owner registrations will now receive real OTP emails.','success');
   updateEmailConfigStatus();
@@ -2728,19 +3092,19 @@ function renderSystemOwnerDashboard(){
           ${r.paidUntil?`<span style="font-size:10px;color:var(--text3)">Until ${r.paidUntil}</span>`:''}
         </div>
       </div>
-      <button class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Manage</button>
-      ${ss.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px" title="Suspend">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px" title="Restore">✅</button>`}
-      <button class="btn btn-sm" onclick="deleteOwner('${u}')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Manage</button>
+      ${ss.status!=='suspended'?`<button type="button" class="btn btn-sm btn-danger" onclick="suspendUser('${u}')" style="margin-left:4px" title="Suspend">🚫</button>`:`<button type="button" class="btn btn-sm btn-success" onclick="unsuspendUser('${u}')" style="margin-left:4px" title="Restore">✅</button>`}
+      <button type="button" class="btn btn-sm" onclick="deleteOwner('${u}')" style="margin-left:4px;color:var(--error)" title="Delete owner">🗑️</button>
     </div>`;
   }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No owners yet.</div>`;
-  const pendingOwners=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+  const pendingOwners=_lsGet('ims_pending_owners',[]);
   document.getElementById('pending-count').textContent=pendingOwners.length;
   document.getElementById('pending-user-list').innerHTML=pendingOwners.length?pendingOwners.map((p,i)=>`
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar" style="background:var(--owner-gradient)">${p.username[0].toUpperCase()}</div>
       <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">${p.email?`📧 ${esc(p.email)} · `:''}Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
-      <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve + Trial</button>
-      <button class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
+      <button type="button" class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveOwner(${i})">✅ Approve + Trial</button>
+      <button type="button" class="apv-btn deny" style="width:auto;padding:6px 12px;margin-left:6px" onclick="denyOwner(${i})">❌ Deny</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
   const bannedOwners=getBannedOwners();
   document.getElementById('banned-count').textContent=bannedOwners.length;
@@ -2753,7 +3117,7 @@ function renderSystemOwnerDashboard(){
         </div>
         <div class="user-meta">${b.email?`📧 ${esc(b.email)} · `:''}Removed: ${new Date(b.bannedAt).toLocaleString()}</div>
       </div>
-      <button class="btn btn-sm btn-success" onclick="restoreOwner(${i})" style="margin-left:8px;white-space:nowrap">✅ Restore</button>
+      <button type="button" class="btn btn-sm btn-success" onclick="restoreOwner(${i})" style="margin-left:8px;white-space:nowrap">✅ Restore</button>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No banned owners</div>`;
   document.getElementById('owner-branch-list').innerHTML=`<div style="padding:14px 18px;color:var(--text3);font-size:13px">Branches are managed per platform owner.</div>`;
   // Subscription requests section
@@ -2767,7 +3131,7 @@ function renderSystemOwnerDashboard(){
       <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Send this code to <strong>${esc(q.username)}</strong></div>
       <div class="gen-code-val">${q.code}</div>
       <div style="font-size:10px;color:var(--text3);margin-bottom:8px">Activates until <strong>${q.paidUntil}</strong></div>
-      <button class="btn btn-sm btn-owner" onclick="copySubCode('${q.code}')">📋 Copy Code</button>
+      <button type="button" class="btn btn-sm btn-owner" onclick="copySubCode('${q.code}')">📋 Copy Code</button>
     </div>`:'';
     const activatedInfo=q.status==='activated'?`<div style="font-size:10px;color:var(--p);margin-top:4px">Activated ${(q.activatedAt||'').slice(0,10)} · Until ${q.paidUntil||'—'}</div>`:'';
     return`<div class="user-card" style="animation-delay:${i*.04}s;flex-direction:column;align-items:stretch;gap:8px">
@@ -2780,7 +3144,7 @@ function renderSystemOwnerDashboard(){
           <div class="user-meta">${dur.icon} ${dur.label} · Requested ${new Date(q.requestedAt).toLocaleDateString()}</div>
           ${activatedInfo}
         </div>
-        ${q.status==='pending'?`<button class="btn btn-sm btn-owner" onclick="generateSubCode('${q.id}')" style="white-space:nowrap">🔑 Generate Code</button>`:''}
+        ${q.status==='pending'?`<button type="button" class="btn btn-sm btn-owner" onclick="generateSubCode('${q.id}')" style="white-space:nowrap">🔑 Generate Code</button>`:''}
       </div>
       ${codeBox}
     </div>`;
@@ -2799,17 +3163,19 @@ function renderSystemOwnerDashboard(){
         <div class="user-meta">Requested: ${new Date(r.requestedAt).toLocaleString()}${r.respondedAt?` · Responded: ${new Date(r.respondedAt).toLocaleString()}`:''}</div>
       </div>
       ${r.status==='pending'?`
-        <button class="btn btn-sm btn-success" onclick="approveDataReset(${i})" style="margin-left:8px">✅ Approve</button>
-        <button class="btn btn-sm btn-danger" onclick="denyDataReset(${i})" style="margin-left:4px">❌ Deny</button>`:''}
+        <button type="button" class="btn btn-sm btn-success" onclick="approveDataReset(${i})" style="margin-left:8px">✅ Approve</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="denyDataReset(${i})" style="margin-left:4px">❌ Deny</button>`:''}
     </div>`;
   }).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No reset requests 🎉</div>`;
 }
 
-function approveOwner(i){
-  const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+async function approveOwner(i){
+  const pending=_lsGet('ims_pending_owners',[]);
   const p=pending[i];const reg=getRegistry();
+  // If pending password is still legacy plaintext (pre-fix), hash it now
+  const pwd=isHashed(p.password)?p.password:await sha256Hex(p.password);
   reg[p.username]={
-    password:p.password,ownerId:p.username,role:'owner',
+    password:pwd,ownerId:p.username,role:'owner',
     shopName:p.shopName||'',
     email:p.email||'',
     sub:'trial',status:'trial',
@@ -2817,22 +3183,22 @@ function approveOwner(i){
     payHistory:[]
   };
   saveRegistry(reg);pending.splice(i,1);
-  localStorage.setItem('ims_pending_owners',JSON.stringify(pending));
-  if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+  _lsSet('ims_pending_owners',pending);
+  if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(pending),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.error('approve sync:',err));
   showToast(`✅ ${p.username} approved — 14-day trial started!`,'success');renderSystemOwnerDashboard();
 }
 function denyOwner(i){
-  const pending=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+  const pending=_lsGet('ims_pending_owners',[]);
   const name=pending[i]?.username||'Unknown';
   customConfirm(
     `Deny "${name}"?`,
     'Their request will be removed. They can re-apply at any time.',
     '❌','Deny',
     ()=>{
-      const list=JSON.parse(localStorage.getItem('ims_pending_owners')||'[]');
+      const list=_lsGet('ims_pending_owners',[]);
       list.splice(i,1);
-      localStorage.setItem('ims_pending_owners',JSON.stringify(list));
-      if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+      _lsSet('ims_pending_owners',list);
+      if(S.db)S.db.collection('power_ims5').doc('_pending_owners').set({pending:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.warn('pending list cloud sync:',err));
       showToast(`❌ ${name} denied — they may re-apply`,'warn');renderSystemOwnerDashboard();
     }
   );
@@ -2894,10 +3260,10 @@ const SUB_DURATIONS={
   annual:{label:'Annual',months:12,icon:'🎯',desc:'12 months — best value'}
 };
 const SUB_REQ_KEY='ims_sub_requests';
-function getSubRequests(){return JSON.parse(localStorage.getItem(SUB_REQ_KEY)||'[]');}
+function getSubRequests(){return _lsGet(SUB_REQ_KEY,[]);}
 function saveSubRequests(list){
-  localStorage.setItem(SUB_REQ_KEY,JSON.stringify(list));
-  if(S.db)S.db.collection('power_ims5').doc('_sub_requests').set({requests:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+  _lsSet(SUB_REQ_KEY,list);
+  if(S.db)S.db.collection('power_ims5').doc('_sub_requests').set({requests:JSON.stringify(list),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.warn('sub_requests cloud sync:',err));
 }
 
 let _selfSubPlan='monthly';
@@ -2957,15 +3323,15 @@ function renderOwnerSubModal(){
     <div class="exp-section-label" style="margin-top:14px">Enter Activation Code</div>
     <div class="act-code-wrap">
       <input id="sub-act-code" maxlength="8" placeholder="8-digit code" oninput="this.value=this.value.replace(/\\D/g,'')">
-      <button class="btn btn-owner" onclick="activateSubCode()" style="white-space:nowrap">✅ Activate</button>
+      <button type="button" class="btn btn-owner" onclick="activateSubCode()" style="white-space:nowrap">✅ Activate</button>
     </div>
     <div class="modal-error" id="sub-act-error" style="margin-top:6px"></div>
     <div class="modal-success" id="sub-act-success" style="margin-top:6px"></div>`;
 
   const canRequest=!myReq||myReq.status==='activated'||myReq.status==='code_ready';
   const submitBtn=canRequest&&(!myReq||myReq.status==='activated')?
-    `<button class="modal-btn owner-btn" onclick="submitSubRequest()" style="margin-top:4px">📤 Submit Request</button>`:
-    myReq&&myReq.status==='pending'?`<button class="modal-btn secondary" onclick="cancelSubRequest('${myReq.id}')" style="margin-top:4px">✕ Cancel Request</button>`:'';
+    `<button type="button" class="modal-btn owner-btn" onclick="submitSubRequest()" style="margin-top:4px">📤 Submit Request</button>`:
+    myReq&&myReq.status==='pending'?`<button type="button" class="modal-btn secondary" onclick="cancelSubRequest('${myReq.id}')" style="margin-top:4px">✕ Cancel Request</button>`:'';
 
   document.getElementById('owner-sub-self-body').innerHTML=`
     ${statusHtml}
@@ -3048,7 +3414,7 @@ function generateSubCode(reqId){
   const base=(ownerReg.paidUntil&&ownerReg.paidUntil>today)?ownerReg.paidUntil:today;
   const d=new Date(base);d.setMonth(d.getMonth()+SUB_DURATIONS[req.plan].months);
   const paidUntil=d.toISOString().slice(0,10);
-  const code=String(Math.floor(10000000+Math.random()*90000000));
+  const code=(()=>{try{const a=new Uint32Array(1);crypto.getRandomValues(a);return String(10000000+(a[0]%90000000));}catch(_){return String(Math.floor(10000000+Math.random()*90000000));}})();
   reqs[idx].code=code;reqs[idx].status='code_ready';
   reqs[idx].codeGeneratedAt=new Date().toISOString();reqs[idx].paidUntil=paidUntil;
   saveSubRequests(reqs);
@@ -3097,7 +3463,7 @@ function renderOwnerDashboard(){
   const bannerEl=document.getElementById('owner-sub-banner');
   if(bannerEl)bannerEl.innerHTML=buildSubBanner(ss);
   const myUsers=Object.keys(reg).filter(u=>reg[u].ownerId===S.ownerId&&u!==S.user);
-  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+  const pending=_lsGet(`ims_${ownerNS()}_pending`,[]);
   document.getElementById('owner-stats').innerHTML=`
     <div class="owner-stat"><div class="stat-icon">👥</div><div class="stat-val">${myUsers.length}</div><div class="stat-lbl">My Users</div></div>
     <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${pending.length}</div><div class="stat-lbl">Pending</div></div>
@@ -3113,16 +3479,16 @@ function renderOwnerDashboard(){
         <div class="user-meta">Branch: ${esc(r.branch||'—')}</div>
       </div>
       <span class="user-status ${statusClass}">${r.status==='suspended'?'🚫':'✅'}</span>
-      <button class="btn btn-sm" onclick="openEditUserModal('${u}')" style="margin-left:8px" title="Edit user">✏️</button>
-      ${r.status!=='suspended'?`<button class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:4px">🚫</button>`:`<button class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
-      <button class="btn btn-sm" onclick="deleteMyUser('${u}')" style="margin-left:4px;color:var(--error)">🗑️</button>
+      <button type="button" class="btn btn-sm" onclick="openEditUserModal('${u}')" style="margin-left:8px" title="Edit user">✏️</button>
+      ${r.status!=='suspended'?`<button type="button" class="btn btn-sm btn-danger" onclick="suspendMyUser('${u}')" style="margin-left:4px">🚫</button>`:`<button type="button" class="btn btn-sm btn-success" onclick="unsuspendMyUser('${u}')" style="margin-left:4px">✅</button>`}
+      <button type="button" class="btn btn-sm" onclick="deleteMyUser('${u}')" style="margin-left:4px;color:var(--error)">🗑️</button>
     </div>`;
   }).join(''):`<div style="padding:28px;text-align:center;color:var(--text3)">No users yet.</div>`;
   document.getElementById('pending-count').textContent=pending.length;
   document.getElementById('pending-user-list').innerHTML=pending.length?pending.map((p,i)=>`
     <div class="user-card" style="animation-delay:${i*.06}s">
       <div class="user-avatar">${p.username[0].toUpperCase()}</div>
-      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
+      <div class="user-info"><div class="user-name">${esc(p.username)}</div><div class="user-meta">${p.phone?`📞 ${esc(p.phone)} · `:''}Requested: ${new Date(p.requestedAt).toLocaleString()}</div></div>
       <div style="display:flex;gap:6px;align-items:center">
         <select id="approve-role-${i}" style="padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
           <option value="user">👤 User</option>
@@ -3131,8 +3497,8 @@ function renderOwnerDashboard(){
         <select id="approve-branch-${i}" style="padding:4px 8px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-family:var(--font);font-size:11px">
           ${S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}
         </select>
-        <button class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveMyUser(${i})">✅</button>
-        <button class="apv-btn deny" style="width:auto;padding:6px 12px" onclick="denyMyUser(${i})">❌</button>
+        <button type="button" class="apv-btn approve" style="width:auto;padding:6px 12px" onclick="approveMyUser(${i})">✅</button>
+        <button type="button" class="apv-btn deny" style="width:auto;padding:6px 12px" onclick="denyMyUser(${i})">❌</button>
       </div>
     </div>`).join(''):`<div style="padding:24px;text-align:center;color:var(--text3)">No pending requests 🎉</div>`;
   document.getElementById('owner-branch-list').innerHTML=S.branches.map(b=>`
@@ -3142,33 +3508,35 @@ function renderOwnerDashboard(){
     </div>`).join('');
 }
 
-function approveMyUser(i){
-  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+async function approveMyUser(i){
+  const pending=_lsGet(`ims_${ownerNS()}_pending`,[]);
   const p=pending[i];
   if((S.deletedUsers||[]).includes(p.username)){
     pending.splice(i,1);
-    localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+    _lsSet(`ims_${ownerNS()}_pending`,pending);
     showToast(`⛔ ${p.username} is permanently blocked and was removed from queue.`,'error');
     renderOwnerDashboard();return;
   }
   const branch=document.getElementById(`approve-branch-${i}`)?.value||S.branches[0];
   const role=document.getElementById(`approve-role-${i}`)?.value||'user';
   const reg=getRegistry();
-  reg[p.username]={password:p.password,ownerId:S.ownerId,role,branch,status:'active'};
+  // Hash legacy plaintext password if needed (defense-in-depth)
+  const pwd=isHashed(p.password)?p.password:await sha256Hex(p.password);
+  reg[p.username]={password:pwd,ownerId:S.ownerId,role,branch,status:'active'};
   saveRegistry(reg);
   if(p.avatar)localStorage.setItem(`ims_${p.username}_avatar`,p.avatar);
   if(!S.perms[p.username])S.perms[p.username]={};
   S.perms[p.username].branches=[branch];
   pending.splice(i,1);
-  localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+  _lsSet(`ims_${ownerNS()}_pending`,pending);
   saveUserData();
   showToast(`✅ ${p.username} approved as ${role}!`,'success');
   updateNotifBadge();renderOwnerDashboard();
 }
 function denyMyUser(i){
-  const pending=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+  const pending=_lsGet(`ims_${ownerNS()}_pending`,[]);
   const name=pending[i].username;pending.splice(i,1);
-  localStorage.setItem(`ims_${ownerNS()}_pending`,JSON.stringify(pending));
+  _lsSet(`ims_${ownerNS()}_pending`,pending);
   showToast(`❌ ${name} denied`,'error');updateNotifBadge();renderOwnerDashboard();
 }
 function suspendMyUser(u){
@@ -3229,16 +3597,17 @@ function openAddUserModal(){
   sel.innerHTML=S.branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
   hideMsg('nu-error');openModal('add-user-modal');
 }
-function submitAddUser(){
-  const u=document.getElementById('nu-username').value.trim();
-  const p=document.getElementById('nu-password').value;
+async function submitAddUser(){
+  const u=cap(document.getElementById('nu-username').value.trim(),MAX_USERNAME_LEN);
+  const p=cap(document.getElementById('nu-password').value,MAX_PASSWORD_LEN);
   const role=document.getElementById('nu-role').value;
   const branch=role==='storekeeper'?'STORE':document.getElementById('nu-branch').value;
   if(!u||!p){showMsg('nu-error','Username and password required');return;}
   if(p.length<4){showMsg('nu-error','Password min 4 characters');return;}
   const reg=getRegistry();
   if(reg[u]||u===OWNER_USERNAME){showMsg('nu-error','Username already exists');return;}
-  reg[u]={password:p,ownerId:S.ownerId,role,branch,status:'active'};
+  const pwdHash=await sha256Hex(p);
+  reg[u]={password:pwdHash,ownerId:S.ownerId,role,branch,status:'active'};
   saveRegistry(reg);
   if(!S.perms[u])S.perms[u]={};
   if(role!=='storekeeper')S.perms[u].branches=[branch];
@@ -3265,13 +3634,13 @@ function toggleEditUserBranch(){
   const role=document.getElementById('eu-role').value;
   document.getElementById('eu-branch-wrap').style.display=role==='storekeeper'?'none':'';
 }
-function submitEditUser(){
-  const p=document.getElementById('eu-password').value;
+async function submitEditUser(){
+  const p=cap(document.getElementById('eu-password').value,MAX_PASSWORD_LEN);
   const role=document.getElementById('eu-role').value;
   const branch=role==='storekeeper'?'STORE':document.getElementById('eu-branch').value;
   if(p&&p.length<4){showMsg('eu-error','Password must be at least 4 characters');return;}
   const reg=getRegistry();if(!reg[_editUserTarget])return;
-  if(p)reg[_editUserTarget].password=p;
+  if(p)reg[_editUserTarget].password=await sha256Hex(p);
   reg[_editUserTarget].role=role;
   reg[_editUserTarget].branch=branch;
   saveRegistry(reg);
@@ -3287,7 +3656,7 @@ function submitEditUser(){
    OWNER — APPROVAL QUEUE
 ═══════════════════════════════════════════════════════ */
 function loadPendingApprovals(){
-  S.pendingSignups=JSON.parse(localStorage.getItem(`ims_${ownerNS()}_pending`)||'[]');
+  S.pendingSignups=_lsGet(`ims_${ownerNS()}_pending`,[]);
   updateNotifBadge();
 }
 function updateNotifBadge(){}
@@ -3362,10 +3731,10 @@ function openStoreReceipts(){
           Date: ${(r.date||'').replace('T',' ')} | Branch: ${esc(r.toBranch)}
         </div>
         ${r.status==='pending'?`<div class="receipt-actions">
-          <button class="apv-btn approve" onclick="approveStoreReceipt('${branch}',${origIdx})">✅ Approve & Receive</button>
-          <button class="apv-btn deny" onclick="rejectStoreReceipt('${branch}',${origIdx})">❌ Reject</button>
-          <button class="btn btn-sm" style="margin-left:4px" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️</button>
-        </div>`:`<div style="margin-top:8px"><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️ Print</button></div>`}
+          <button type="button" class="apv-btn approve" onclick="approveStoreReceipt('${branch}',${origIdx})">✅ Approve & Receive</button>
+          <button type="button" class="apv-btn deny" onclick="rejectStoreReceipt('${branch}',${origIdx})">❌ Reject</button>
+          <button type="button" class="btn btn-sm" style="margin-left:4px" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️</button>
+        </div>`:`<div style="margin-top:8px"><button type="button" class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(r)})'>🖨️ Print</button></div>`}
       </div>`;
     }).join('');
   }
@@ -3407,10 +3776,10 @@ function rejectStoreReceipt(branch,idx){
    STORE REQUESTS — branch users request items from store
 ═══════════════════════════════════════════════════════ */
 function loadStoreRequests(){
-  return JSON.parse(localStorage.getItem(lsKey('storereqs'))||'[]');
+  return _lsGet(lsKey('storereqs'),[]);
 }
 function saveStoreRequests(reqs){
-  localStorage.setItem(lsKey('storereqs'),JSON.stringify(reqs));
+  _lsSet(lsKey('storereqs'),reqs);
 }
 
 function openRequestItemModal(){
@@ -3437,10 +3806,10 @@ function onReqItemChange(){
 
 function submitItemRequest(){
   const selItem=document.getElementById('req-item').value;
-  const custItem=document.getElementById('req-custom-item').value.trim();
+  const custItem=cap(document.getElementById('req-custom-item').value.trim(),MAX_NAME_LEN);
   const itemName=selItem||custItem;
   const qty=parseFloat(document.getElementById('req-qty').value)||0;
-  const note=document.getElementById('req-note').value.trim();
+  const note=cap(document.getElementById('req-note').value.trim(),MAX_NOTE_LEN);
   if(!itemName){showMsg('req-error','Please select or enter an item name');return;}
   if(qty<1){showMsg('req-error','Quantity must be at least 1');return;}
   const reqs=loadStoreRequests();
@@ -3488,8 +3857,8 @@ function renderStoreRequestsPanel(){
         ${r.respondedBy?`Responded by: ${esc(r.respondedBy)}`:''}
       </div>
       ${r.status==='pending'&&canAct?`<div class="receipt-actions">
-        <button class="apv-btn approve" onclick="approveItemRequest(${idx})">✅ Approve & Dispatch</button>
-        <button class="apv-btn deny" onclick="rejectItemRequest(${idx})">❌ Reject</button>
+        <button type="button" class="apv-btn approve" onclick="approveItemRequest(${idx})">✅ Approve & Dispatch</button>
+        <button type="button" class="apv-btn deny" onclick="rejectItemRequest(${idx})">❌ Reject</button>
       </div>`:''}
     </div>`;
   }).join('');
@@ -3714,11 +4083,11 @@ function exportStoreReceiptPDF(){
 /* ═══════════════════════════════════════════════════════
    DATA RESET (owner request + system owner approval)
 ═══════════════════════════════════════════════════════ */
-function _getResetRequests(){return JSON.parse(localStorage.getItem('ims_reset_requests')||'[]');}
+function _getResetRequests(){return _lsGet('ims_reset_requests',[]);}
 function _saveResetRequests(reqs){
-  localStorage.setItem('ims_reset_requests',JSON.stringify(reqs));
+  _lsSet('ims_reset_requests',reqs);
   if(S.db)S.db.collection('power_ims5').doc('_reset_requests')
-    .set({requests:JSON.stringify(reqs),updatedAt:new Date().toISOString()},{merge:true}).catch(()=>{});
+    .set({requests:JSON.stringify(reqs),updatedAt:new Date().toISOString()},{merge:true}).catch(err=>console.warn('reqs cloud sync:',err));
 }
 function requestDataReset(){
   customConfirm(
@@ -3763,7 +4132,7 @@ function approveDataReset(idx){
           storeItems:empty,storeDispatches:empty,
           beginBal:0,branchBeginBal:'{}',
           resetAt:now,updatedAt:now
-        },{merge:true}).catch(()=>{});
+        },{merge:true}).catch(err=>console.warn('data reset cloud push:',err));
       }
       showToast(`✅ Data reset approved for ${req.ownerUsername}`,'success');
       renderSystemOwnerDashboard();
@@ -4022,10 +4391,10 @@ function renderHeadActions(){
   let html='';
   if(rw&&S.tab!=='BALANCE'&&S.tab!=='REPORT'&&S.tab!=='STOREBALANCE'&&S.tab!=='STOREREPORT'){
     const label=S.tab==='STORE'?'Add Store Stock':TAB_META[S.tab]?.title?.replace('Add ','')||'Entry';
-    html+=`<button class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
+    html+=`<button type="button" class="btn btn-primary" onclick="openAddModal()">➕ ${label}</button>`;
   }
   if(S.tab==='STORE'&&(isOwner()||isStorekeeper())){
-    html+=`<button class="btn" style="background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
+    html+=`<button type="button" class="btn" style="background:var(--store-gradient);color:#fff;border:none;box-shadow:0 4px 14px var(--store-glow)" onclick="openDispatchModal()">📤 Dispatch to Branch</button>`;
   }
   if(S.tab==='PURCHASE'||S.tab==='SALES'){
     const availBranches=S.userBranch?[S.userBranch]:S.branches;
@@ -4086,8 +4455,8 @@ function buildStoreEntryForm(row,mode,idx){
       <div class="field"><label>Quantity *</label><input type="number" id="f-qty" value="${d.qty||''}" placeholder="0" min="0" step="any"></div>
       <div class="field"><label>Unit Cost</label><input type="number" id="f-cost" value="${d.cost||''}" placeholder="0.00" step="any"></div>
     </div>
-    <button class="modal-btn store-btn" onclick="submitStoreEntryForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
-    <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
+    <button type="button" class="modal-btn store-btn" onclick="submitStoreEntryForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add to Store':'💾 Save'}</button>
+    <button type="button" class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
   if(d.itemId&&mode==='edit'){
     document.getElementById('f-name').value=d.itemName||'';
@@ -4148,8 +4517,8 @@ function openDispatchModal(){
         <span id="disp-total" style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">0.00</span>
       </div>
     </div>
-    <button class="modal-btn store-btn" onclick="submitDispatch()">📤 Dispatch to Branch</button>
-    <button class="modal-btn secondary" onclick="closeModal('add-row-modal')" style="margin-top:5px">Cancel</button>
+    <button type="button" class="modal-btn store-btn" onclick="submitDispatch()">📤 Dispatch to Branch</button>
+    <button type="button" class="modal-btn secondary" onclick="closeModal('add-row-modal')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
   openModal('add-row-modal');
 }
@@ -4186,14 +4555,14 @@ function buildItemForm(row,mode,idx){
       <div class="field"><label>Item Name *</label><input id="f-name" value="${esc(d.name)}" placeholder="Product name"></div>
     </div>
     <div class="field"><label>Description</label><input id="f-desc" value="${esc(d.desc||'')}" placeholder="Optional"></div>
-    <button class="modal-btn" onclick="submitItemForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add Item':'💾 Save Changes'}</button>
-    <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
+    <button type="button" class="modal-btn" onclick="submitItemForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add Item':'💾 Save Changes'}</button>
+    <button type="button" class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
 }
 function submitItemForm(mode,idx){
-  const id=document.getElementById('f-id').value.trim();
-  const name=document.getElementById('f-name').value.trim();
-  const desc=document.getElementById('f-desc').value.trim();
+  const id=cap(document.getElementById('f-id').value.trim(),MAX_NAME_LEN);
+  const name=cap(document.getElementById('f-name').value.trim(),MAX_NAME_LEN);
+  const desc=cap(document.getElementById('f-desc').value.trim(),MAX_NOTE_LEN);
   if(!id||!name){showMsg('f-error','Part Number and Name are required');return;}
   const dupIdx=S.items.findIndex(m=>m.id.toLowerCase()===id.toLowerCase());
   if(dupIdx!==-1&&(mode==='add'||dupIdx!==idx)){showMsg('f-error','Part Number already exists — choose a unique one');return;}
@@ -4248,8 +4617,8 @@ function buildTxForm(row,mode,isP,idx){
         <span id="f-total-display" style="font-family:var(--mono);font-size:1.1rem;font-weight:800;color:var(--p)">0.00</span>
       </div>
     </div>
-    <button class="modal-btn" onclick="submitTxForm('${mode}',${idx??-1},${isP})">${mode==='add'?`➕ Add ${t} Record`:'💾 Save Changes'}</button>
-    <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
+    <button type="button" class="modal-btn" onclick="submitTxForm('${mode}',${idx??-1},${isP})">${mode==='add'?`➕ Add ${t} Record`:'💾 Save Changes'}</button>
+    <button type="button" class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
   if(d.id){const item=S.items.find(m=>m.id===d.id);if(item){document.getElementById('f-name').value=item.name;document.getElementById('f-desc').value=item.desc;}}
   recalcFormTotals(isP);
@@ -4323,13 +4692,13 @@ function buildExpenseForm(row,mode,idx){
       <div class="field"><label>Amount *</label><input type="number" id="f-amt" value="${d.amt||''}" placeholder="0.00" step="any"></div>
       <div class="field"><label>Payment</label><select id="f-payment">${pmOpts}</select></div>
     </div>
-    <button class="modal-btn" onclick="submitExpenseForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add Expense':'💾 Save'}</button>
-    <button class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
+    <button type="button" class="modal-btn" onclick="submitExpenseForm('${mode}',${idx??-1})">${mode==='add'?'➕ Add Expense':'💾 Save'}</button>
+    <button type="button" class="modal-btn secondary" onclick="closeModal('${mode==='add'?'add-row-modal':'edit-row-modal'}')" style="margin-top:5px">Cancel</button>
     <div class="modal-error" id="f-error"></div>`;
 }
 function submitExpenseForm(mode,idx){
   const date=document.getElementById('f-date').value;
-  const reason=document.getElementById('f-reason').value.trim();
+  const reason=cap(document.getElementById('f-reason').value.trim(),MAX_NOTE_LEN);
   const amt=parseFloat(document.getElementById('f-amt').value)||0;
   const payment=document.getElementById('f-payment').value;
   if(!date||!reason||!amt){showMsg('f-error','All fields required');return;}
@@ -4368,7 +4737,7 @@ function renderTx(){
   const list=isP?S.purchase:S.sales;
   const branchF=document.getElementById('branch-filter')?.value||'';
   const effectiveBranchF=S.userBranch||branchF;
-  const visible=list.filter(r=>r.id||r.party||r.qty).filter(r=>!effectiveBranchF||r.branch===effectiveBranchF);
+  const visible=list.filter(r=>r.id||r.name||r.party||r.qty).filter(r=>!effectiveBranchF||r.branch===effectiveBranchF);
   let totQty=0,totVal=0;
   const rows=visible.map(row=>{
     const i=list.indexOf(row);
@@ -4449,7 +4818,7 @@ function renderBalance(){
     <span style="font-size:11px;font-weight:700;color:var(--text3)">${L('totalInventoryValue')}${filterBranch?` — ${filterBranch}`:''}</span>
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-family:var(--mono);font-size:1.05rem;font-weight:800;color:var(--success)">${fmt(totalV)}</span>
-      <button class="btn btn-sm no-print" onclick="exportBalancePDF()" style="background:var(--error);color:#fff;border-color:var(--error)">${L('exportPdfBtn')}</button>
+      <button type="button" class="btn btn-sm no-print" onclick="exportBalancePDF()" style="background:var(--error);color:#fff;border-color:var(--error)">${L('exportPdfBtn')}</button>
     </div>
   </div>`;
 }
@@ -4606,8 +4975,8 @@ function renderStoreReport(){
     <div class="date-bar no-print">
       <label>From: <input type="date" value="${S.storeReportRange.from}" onchange="S.storeReportRange.from=this.value;renderTab()"></label>
       <label>To: <input type="date" value="${S.storeReportRange.to}" onchange="S.storeReportRange.to=this.value;renderTab()"></label>
-      <button class="btn btn-sm" onclick="S.storeReportRange.from='';S.storeReportRange.to='';renderTab()">${L('btnClear')}</button>
-      <button class="btn btn-sm no-print" onclick="printStoreReport()" style="margin-left:auto">${L('btnPrint')}</button>
+      <button type="button" class="btn btn-sm" onclick="S.storeReportRange.from='';S.storeReportRange.to='';renderTab()">${L('btnClear')}</button>
+      <button type="button" class="btn btn-sm no-print" onclick="printStoreReport()" style="margin-left:auto">${L('btnPrint')}</button>
     </div>
     ${summaryData.map(r=>`<div class="${r.total?'report-row report-total-row':'report-row'}">
       <div class="report-label">${r.icon} ${r.l}</div>
@@ -4677,7 +5046,7 @@ function renderStore(){
       <td class="num td-mono" data-label="Total">${fmt(d.total)}</td>
       <td data-label="Branch"><span class="td-badge badge-other" style="font-size:10px">${esc(d.toBranch)}</span></td>
       <td data-label="Status">${statusBadge}</td>
-      <td data-label=""><button class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
+      <td data-label=""><button type="button" class="btn btn-sm" onclick='viewStoreReceiptPrint(${JSON.stringify(d)})'>🖨️</button></td>
     </tr>`;
   }).join('');
 
@@ -4735,7 +5104,7 @@ function openCreditPayModal(cid,totalAmt){
 
 function saveCreditPayment(){
   const amt=parseFloat(document.getElementById('credit-pay-amount').value)||0;
-  const note=(document.getElementById('credit-pay-note').value||'').trim();
+  const note=cap((document.getElementById('credit-pay-note').value||'').trim(),MAX_NOTE_LEN);
   const err=document.getElementById('credit-pay-error');
   if(amt<=0){err.textContent='Enter a positive amount.';return;}
   const paid=getCreditPaidAmt(_cpCid);
@@ -4808,13 +5177,13 @@ function renderCreditPage(){
         <span class="td-mono num-pos">+${fmt(p.amount||0)}</span>
         <span>${(p.paidAt||'').slice(0,10)}</span>
         ${p.note?`<span style="color:var(--text3)">· ${esc(p.note)}</span>`:''}
-        ${canMark?`<button onclick="removeCreditPayment('${row._cid}',${i})" style="background:none;border:none;cursor:pointer;color:var(--error);font-size:9px;padding:0 2px;line-height:1" title="Remove this payment">✕</button>`:''}
+        ${canMark?`<button type="button" onclick="removeCreditPayment('${row._cid}',${i})" style="background:none;border:none;cursor:pointer;color:var(--error);font-size:9px;padding:0 2px;line-height:1" title="Remove this payment">✕</button>`:''}
       </span>`).join('')+
       `</div>`:'';
     const remainingLabel=isFullyPaid?'':`<div style="font-size:10px;color:${isPartial?'var(--warn)':'var(--text3)'};margin-top:2px">${isPartial?`Balance: ${fmt(remaining)}`:'—'}</div>`;
     const actionBtn=canMark?`<div style="display:flex;flex-direction:column;gap:4px">
-      ${!isFullyPaid?`<button class="btn btn-sm btn-primary" onclick="openCreditPayModal('${row._cid}',${row._amt})" style="font-size:10px;padding:3px 8px">+ Payment</button>`:''}
-      ${payments.length?`<button class="btn btn-sm" onclick="clearCreditPayments('${row._cid}')" style="font-size:10px;padding:3px 8px;opacity:.6">🗑️ Clear</button>`:''}
+      ${!isFullyPaid?`<button type="button" class="btn btn-sm btn-primary" onclick="openCreditPayModal('${row._cid}',${row._amt})" style="font-size:10px;padding:3px 8px">+ Payment</button>`:''}
+      ${payments.length?`<button type="button" class="btn btn-sm" onclick="clearCreditPayments('${row._cid}')" style="font-size:10px;padding:3px 8px;opacity:.6">🗑️ Clear</button>`:''}
     </div>`:'';
     return`<tr style="${isFullyPaid?'opacity:.6':''}">
       <td class="td-mono" data-label="Date" style="font-size:11px">${(row.date||'').replace('T',' ')}</td>
@@ -4853,9 +5222,9 @@ function renderCreditPage(){
 
   const filterBar=`
     <div style="display:flex;gap:8px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center">
-      <button class="btn btn-sm${activeFilter==='all'?' btn-primary':''}" onclick="S.creditFilter='all';renderTab()">All (${all.length})</button>
-      <button class="btn btn-sm${activeFilter==='sales'?' btn-primary':''}" onclick="S.creditFilter='sales';renderTab()">💰 Sales (${creditSales.length})</button>
-      <button class="btn btn-sm${activeFilter==='purchases'?' btn-primary':''}" onclick="S.creditFilter='purchases';renderTab()">🛒 Purchases (${creditPurch.length})</button>
+      <button type="button" class="btn btn-sm${activeFilter==='all'?' btn-primary':''}" onclick="S.creditFilter='all';renderTab()">All (${all.length})</button>
+      <button type="button" class="btn btn-sm${activeFilter==='sales'?' btn-primary':''}" onclick="S.creditFilter='sales';renderTab()">💰 Sales (${creditSales.length})</button>
+      <button type="button" class="btn btn-sm${activeFilter==='purchases'?' btn-primary':''}" onclick="S.creditFilter='purchases';renderTab()">🛒 Purchases (${creditPurch.length})</button>
       <span style="margin-left:auto;font-size:10px;color:var(--text3)">${numOutstanding} outstanding of ${filtered.length}</span>
     </div>`;
 
@@ -4940,15 +5309,15 @@ function renderReport(){
   const showBranchTabs=isOwner()&&S.branches.length>1;
 
   const branchTabsHtml=showBranchTabs?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
-    <button class="btn btn-sm${activeBranch===''?' btn-primary':''}" onclick="S.reportBranch='';renderTab()">🌐 ${L('allBranchesBtn')}</button>
-    ${S.branches.map(b=>`<button class="btn btn-sm${activeBranch===b?' btn-primary':''}" onclick="S.reportBranch='${esc(b)}';renderTab()">${esc(b)}</button>`).join('')}
+    <button type="button" class="btn btn-sm${activeBranch===''?' btn-primary':''}" onclick="S.reportBranch='';renderTab()">🌐 ${L('allBranchesBtn')}</button>
+    ${S.branches.map(b=>`<button type="button" class="btn btn-sm${activeBranch===b?' btn-primary':''}" onclick="S.reportBranch='${esc(b)}';renderTab()">${esc(b)}</button>`).join('')}
   </div>`:'';
 
   const datebar=`<div class="date-bar no-print">
     <label>From: <input type="date" value="${S.reportRange.from}" onchange="S.reportRange.from=this.value;renderTab()"></label>
     <label>To: <input type="date" value="${S.reportRange.to}" onchange="S.reportRange.to=this.value;renderTab()"></label>
-    <button class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">${L('btnClear')}</button>
-    <button class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">${L('btnPrint')}</button>
+    <button type="button" class="btn btn-sm" onclick="S.reportRange.from='';S.reportRange.to='';renderTab()">${L('btnClear')}</button>
+    <button type="button" class="btn btn-sm no-print" onclick="printReport()" style="margin-left:auto">${L('btnPrint')}</button>
   </div>`;
 
   if(isOwner()&&activeBranch===''){
@@ -5009,7 +5378,7 @@ function _renderAllBranchesReport(branchTabsHtml,datebar){
       ${isOwner()?`<span style="font-size:10px;color:var(--text3)">${L('editBalanceHint')}</span>`:''}
     </div>
     <div style="overflow-y:auto;padding-bottom:8px">
-      ${branchCards}${totCard}
+      ${branchCards}${S.branches.length>1?totCard:''}
     </div>`;
   document.getElementById('extras').innerHTML='';
 }
@@ -5163,7 +5532,7 @@ function openPermissions(){
   const users=Object.keys(reg).filter(u=>u!==S.user&&reg[u].ownerId===S.ownerId&&reg[u].role==='user');
   const body=document.getElementById('perm-body');
   if(!users.length){
-    body.innerHTML='<p style="color:var(--text3)">No regular users under your account yet.</p><button class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
+    body.innerHTML='<p style="color:var(--text3)">No regular users under your account yet.</p><button type="button" class="modal-btn secondary" onclick="closeModal(\'perm-modal\')" style="margin-top:14px">Close</button>';
   }else{
     body.innerHTML=users.map(u=>{
       const up=S.perms[u]||{};const ep=S.exportPerms[u]??true;
@@ -5172,7 +5541,7 @@ function openPermissions(){
         <div class="perm-grid">${PERM_TABS.map(t=>`<div class="perm-field"><label>${t}</label><select class="perm-select" onchange="setUserPerm('${u}','${t}',this.value)">${PERM_OPTS.map(o=>`<option value="${o.v}"${(up[t]||'full')===o.v?' selected':''}>${o.l}</option>`).join('')}</select></div>`).join('')}</div>
         <div class="perm-perm-row"><label>Export Permission</label><label class="toggle-sw"><input type="checkbox" ${ep?'checked':''} onchange="setExportPerm('${u}',this.checked)"><span></span></label></div>
       </div>`;
-    }).join('')+`<button class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
+    }).join('')+`<button type="button" class="modal-btn secondary" onclick="closeModal('perm-modal')" style="margin-top:4px">Close</button>`;
   }
   openModal('perm-modal');
 }
@@ -5187,7 +5556,7 @@ function renderBranchList(){
   document.getElementById('branch-list-ui').innerHTML=S.branches.map((b,i)=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:9px;margin-bottom:7px;border:1px solid var(--border);animation:flyInLeft .3s ease both;animation-delay:${i*.05}s">
       <span style="font-weight:600">🏢 ${esc(b)}</span>
-      ${i>0?`<button onclick="deleteBranch(${i})" class="btn btn-danger btn-sm">✕</button>`:'<span style="font-size:10px;color:var(--text3)">Default</span>'}
+      ${i>0?`<button type="button" onclick="deleteBranch(${i})" class="btn btn-danger btn-sm">✕</button>`:'<span style="font-size:10px;color:var(--text3)">Default</span>'}
     </div>`).join('');
 }
 function addBranch(){
@@ -5327,6 +5696,195 @@ function exportXL(tab){
 }
 
 /* ═══════════════════════════════════════════════════════
+   RESET DATA ENTRIES (owner only)
+═══════════════════════════════════════════════════════ */
+let _rstTab='ALL';
+const _rstMeta={
+  ALL:    {label:'all purchases, sales, and expenses',hint:'Items, branches, users, and settings will be kept.'},
+  PURCHASE:{label:'all purchase records',hint:'Sales, expenses, and other data will be kept.'},
+  SALES:  {label:'all sales records',hint:'Purchases, expenses, and other data will be kept.'},
+  EXPENSE:{label:'all expense records',hint:'Purchases, sales, and other data will be kept.'},
+  ITEMS:  {label:'all items (master list)',hint:'Transaction history will be kept.'},
+  STORE:  {label:'all store inventory records',hint:'Purchases, sales, and expenses will be kept.'},
+};
+
+function openResetDataModal(){
+  if(!isOwner()){showToast('⛔ Owner access only','error');return;}
+  _rstTab='ALL';
+  _updateRstUI();
+  document.getElementById('reset-confirm-input').value='';
+  const b=document.getElementById('reset-confirm-btn');
+  b.disabled=true;b.style.opacity='.5';b.style.cursor='not-allowed';
+  openModal('reset-data-modal');
+}
+
+function selectRstTab(t){
+  _rstTab=t;
+  _updateRstUI();
+  document.getElementById('reset-confirm-input').value='';
+  const b=document.getElementById('reset-confirm-btn');
+  b.disabled=true;b.style.opacity='.5';b.style.cursor='not-allowed';
+}
+
+function _updateRstUI(){
+  ['ALL','PURCHASE','SALES','EXPENSE','ITEMS','STORE'].forEach(p=>{
+    document.getElementById('rst-pill-'+p).classList.toggle('active',p===_rstTab);
+  });
+  const m=_rstMeta[_rstTab];
+  document.getElementById('reset-warn-box').innerHTML=
+    `This will permanently delete <strong>${m.label}</strong>.<br>${m.hint}<br><br>Type <strong>RESET</strong> below to confirm.`;
+}
+
+function confirmResetData(){
+  if(!isOwner()){showToast('⛔ Owner access only','error');return;}
+  if(document.getElementById('reset-confirm-input').value.trim()!=='RESET')return;
+  if(_rstTab==='ALL'){S.purchase=[];S.sales=[];S.expense=[];S.creditPayments=[];}
+  else if(_rstTab==='PURCHASE'){S.purchase=[];S.creditPayments=(S.creditPayments||[]).filter(p=>!p._purchaseId);}
+  else if(_rstTab==='SALES'){S.sales=[];S.creditPayments=(S.creditPayments||[]).filter(p=>!p._salesId);}
+  else if(_rstTab==='EXPENSE'){S.expense=[];}
+  else if(_rstTab==='ITEMS'){S.items=[];}
+  else if(_rstTab==='STORE'){S.storeItems=[];S.storeDispatches=[];}
+  saveUserData();renderTab();
+  closeModal('reset-data-modal');
+  showToast(`${_rstMeta[_rstTab].label.replace('all ','').replace(/^\w/,c=>c.toUpperCase())} cleared`,'success');
+}
+
+/* ═══════════════════════════════════════════════════════
+   IMPORT FROM EXCEL
+═══════════════════════════════════════════════════════ */
+let _impSheet='PURCHASE';
+let _impRows=[];
+
+function openImportModal(){
+  if(!canExport()){showToast('⛔ No import permission','error');return;}
+  _impSheet='PURCHASE';_impRows=[];
+  document.getElementById('imp-file-input').value='';
+  document.getElementById('imp-file-label').textContent='Choose .xlsx file…';
+  document.getElementById('imp-preview').textContent='';
+  ['PURCHASE','SALES','EXPENSE','ITEMS','STORE'].forEach(s=>{
+    document.getElementById('imp-pill-'+s).classList.toggle('active',s==='PURCHASE');
+  });
+  openModal('import-modal');
+}
+
+function selectImpSheet(s){
+  _impSheet=s;_impRows=[];
+  document.getElementById('imp-file-input').value='';
+  document.getElementById('imp-file-label').textContent='Choose .xlsx file…';
+  document.getElementById('imp-preview').textContent='';
+  ['PURCHASE','SALES','EXPENSE','ITEMS','STORE'].forEach(p=>{
+    document.getElementById('imp-pill-'+p).classList.toggle('active',p===s);
+  });
+}
+
+function onImpFileChange(input){
+  if(!input.files.length)return;
+  const file=input.files[0];
+  document.getElementById('imp-file-label').textContent=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      if(typeof XLSX==='undefined'){showToast('XLSX not loaded','error');return;}
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(raw.length<2){document.getElementById('imp-preview').textContent='No data rows found.';_impRows=[];return;}
+      const headers=raw[0].map(h=>String(h).trim());
+      const dataRows=raw.slice(1).filter(r=>r.some(c=>c!==''));
+      _impRows=_parseImpRows(headers,dataRows,_impSheet);
+      document.getElementById('imp-preview').innerHTML=
+        `<span style="color:var(--success);font-weight:600">${_impRows.length} row(s) ready to import</span> from ${file.name}`;
+    }catch(err){
+      document.getElementById('imp-preview').textContent='Error reading file: '+err.message;
+      _impRows=[];
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function _parseImpRows(headers,dataRows,sheet){
+  const _aliases={
+    'part no.':['part no.','part no','part number','part#','partno','id','item id','item no','item no.','code'],
+    'item name':['item name','name','item','title'],
+    'description':['description','desc','details','note'],
+    'supplier':['supplier','vendor','party','from'],
+    'customer':['customer','buyer','party','client','to'],
+    'unit price':['unit price','unit cost','uprice','cost'],
+    'price':['price','sale price','selling price','sprice'],
+    'qty':['qty','quantity'],
+    'stock qty':['stock qty','qty','quantity','stock'],
+    'unit cost':['unit cost','unit price','cost'],
+    'date received':['date received','date','received date'],
+  };
+  const norm=s=>String(s).trim().toLowerCase();
+  const idx=k=>{const aliases=_aliases[norm(k)]||[norm(k)];for(const a of aliases){const i=headers.findIndex(h=>norm(h)===a);if(i>=0)return i;}return -1;};
+  const g=(row,k)=>{const i=idx(k);return i>=0?row[i]:'';};
+  const rows=[];
+  if(sheet==='PURCHASE'){
+    dataRows.forEach(r=>{
+      const party=g(r,'Supplier');const id=g(r,'Part No.');const name=g(r,'Name');
+      const qty=parseFloat(g(r,'Qty'))||0;
+      if(!qty&&!id&&!name&&!party)return;
+      if(String(g(r,'Qty')).toUpperCase()==='TOTAL')return;
+      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(g(r,'Desc')),qty,uPrice:parseFloat(g(r,'Unit Price'))||0,payment:g(r,'Payment')||'CASH',vatOn:false,_by:S.user});
+    });
+  }else if(sheet==='SALES'){
+    dataRows.forEach(r=>{
+      const party=g(r,'Customer');const id=g(r,'Part No.');const name=g(r,'Name');
+      const qty=parseFloat(g(r,'Qty'))||0;
+      if(!qty&&!id&&!name&&!party)return;
+      if(String(g(r,'Qty')).toUpperCase()==='TOTAL')return;
+      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(g(r,'Desc')),qty,sPrice:parseFloat(g(r,'Price'))||0,payment:g(r,'Payment')||'CASH',vatOn:false,wh3On:false,vwhOn:false,_by:S.user});
+    });
+  }else if(sheet==='EXPENSE'){
+    dataRows.forEach(r=>{
+      const reason=g(r,'Reason');const amt=parseFloat(g(r,'Amount'))||0;
+      if(!reason&&!amt)return;
+      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),reason:String(reason),amt,payment:g(r,'Payment')||'CASH',_by:S.user});
+    });
+  }else if(sheet==='ITEMS'){
+    dataRows.forEach(r=>{
+      const id=g(r,'Part No.');const name=g(r,'Item Name');
+      if(!id&&!name)return;
+      if(S.items.some(it=>it.id===String(id)))return;
+      rows.push({id:String(id),name:String(name),desc:String(g(r,'Description')),_by:S.user});
+    });
+  }else if(sheet==='STORE'){
+    dataRows.forEach(r=>{
+      const itemId=g(r,'Part No.');const itemName=g(r,'Item Name');
+      const qty=parseFloat(g(r,'Stock Qty'))||0;
+      if(!itemId&&!itemName&&!qty)return;
+      rows.push({itemId:String(itemId),itemName:String(itemName),itemDesc:String(g(r,'Desc')),supplier:String(g(r,'Supplier')),date:g(r,'Date Received')||new Date().toISOString().slice(0,10),qty,cost:parseFloat(g(r,'Unit Cost'))||0});
+    });
+  }
+  return rows;
+}
+
+function doImport(){
+  if(!_impRows.length){showToast('No rows to import — choose a file first','warn');return;}
+  const rows=_impRows.slice();const sheet=_impSheet;
+  _impRows=[];
+  closeModal('import-modal');
+  showToast(`Importing ${rows.length} row(s)…`,'success');
+  setTimeout(()=>{
+    if(sheet==='PURCHASE') S.purchase.push(...rows);
+    else if(sheet==='SALES') S.sales.push(...rows);
+    else if(sheet==='EXPENSE') S.expense.push(...rows);
+    else if(sheet==='ITEMS') S.items.push(...rows);
+    else if(sheet==='STORE') S.storeItems.push(...rows);
+    saveUserData();
+    setTimeout(()=>{
+      const _tabMap={PURCHASE:'PURCHASE',SALES:'SALES',EXPENSE:'EXPENSE',ITEMS:'ITEMS',STORE:'STORE'};
+      const _target=_tabMap[sheet];
+      if(_target&&S.tab!==_target){switchTab(_target);}else{updateSuggestions();renderTab();}
+      const _si=document.querySelector('.table-search-bar input[type="search"]');
+      if(_si&&_si.value){_si.value='';_si.dispatchEvent(new Event('input'));}
+      showToast(`${rows.length} ${sheet} row(s) imported ✓`,'success');
+    },50);
+  },30);
+}
+
+/* ═══════════════════════════════════════════════════════
    CHANGE PASSWORD
 ═══════════════════════════════════════════════════════ */
 function openShopNameModal(){
@@ -5335,7 +5893,7 @@ function openShopNameModal(){
   hideMsg('sn-error');openModal('shopname-modal');
 }
 function saveShopName(){
-  const name=document.getElementById('sn-input').value.trim();
+  const name=cap(document.getElementById('sn-input').value.trim(),MAX_NAME_LEN);
   if(!name){showMsg('sn-error','Please enter a shop name');return;}
   const reg=getRegistry();
   if(reg[S.ownerId])reg[S.ownerId].shopName=name;
@@ -5345,15 +5903,18 @@ function saveShopName(){
   showToast('Shop name updated!','success');
 }
 function openChangePass(){['cp-current','cp-new','cp-confirm'].forEach(id=>document.getElementById(id).value='');hideMsg('cp-error');openModal('pass-modal');}
-function submitChangePass(){
-  const cur=document.getElementById('cp-current').value;
-  const nw=document.getElementById('cp-new').value;
-  const con=document.getElementById('cp-confirm').value;
+async function submitChangePass(){
+  const cur=cap(document.getElementById('cp-current').value,MAX_PASSWORD_LEN);
+  const nw=cap(document.getElementById('cp-new').value,MAX_PASSWORD_LEN);
+  const con=cap(document.getElementById('cp-confirm').value,MAX_PASSWORD_LEN);
   const reg=getRegistry();
-  if(!reg[S.user]||reg[S.user].password!==cur){showMsg('cp-error','Current password incorrect');return;}
+  if(!reg[S.user]){showMsg('cp-error','Current password incorrect');return;}
+  const ok=await passwordMatches(cur,reg[S.user].password);
+  if(!ok){showMsg('cp-error','Current password incorrect');return;}
   if(nw.length<4){showMsg('cp-error','Min 4 characters');return;}
   if(nw!==con){showMsg('cp-error','Passwords do not match');return;}
-  reg[S.user].password=nw;saveRegistry(reg);syncToCloud();
+  reg[S.user].password=await sha256Hex(nw);
+  saveRegistry(reg);syncToCloud();
   closeModal('pass-modal');showToast('Password updated!','success');
 }
 
@@ -5391,99 +5952,126 @@ document.addEventListener('touchcancel',_lpCancel,{passive:true});
 /* ═══════════════════════════════════════════════════════
    ★ BOOT — now async to support cloud registry fetch
 ═══════════════════════════════════════════════════════ */
-async function init(){
-  ensureDefaults();
-  initEmailJS();
-  // Init Firebase first so cloud registry fetch works
-  initFirebase();
-
-  // Show loader while we fetch cloud registry
-  document.getElementById('loader-sub-text').textContent='Loading accounts from cloud…';
-
-  // ★ CHANGE 7: Pull cloud registry before attempting auto-login
-  // This ensures cross-device: if user was created on another device, they can log in here
-  try{
-    await loadRegistryFromCloud();
-  }catch(e){
-    // Cloud unavailable — use local registry only
-  }
-
-  const savedUser=localStorage.getItem('ims_currentUser');
-  const savedOwner=localStorage.getItem('ims_currentOwner');
-  const savedRole=localStorage.getItem('ims_currentRole');
-
-  if(savedUser&&savedOwner&&savedRole){
-    if(savedUser===OWNER_USERNAME&&savedRole==='system_owner'){
-      S.user=savedUser;S.ownerId=savedOwner;S.role=savedRole;
-      doLoginSystemOwner();return;
-    }
-    ensureDefaults();
-    const reg=getRegistry();
-    if(reg[savedUser]&&reg[savedUser].status!=='suspended'){
-      doLogin(savedUser,savedOwner,savedRole);return;
-    }
-  }
-  hideLoader();
-  document.getElementById('auth-screen').style.display='flex';
+// Wait for the Firebase SDK to actually be defined. The <script defer>
+// guarantees execution after parsing but DOMContentLoaded fires when parsing
+// is done, not when defers have all executed in some browsers. Poll briefly.
+function _waitFor(predicate, timeoutMs){
+  return new Promise(resolve=>{
+    if(predicate())return resolve(true);
+    const start=Date.now();const iv=setInterval(()=>{
+      if(predicate()){clearInterval(iv);resolve(true);}
+      else if(Date.now()-start>timeoutMs){clearInterval(iv);resolve(false);}
+    },50);
+  });
 }
-init();
+
+async function init(){
+  let loggedIn=false;
+  try{
+    ensureDefaults();
+    // Wait up to 3s for Firebase SDK to load — but proceed regardless so
+    // the auth screen still appears if the user is offline.
+    await _waitFor(()=>typeof firebase!=='undefined'&&firebase.firestore,3000);
+    initEmailJS();initFirebase();
+    try{await Promise.race([loadRegistryFromCloud(),new Promise(r=>setTimeout(r,2000))]);}catch(e){}
+    const savedUser=localStorage.getItem('ims_currentUser');
+    const savedOwner=localStorage.getItem('ims_currentOwner');
+    const savedRole=localStorage.getItem('ims_currentRole');
+    if(savedUser&&savedOwner&&savedRole){
+      if(savedUser===OWNER_USERNAME&&savedRole==='system_owner'){
+        S.user=savedUser;S.ownerId=savedOwner;S.role=savedRole;
+        loggedIn=true;doLoginSystemOwner();return;
+      }
+      ensureDefaults();
+      const reg=getRegistry();
+      if(reg[savedUser]&&reg[savedUser].status!=='suspended'){
+        loggedIn=true;doLogin(savedUser,savedOwner,savedRole);return;
+      }
+    }
+  }catch(e){console.error('init error',e);}finally{
+    if(!loggedIn){hideLoader();document.getElementById('auth-screen').style.display='flex';}
+  }
+}
+document.addEventListener('DOMContentLoaded',init);
 
 /* ═══════════════════════════════════════════════════════
    v6 UI ENHANCEMENTS
 ═══════════════════════════════════════════════════════ */
 
 // ── Search bar injection ──
-// Wraps renderTab to inject a live-search bar above tables
+// Wraps renderTab to inject a live-search bar above tables.
+// Search query is persisted per-tab so a re-render (cloud sync, filter change,
+// row delete) does not throw away what the user typed.
 (function(){
   const _origRenderTab = typeof renderTab === 'function' ? renderTab : null;
   if(!_origRenderTab) return;
 
-  // Patch renderTab to inject search after render
+  // Per-tab search state survives re-renders
+  const searchState = Object.create(null);
+
   const origRender = window.renderTab;
   window.renderTab = function(){
     origRender();
     injectSearchBar();
   };
 
+  function applyFilter(rows, q, count){
+    const ql = q.trim().toLowerCase();
+    let visible = 0;
+    rows.forEach(tr => {
+      const show = !ql || tr.textContent.toLowerCase().includes(ql);
+      tr.style.display = show ? '' : 'none';
+      if(show) visible++;
+    });
+    count.textContent = ql ? visible + ' / ' + rows.length + ' rows' : rows.length + ' rows';
+  }
+
   function injectSearchBar(){
     const tab = S.tab;
-    // Only for data tabs with tables
     if(!['PURCHASE','SALES','BALANCE','ITEMS','EXPENSE','STORE','STOREBALANCE'].includes(tab)) return;
     const tableWrap = document.querySelector('#tab-content .table-wrap');
     if(!tableWrap) return;
-    // Don't double-inject
     if(tableWrap.previousElementSibling && tableWrap.previousElementSibling.classList.contains('table-search-bar')) return;
-
-    const bar = document.createElement('div');
-    bar.className = 'table-search-bar';
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'Search…';
-    input.setAttribute('autocomplete','off');
-    input.setAttribute('spellcheck','false');
-
-    const count = document.createElement('span');
-    count.className = 'table-row-count';
 
     const table = tableWrap.querySelector('table');
     if(!table) return;
     const tbody = table.querySelector('tbody');
     if(!tbody) return;
 
-    const allRows = Array.from(tbody.querySelectorAll('tr:not(.summary-row)'));
-    count.textContent = allRows.length + ' rows';
+    const bar = document.createElement('div');
+    bar.className = 'table-search-bar';
 
+    const input = document.createElement('input');
+    input.type = 'search';
+    input.placeholder = 'Search…';
+    input.setAttribute('autocomplete','off');
+    input.setAttribute('spellcheck','false');
+    input.setAttribute('aria-label','Search rows in current tab');
+    // Restore previous query for this tab
+    if(searchState[tab]) input.value = searchState[tab];
+
+    const count = document.createElement('span');
+    count.className = 'table-row-count';
+
+    const allRows = Array.from(tbody.querySelectorAll('tr:not(.summary-row)'));
+    applyFilter(allRows, input.value || '', count);
+
+    // Debounce — keep typing snappy on large tables
+    let _t;
     input.addEventListener('input', function(){
-      const q = this.value.trim().toLowerCase();
-      let visible = 0;
-      allRows.forEach(tr => {
-        const text = tr.textContent.toLowerCase();
-        const show = !q || text.includes(q);
-        tr.style.display = show ? '' : 'none';
-        if(show) visible++;
-      });
-      count.textContent = q ? visible + ' / ' + allRows.length + ' rows' : allRows.length + ' rows';
+      const v = this.value;
+      searchState[tab] = v;
+      clearTimeout(_t);
+      _t = setTimeout(()=>applyFilter(allRows, v, count), 80);
+    });
+
+    // Esc clears the search
+    input.addEventListener('keydown', e=>{
+      if(e.key==='Escape'){
+        input.value = '';
+        searchState[tab] = '';
+        applyFilter(allRows, '', count);
+      }
     });
 
     bar.appendChild(input);

@@ -470,6 +470,11 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
   background-repeat:no-repeat;background-position:10px center
 }
 .table-search-bar input:focus{border-color:var(--p)}
+.table-search-bar button, .table-search-bar .search-clear-btn{
+  background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;
+  margin-left:8px;padding:2px 6px;border-radius:4px;transition:background .16s
+}
+.table-search-bar button:hover, .table-search-bar .search-clear-btn:hover{background:var(--surface3);color:var(--text)}
 .table-row-count{font-size:10.5px;color:var(--text3);font-family:var(--mono);white-space:nowrap}
 
 /* ── Tables ── */
@@ -1175,6 +1180,10 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <button type="button" class="drawer-item" id="drawer-items-btn" onclick="switchTab('ITEMS');closeSettings()">
       <span class="di-icon" style="background:var(--p-glass);color:var(--p)">📋</span>
       <div class="di-info"><div class="di-label" data-i18n="settingsAddItems">Add Items</div><div class="di-sub" data-i18n="settingsAddItemsSub">Manage inventory catalog</div></div>
+    </button>
+    <button type="button" class="drawer-item" id="drawer-credit-btn" onclick="switchTab('CREDIT');closeSettings()">
+      <span class="di-icon" style="background:rgba(245,158,11,.12);color:var(--warn)">💳</span>
+      <div class="di-info"><div class="di-label">Credit Ledger</div><div class="di-sub">Manage credit transactions</div></div>
     </button>
     <div id="store-settings-section" style="display:none">
       <div class="drawer-divider"></div>
@@ -1917,11 +1926,11 @@ html[data-view="mobile"] .table-search-bar{display:none}
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span class="ni-label" data-i18n="navReport">Report</span>
   </button>
-  <button type="button" class="nav-item" data-tab="CREDIT" onclick="switchTab('CREDIT')" id="nav-CREDIT">
+  <button type="button" class="nav-item" data-tab="CREDIT" onclick="switchTab('CREDIT')" id="nav-CREDIT" style="display:none">
     <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
     <span class="ni-label">Credit</span>
   </button>
-  <button type="button" class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS">
+  <button type="button" class="nav-item" data-tab="ITEMS" onclick="switchTab('ITEMS')" id="nav-ITEMS" style="display:none">
     <svg viewBox="0 0 24 24"><path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
     <span class="ni-label" data-i18n="navItems">Items</span>
   </button>
@@ -2713,18 +2722,22 @@ async function submitAuth(){
 async function doLogin(u,ownerId,role){
   try{
   S.user=u;S.ownerId=ownerId;S.role=role;
-  localStorage.setItem('ims_currentUser',u);
-  localStorage.setItem('ims_currentOwner',ownerId);
-  localStorage.setItem('ims_currentRole',role);
+  _lsSet('ims_currentUser',u);
+  _lsSet('ims_currentOwner',ownerId);
+  _lsSet('ims_currentRole',role);
   const reg=getRegistry();
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   initFirebase();
   startRealtimeSync();
-  // Subscription gate — block expired/suspended owners and their users
+  // Subscription gate — block expired/suspended owners and their users.
+  // Only check if the owner entry exists locally; if the registry merge failed
+  // (storage full, offline) we skip the gate rather than falsely blocking.
   if(role!=='system_owner'){
     const gateReg=getRegistry();
-    const blocked=checkSubscriptionGate(gateReg,ownerId);
-    if(blocked){showSubGate(blocked);return;}
+    if(gateReg[ownerId]){
+      const blocked=checkSubscriptionGate(gateReg,ownerId);
+      if(blocked){showSubGate(blocked);return;}
+    }
   }
   loadUserData();loadPrefs();
   S.avatarDataUrl=localStorage.getItem(`ims_${u}_avatar`)||null;
@@ -2809,7 +2822,7 @@ async function doLogin(u,ownerId,role){
 ═══════════════════════════════════════════════════════ */
 function updateNavForRole(){
   if(isStorekeeper()){
-    ['PURCHASE','SALES','BALANCE','REPORT','ITEMS','CREDIT'].forEach(tab=>{
+    ['PURCHASE','SALES','BALANCE','REPORT'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='none';
     });
     ['STORE','STOREBALANCE','STOREREPORT','EXPENSE'].forEach(tab=>{
@@ -2817,9 +2830,11 @@ function updateNavForRole(){
     });
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='none';
+    const drawerCredit=document.getElementById('drawer-credit-btn');
+    if(drawerCredit)drawerCredit.style.display='none';
     document.getElementById('store-settings-section').style.display='none';
   }else{
-    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT','ITEMS','CREDIT'].forEach(tab=>{
+    ['PURCHASE','SALES','BALANCE','EXPENSE','REPORT'].forEach(tab=>{
       const el=document.getElementById(`nav-${tab}`);if(el)el.style.display='';
     });
     ['STORE','STOREBALANCE','STOREREPORT'].forEach(tab=>{
@@ -2827,6 +2842,8 @@ function updateNavForRole(){
     });
     const drawerItems=document.getElementById('drawer-items-btn');
     if(drawerItems)drawerItems.style.display='flex';
+    const drawerCredit=document.getElementById('drawer-credit-btn');
+    if(drawerCredit)drawerCredit.style.display='flex';
     if(isOwner())document.getElementById('store-settings-section').style.display='';
   }
 }
@@ -2843,16 +2860,23 @@ function getSubStatus(r){
     return{status:'active',daysLeft:diff,label:`Active · ${diff}d left`,variant:'active-paid'};
   }
   if(r.trialStart){
-    const te=new Date(r.trialStart);te.setDate(te.getDate()+(r.trialDays||14));
+    const te=new Date(r.trialStart);te.setDate(te.getDate()+(r.trialDays||30));
     const teStr=te.toISOString().slice(0,10);
     if(teStr>=today){
       const diff=Math.ceil((te-new Date(today))/86400000);
       return{status:'trial',daysLeft:diff,label:`Trial · ${diff}d left`,variant:'trial'};
     }
+    // 7-day grace period after trial ends — allows login with a warning instead of hard block
+    const graceEnd=new Date(te);graceEnd.setDate(graceEnd.getDate()+7);
+    const graceStr=graceEnd.toISOString().slice(0,10);
+    if(graceStr>=today){
+      const diff=Math.ceil((graceEnd-new Date(today))/86400000);
+      return{status:'trial',daysLeft:diff,label:`Grace · ${diff}d`,variant:'expired'};
+    }
     return{status:'expired',daysLeft:0,label:'Expired',variant:'expired'};
   }
-  // Legacy account with no subscription data → auto-grant 14-day trial from today
-  return{status:'trial',daysLeft:14,label:'Trial · 14d left',variant:'trial'};
+  // Legacy account with no subscription data → auto-grant 30-day trial from today
+  return{status:'trial',daysLeft:30,label:'Trial · 30d left',variant:'trial'};
 }
 
 function checkSubscriptionGate(reg,ownerId){
@@ -3179,7 +3203,7 @@ async function approveOwner(i){
     shopName:p.shopName||'',
     email:p.email||'',
     sub:'trial',status:'trial',
-    trialStart:new Date().toISOString().slice(0,10),trialDays:14,
+    trialStart:new Date().toISOString().slice(0,10),trialDays:30,
     payHistory:[]
   };
   saveRegistry(reg);pending.splice(i,1);
@@ -5876,7 +5900,13 @@ function doImport(){
     setTimeout(()=>{
       const _tabMap={PURCHASE:'PURCHASE',SALES:'SALES',EXPENSE:'EXPENSE',ITEMS:'ITEMS',STORE:'STORE'};
       const _target=_tabMap[sheet];
-      if(_target&&S.tab!==_target){switchTab(_target);}else{updateSuggestions();renderTab();}
+      if(_target&&S.tab!==_target){switchTab(_target);}
+      updateSuggestions();renderTab();
+      // Reset branch filter to show all branches after import to ensure visibility
+      if(sheet==='PURCHASE'||sheet==='SALES'){
+        const bf=document.getElementById('branch-filter');
+        if(bf)bf.value='';
+      }
       const _si=document.querySelector('.table-search-bar input[type="search"]');
       if(_si&&_si.value){_si.value='';_si.dispatchEvent(new Event('input'));}
       showToast(`${rows.length} ${sheet} row(s) imported ✓`,'success');
@@ -5973,7 +6003,7 @@ async function init(){
     // the auth screen still appears if the user is offline.
     await _waitFor(()=>typeof firebase!=='undefined'&&firebase.firestore,3000);
     initEmailJS();initFirebase();
-    try{await Promise.race([loadRegistryFromCloud(),new Promise(r=>setTimeout(r,2000))]);}catch(e){}
+    try{await Promise.race([loadRegistryFromCloud(),new Promise(r=>setTimeout(r,4000))]);}catch(e){}
     const savedUser=localStorage.getItem('ims_currentUser');
     const savedOwner=localStorage.getItem('ims_currentOwner');
     const savedRole=localStorage.getItem('ims_currentRole');
@@ -6074,7 +6104,27 @@ document.addEventListener('DOMContentLoaded',init);
       }
     });
 
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.textContent = '✕';
+    clearBtn.title = 'Clear search';
+    clearBtn.className = 'search-clear-btn';
+    clearBtn.addEventListener('click', ()=>{
+      input.value = '';
+      searchState[tab] = '';
+      applyFilter(allRows, '', count);
+      input.focus();
+    });
+
+    // Update clear button visibility
+    function updateClearBtn(){
+      clearBtn.style.display = input.value ? 'inline-block' : 'none';
+    }
+    input.addEventListener('input', updateClearBtn);
+    updateClearBtn();
+
     bar.appendChild(input);
+    bar.appendChild(clearBtn);
     bar.appendChild(count);
     tableWrap.parentNode.insertBefore(bar, tableWrap);
   }

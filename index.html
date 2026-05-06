@@ -4133,7 +4133,7 @@ function exportReceiptPDF(){
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
   const commAmt=!isP&&row.commission?parseFloat(row.commission)||0:0;
-  const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
+  const grandTotal=base+vatAmt-wh3Amt-vwhAmt-commAmt;
   // Header
   doc.setFont('helvetica','bold');doc.setFontSize(13);
   doc.text(shopName,W/2,y,{align:'center'});y+=5.5;
@@ -4784,7 +4784,7 @@ function buildTxForm(row,mode,isP,idx){
       <div class="field"><label>${isP?'Unit Purchase Price *':'Unit Selling Price *'}</label><input type="number" id="f-price" value="${price}" placeholder="0.00" step="any" oninput="recalcFormTotals(${isP})"></div>
     </div>
     <div class="field"><label>Payment Method</label><select id="f-payment">${pmOpts}</select></div>
-    ${!isP?`<div class="field"><label>Commission Amount (optional)</label><input type="number" id="f-commission" value="${d.commission||''}" placeholder="0.00" step="any" min="0"></div>`:''}
+    ${!isP?`<div class="field"><label>Commission Amount (optional)</label><input type="number" id="f-commission" value="${d.commission||''}" placeholder="0.00" step="any" min="0" oninput="recalcFormTotals(false)"></div>`:''}
     <div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
       <div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:10px">TAX OPTIONS</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px">
@@ -4823,7 +4823,9 @@ function recalcFormTotals(isP){
   if(!isP){
     const wh3El=document.getElementById('f-wh3');const vwhEl=document.getElementById('f-vwh');
     if(wh3El?.checked){const v=base*0.03;total-=v;taxHtml+=`<span style="margin-right:12px">WH 3%: -${fmt(v)}</span>`;}
-    if(vwhEl?.checked){const v=base*0.075;total-=v;taxHtml+=`<span>VAT WH 7.5%: -${fmt(v)}</span>`;}
+    if(vwhEl?.checked){const v=base*0.075;total-=v;taxHtml+=`<span style="margin-right:12px">VAT WH 7.5%: -${fmt(v)}</span>`;}
+    const commEl=document.getElementById('f-commission');const commV=parseFloat(commEl?.value)||0;
+    if(commV>0){total-=commV;taxHtml+=`<span>Commission: -${fmt(commV)}</span>`;}
   }
   const txd=document.getElementById('f-tax-display');if(txd)txd.innerHTML=taxHtml||'<span>No tax</span>';
   const td=document.getElementById('f-total-display');if(td)td.textContent=fmt(total);
@@ -4929,8 +4931,8 @@ function renderTx(){
     const price=parseFloat(isP?row.uPrice:row.sPrice)||0;
     const base=qty*price;let total=base;
     if(row.vatOn)total+=base*0.15;
-    if(!isP){if(row.wh3On)total-=base*0.03;if(row.vwhOn)total-=base*0.075;}
     const comm=(!isP&&row.commission)?parseFloat(row.commission)||0:0;
+    if(!isP){if(row.wh3On)total-=base*0.03;if(row.vwhOn)total-=base*0.075;if(comm)total-=comm;}
     totQty+=qty;totVal+=total;totComm+=comm;
     const pmBadge=m=>{
       if(m==='CREDIT'&&row._cid){const p=getCreditPaidAmt(row._cid);const fp=p>=total-0.001;const pp=p>0.001&&!fp;if(fp)return`<span class="td-badge badge-cash">✅ PAID</span>`;if(pp)return`<span class="td-badge" style="background:rgba(59,130,246,.14);color:var(--p2);border:1px solid rgba(59,130,246,.25);font-size:9px">⚡ PARTIAL</span>`;}
@@ -5328,7 +5330,7 @@ function clearCreditPayments(cid){
 
 function renderCreditPage(){
   const calcPT=p=>{const b=(p.qty||0)*(p.uPrice||0);return b+(p.vatOn?b*0.15:0);};
-  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);};
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0)-(s.commission||0);};
   const canMark=canWrite('CREDIT');
 
   const creditSales=S.sales.filter(s=>s.payment==='CREDIT'&&s._cid);
@@ -5461,7 +5463,7 @@ function _setBranchBal(branch,val){if(!S.branchBeginBal)S.branchBeginBal={};S.br
 
 function _reportCalc(branch){
   const calcPT=p=>{const b=(p.qty||0)*(p.uPrice||0);return b+(p.vatOn?b*0.15:0);};
-  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0);};
+  const calcST=s=>{const b=(s.qty||0)*(s.sPrice||0);return b+(s.vatOn?b*0.15:0)-(s.wh3On?b*0.03:0)-(s.vwhOn?b*0.075:0)-(s.commission||0);};
   const inRange=arr=>arr.filter(r=>{
     if(!r.date)return true;
     const d=r.date.slice(0,10);
@@ -5679,7 +5681,7 @@ function openRowReceipt(idx,listType){
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
   const commAmt=!isP&&row.commission?parseFloat(row.commission)||0:0;
-  const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
+  const grandTotal=base+vatAmt-wh3Amt-vwhAmt-commAmt;
   document.getElementById('receipt-content').innerHTML=`
     <div class="rcpt-hdr"><div class="rcpt-biz">📦 ${getRegistry()[S.ownerId]?.shopName||'POWER-IMS'}</div><div class="rcpt-sub">${isP?L('receiptPurchase'):L('receiptSales')}</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
     <div class="rcpt-line"><span>${L('date')}</span><span>${(row.date||'').replace('T',' ')}</span></div>
@@ -5861,7 +5863,7 @@ function exportXL(tab){
     const t=data.reduce((a,b)=>a+b[9],0);data.push(['','','','','','','TOTAL','','',t,'']);
   }else if(tab==='SALES'){
     headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Withhold 3%','VAT WH 7.5%','Total','Commission','Payment'];
-    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const w3=s.wh3On?b*0.03:0;const vw=s.vwhOn?b*0.075:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,w3,vw,b+v-w3-vw,s.commission||0,s.payment||'CASH'];});
+    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const w3=s.wh3On?b*0.03:0;const vw=s.vwhOn?b*0.075:0;const cm=s.commission||0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,w3,vw,b+v-w3-vw-cm,cm,s.payment||'CASH'];});
   }else if(tab==='BALANCE'){
     headers=['Part No.','Name','Desc','Purchase Qty','Sales Qty','Balance','Inv. Value'];
     S.items.filter(m=>m.id).forEach(item=>{

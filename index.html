@@ -278,6 +278,9 @@ tbody tr:nth-child(n+11){animation-delay:.33s}
   background:var(--surface2);gap:12px;flex-wrap:wrap
 }
 .page-title-block{display:flex;align-items:center;gap:11px}
+.back-btn{background:0;border:1px solid var(--border2);border-radius:8px;color:var(--text2);cursor:pointer;padding:6px 8px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;opacity:0.5}
+.back-btn:hover{opacity:1;background:var(--surface3);color:var(--text)}
+.back-btn:active{transform:scale(.95)}
 .page-icon-wrap{
   width:36px;height:36px;border-radius:10px;background:var(--p-glass);
   display:flex;align-items:center;justify-content:center;font-size:16px;
@@ -1212,8 +1215,8 @@ html[data-view="mobile"] .table-search-bar{display:none}
       <div class="di-info"><div class="di-label" data-i18n="settingsExportBtn">Export (PDF &amp; Excel)</div></div>
     </button>
     <button type="button" class="drawer-item" onclick="openImportModal();closeSettings()">
-      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p2)">📥</span>
-      <div class="di-info"><div class="di-label">Import from Excel</div><div class="di-sub">Upload .xlsx to add records</div></div>
+      <span class="di-icon" style="background:rgba(59,130,246,.12);color:var(--p)">📥</span>
+      <div class="di-info"><div class="di-label">Import from Excel</div><div class="di-sub">Upload .xlsx to import data</div></div>
     </button>
     <div class="drawer-divider"></div>
     <div class="drawer-section" data-i18n="settingsAccount">Account</div>
@@ -2109,6 +2112,8 @@ const S={
   // Declared explicitly (previously implicit, set by loadUserData)
   creditPayments:[],
   deletedUsers:[],
+  // Navigation history for browser back button
+  navHistory:[],_historyFromPopState:false,
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -2213,15 +2218,34 @@ const saveRegistry=r=>{
   saveRegistryToCloud(r);
 };
 
-// Push registry to Firestore
-function saveRegistryToCloud(reg){
+const ONLINE_THRESHOLD_MS=5*60*1000;
+function markUserAsActive(u){
+  if(!u) return;
+  const reg=getRegistry();
+  if(!reg[u]) return;
+  reg[u].lastActive=new Date().toISOString();
+  saveRegistry(reg);
+}
+function isUserOnline(entry){
+  if(!entry||!entry.lastActive) return false;
+  const last=Date.parse(entry.lastActive);
+  return !Number.isNaN(last) && Date.now()-last <= ONLINE_THRESHOLD_MS;
+}
+
+// Push registry to Firestore with optional force flag for immediate sync
+function saveRegistryToCloud(reg,forceImmediate){
   if(!S.db)return;
   try{
-    S.db.collection('power_ims5').doc('_global_registry').set({
+    const save=()=>S.db.collection('power_ims5').doc('_global_registry').set({
       registry:JSON.stringify(reg),
       updatedAt:new Date().toISOString()
-    },{merge:true}).catch(err=>console.warn('registry cloud save:',err));
-  }catch(e){console.warn('registry cloud save threw:',e);}
+    },{merge:true}).catch(err=>console.warn('[registry cloud save]',err));
+    if(forceImmediate){
+      save();
+    }else{
+      setTimeout(save,100);
+    }
+  }catch(e){console.warn('[registry cloud save threw]',e);}
 }
 
 // Pull registry from Firestore and merge with local.
@@ -2370,7 +2394,9 @@ function initFirebase(){
     let app;
     try{app=firebase.app('pims5');}
     catch(e){app=firebase.initializeApp(FIREBASE_CONFIG,'pims5');}
-    S.db=firebase.firestore(app);S.dbConnected=true;setSyncRing(true);return true;
+    S.db=firebase.firestore(app);S.dbConnected=true;
+    if(S_isOnline){setSyncRing(true);}else{setSyncRing(false);}
+    return true;
   }catch(e){
     console.error('initFirebase:',e);
     setSyncRing(false);return false;
@@ -2378,7 +2404,7 @@ function initFirebase(){
 }
 
 function syncToCloud(){
-  if(!S.dbConnected||!S.db)return;
+  if(!S.dbConnected||!S.db||!S_isOnline)return;
   clearTimeout(_syncT);
   _syncT=setTimeout(()=>{
     const ns=ownerNS();
@@ -2401,13 +2427,61 @@ function syncToCloud(){
       payload[`br_${b}`]=JSON.stringify(loadBranchReceipts(b));
     });
     S.db.collection('power_ims5').doc(ns).set(payload,{merge:true})
-      .then(()=>setSyncRing(true))
-      .catch(err=>{console.warn('syncToCloud:',err);setSyncRing(false);});
+      .then(()=>{S_pendingSync=false;setSyncRing(true);console.log('[POWER-IMS] Cloud sync complete');})
+      .catch(err=>{S_pendingSync=true;console.warn('[POWER-IMS] syncToCloud:',err);setSyncRing(false);});
     saveRegistryToCloud(getRegistry());
   },1200);
 }
-function setSyncRing(ok){const r=document.getElementById('sync-ring');if(r)r.className='sync-ring'+(ok?' active':'');}
-function manualSync(){syncToCloud();showToast('☁️ Syncing…');}
+let S_isOnline=navigator.onLine;
+let S_pendingSync=false;
+
+function setSyncRing(ok){
+  const r=document.getElementById('sync-ring');
+  if(!r) return;
+  if(!S_isOnline){
+    r.className='sync-ring';
+    r.style.borderColor='#f59e0b';
+    r.title='Offline — changes saved locally';
+  }else if(ok){
+    r.className='sync-ring active';
+    r.style.borderColor='';
+    r.title='Synced';
+  }else{
+    r.className='sync-ring';
+    r.style.borderColor='#f43f5e';
+    r.title='Sync failed';
+  }
+}
+
+function manualSync(){
+  if(!S_isOnline){
+    showToast('📵 Offline — changes saved locally','warn');
+    return;
+  }
+  syncToCloud();
+  showToast('☁️ Syncing…');
+}
+
+// Offline detection and auto-sync
+window.addEventListener('online',()=>{
+  S_isOnline=true;
+  console.log('[POWER-IMS] Connection restored — syncing…');
+  showToast('🟢 Connected — syncing…','success');
+  setSyncRing(true);
+  syncToCloud();
+  if(S.db) startRealtimeSync();
+});
+
+window.addEventListener('offline',()=>{
+  S_isOnline=false;
+  console.log('[POWER-IMS] Offline — data saved locally');
+  showToast('📵 Offline mode — changes saved locally','warn');
+  setSyncRing(false);
+  if(S._unsubscribe){
+    try{S._unsubscribe();}catch(e){}
+    S._unsubscribe=null;
+  }
+});
 
 function applyCloudSnapshot(ns,d){
   // Cloud values are pre-stringified payloads; write through verbatim.
@@ -2456,6 +2530,29 @@ function startRealtimeSync(){
     updateStoreNotifBadge();
     updateRequestBadge();
   },err=>console.warn('realtime sync error:',err));
+  // Registry listener — fires when password or perms change on another device
+  if(S._registryUnsubscribe){
+    try{S._registryUnsubscribe();}catch(e){}
+    S._registryUnsubscribe=null;
+  }
+  if(S.db){
+    S._registryUnsubscribe=S.db.collection('power_ims5').doc('_global_registry').onSnapshot(doc=>{
+      if(!doc.exists)return;
+      const d=doc.data();
+      if(!d||!d.updatedAt)return;
+      const cloudReg=_safeJSON(d.registry,{},'registry snapshot');
+      const localReg=getRegistry();
+      try{
+        Object.keys(cloudReg).forEach(u=>{
+          if(cloudReg[u]?.password!==localReg[u]?.password){
+            console.log(`[POWER-IMS] Registry change detected for ${u}`);
+            localReg[u]=cloudReg[u];
+          }
+        });
+        _lsSet('ims_reg',localReg);
+      }catch(e){console.warn('registry snapshot apply:',e);}
+    },err=>console.warn('[registry listener error]',err));
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2729,6 +2826,9 @@ async function doLogin(u,ownerId,role){
   S.userBranch=(role==='user'||role==='storekeeper')?reg[u]?.branch||null:null;
   initFirebase();
   startRealtimeSync();
+  markUserAsActive(u);
+  if(S._onlinePingInterval){clearInterval(S._onlinePingInterval);}
+  S._onlinePingInterval=setInterval(()=>markUserAsActive(S.user),2*60*1000);
   // Subscription gate — block expired/suspended owners and their users.
   // Only check if the owner entry exists locally; if the registry merge failed
   // (storage full, offline) we skip the gate rather than falsely blocking.
@@ -2767,6 +2867,7 @@ async function doLogin(u,ownerId,role){
   updateHdrAvatar();
   // ★ CHANGE 5: Apply tab visibility rules per role
   updateNavForRole();
+  initNavHistory();
   showUI();
   // Subscription banner in main app for owners (warn when close to expiry)
   if(role==='owner'){
@@ -3090,9 +3191,11 @@ function renderSystemOwnerDashboard(){
   const trialCount=ssList.filter(s=>s.status==='trial').length;
   const expiredCount=ssList.filter(s=>s.status==='expired'||s.status==='suspended').length;
   const expiringSoon=ssList.filter(s=>(s.status==='active'||s.status==='trial')&&s.daysLeft<=5).length;
+  const onlineCount=owners.filter(u=>isUserOnline(reg[u])).length;
   document.getElementById('owner-stats').innerHTML=`
     <div class="owner-stat"><div class="stat-icon">👑</div><div class="stat-val">${owners.length}</div><div class="stat-lbl">Platform Owners</div></div>
     <div class="owner-stat"><div class="stat-icon">✅</div><div class="stat-val">${paidCount}</div><div class="stat-lbl">Paid Active</div></div>
+    <div class="owner-stat"><div class="stat-icon">🟢</div><div class="stat-val">${onlineCount}</div><div class="stat-lbl">Online Now</div></div>
     <div class="owner-stat"><div class="stat-icon">⏳</div><div class="stat-val">${trialCount}</div><div class="stat-lbl">On Trial</div></div>
     <div class="owner-stat"><div class="stat-icon">🔴</div><div class="stat-val">${expiredCount}</div><div class="stat-lbl">Expired/Sus</div></div>
     ${expiringSoon?`<div class="owner-stat" style="border-color:rgba(245,158,11,.3)"><div class="stat-icon">⚠️</div><div class="stat-val" style="color:var(--warn)">${expiringSoon}</div><div class="stat-lbl">Expiring Soon</div></div>`:''}`;
@@ -3104,6 +3207,8 @@ function renderSystemOwnerDashboard(){
   });
   document.getElementById('user-list-body').innerHTML=sortedOwners.length?sortedOwners.map((u,i)=>{
     const r=reg[u];const ss=getSubStatus(r);
+    const online=isUserOnline(r);
+    const onlineTag=online?'<span class="status-online">Online</span>':'<span class="status-offline">Offline</span>';
     const planLabel={trial:'Trial',basic:'Basic',pro:'Pro',enterprise:'Enterprise'}[r.sub||'trial']||'Trial';
     const urgentStyle=ss.daysLeft<=3&&ss.status!=='expired'&&ss.status!=='suspended'?'border-left:3px solid var(--warn);':'';
     return`<div class="user-card" style="animation-delay:${i*.06}s;${urgentStyle}">
@@ -3114,6 +3219,7 @@ function renderSystemOwnerDashboard(){
           <span class="sub-badge sub-${ss.variant}">${ss.label}</span>
           <span style="font-size:10px;color:var(--text3)">${planLabel} plan</span>
           ${r.paidUntil?`<span style="font-size:10px;color:var(--text3)">Until ${r.paidUntil}</span>`:''}
+          ${onlineTag}
         </div>
       </div>
       <button type="button" class="btn btn-sm" onclick="openSubModal('${u}')" style="margin-left:8px">💎 Manage</button>
@@ -3605,6 +3711,22 @@ const canRead=tab=>getPerm(tab)!=='none';
 const canExport=()=>isOwner()||isSystemOwner()||(S.exportPerms[S.user]??true);
 const canEditRow=row=>isOwner()||isSystemOwner()||(!row._by)||(row._by===S.user);
 
+// User join date filtering: new users only see data created after they joined
+function getUserJoinDate(){
+  if(isOwner()||isSystemOwner())return null;
+  const reg=getRegistry();
+  const userEntry=reg[S.user];
+  return userEntry?.addedAt||null;
+}
+function shouldUserSeeData(row){
+  if(isOwner()||isSystemOwner())return true;
+  const joinDate=getUserJoinDate();
+  if(!joinDate)return true;
+  const rowDate=row?.createdAt||row?.date;
+  if(!rowDate)return true;
+  return rowDate >= joinDate;
+}
+
 /* ═══════════════════════════════════════════════════════
    OWNER — ADD USER DIRECTLY
 ═══════════════════════════════════════════════════════ */
@@ -3631,7 +3753,7 @@ async function submitAddUser(){
   const reg=getRegistry();
   if(reg[u]||u===OWNER_USERNAME){showMsg('nu-error','Username already exists');return;}
   const pwdHash=await sha256Hex(p);
-  reg[u]={password:pwdHash,ownerId:S.ownerId,role,branch,status:'active'};
+  reg[u]={password:pwdHash,ownerId:S.ownerId,role,branch,status:'active',addedAt:new Date().toISOString()};
   saveRegistry(reg);
   if(!S.perms[u])S.perms[u]={};
   if(role!=='storekeeper')S.perms[u].branches=[branch];
@@ -4010,6 +4132,7 @@ function exportReceiptPDF(){
   const vatAmt=!isP&&row.vatOn?base*0.15:0;
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
+  const commAmt=!isP&&row.commission?parseFloat(row.commission)||0:0;
   const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
   // Header
   doc.setFont('helvetica','bold');doc.setFontSize(13);
@@ -4033,6 +4156,7 @@ function exportReceiptPDF(){
     ...(vatAmt?[['VAT (15%)','+'+fmt(vatAmt)]]:[]),
     ...(wh3Amt?[['Withhold 3%','-'+fmt(wh3Amt)]]:[]),
     ...(vwhAmt?[['VAT WH 7.5%','-'+fmt(vwhAmt)]]:[]),
+    ...(commAmt?[['Commission',fmt(commAmt)]]:[]),
   ];
   lines.forEach(([lbl,val])=>{_pdfLine(doc,lbl,val,y,margin,W,false);y+=5;});
   // Total line
@@ -4281,6 +4405,9 @@ function hideMsg(id){const el=document.getElementById(id);el.className=el.classN
 
 function logout(){
   if(S._unsubscribe){S._unsubscribe();S._unsubscribe=null;}
+  if(S._registryUnsubscribe){S._registryUnsubscribe();S._registryUnsubscribe=null;}
+  if(S._onlinePingInterval){clearInterval(S._onlinePingInterval);S._onlinePingInterval=null;}
+  S.navHistory=[];
   _lastWrittenAt='';
   S.user=null;S.ownerId=null;S.role=null;
   localStorage.removeItem('ims_currentUser');localStorage.removeItem('ims_currentOwner');localStorage.removeItem('ims_currentRole');
@@ -4375,6 +4502,13 @@ function switchTab(tab){
     return; // silently block — no error needed since tabs are hidden
   }
   if(!canRead(tab)&&tab!=='ITEMS'&&tab!=='STOREBALANCE'){showToast(L('toastNoPermTab'),'error');return;}
+  // Capture flag before resetting it so we can use it for history.pushState below
+  const fromPopState=S._historyFromPopState;
+  // Navigation history: push current tab before switching, unless this is from browser back
+  if(!fromPopState&&S.navHistory.length>0&&S.navHistory[S.navHistory.length-1]!==S.tab){
+    S.navHistory.push(S.tab);
+  }
+  S._historyFromPopState=false;
   S.tab=tab;
   const meta=TAB_META[tab]||TAB_META['ITEMS'];
   document.getElementById('page-icon').textContent=meta.icon;
@@ -4383,6 +4517,8 @@ function switchTab(tab){
   document.getElementById('page-sub').textContent=meta.sub;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(S.user)localStorage.setItem(`ims_${S.user}_lastTab`,tab);
+  // Only push a new history entry when the user navigates forward; popstate already moved the pointer
+  if(!fromPopState&&typeof history!=='undefined'&&history.pushState){history.pushState({tab:tab},'',window.location.href);}
   updateSuggestions();renderTab();
 }
 function updateSuggestions(){
@@ -4390,6 +4526,28 @@ function updateSuggestions(){
   document.getElementById('party-list').innerHTML=parties.filter(Boolean).map(p=>`<option value="${esc(p)}">`).join('');
   document.getElementById('item-list').innerHTML=S.items.filter(m=>m.id).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
   updateBranchDL();
+}
+// Initialize navigation history and browser back button support
+function initNavHistory(){
+  S.navHistory=[];
+  // Seed the initial history entry so the very first tab is reachable via back
+  if(typeof history!=='undefined'&&history.replaceState){history.replaceState({tab:S.tab||'ITEMS'},'',window.location.href);}
+  window.addEventListener('popstate',e=>{
+    if(e.state&&e.state.tab){
+      S._historyFromPopState=true;
+      if(S.navHistory.length>0){S.navHistory.pop();}
+      switchTab(e.state.tab);
+    }
+  });
+}
+// Navigate back to previous tab (called by back button, keyboard, etc.)
+function goBack(){
+  // Prefer the browser's own back so the history pointer stays consistent
+  if(window.history.length>1){history.back();return;}
+  if(S.navHistory.length===0){showToast('No previous tab to return to','info');return;}
+  const prevTab=S.navHistory.pop();
+  S._historyFromPopState=true;
+  switchTab(prevTab);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4626,6 +4784,7 @@ function buildTxForm(row,mode,isP,idx){
       <div class="field"><label>${isP?'Unit Purchase Price *':'Unit Selling Price *'}</label><input type="number" id="f-price" value="${price}" placeholder="0.00" step="any" oninput="recalcFormTotals(${isP})"></div>
     </div>
     <div class="field"><label>Payment Method</label><select id="f-payment">${pmOpts}</select></div>
+    ${!isP?`<div class="field"><label>Commission Amount (optional)</label><input type="number" id="f-commission" value="${d.commission||''}" placeholder="0.00" step="any" min="0"></div>`:''}
     <div style="padding:12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)">
       <div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:10px">TAX OPTIONS</div>
       <div style="display:flex;flex-wrap:wrap;gap:14px">
@@ -4693,7 +4852,8 @@ function submitTxForm(mode,idx,isP){
     const vatOn=document.getElementById('f-vat')?.checked??true;
     const wh3On=document.getElementById('f-wh3')?.checked??false;
     const vwhOn=document.getElementById('f-vwh')?.checked??false;
-    const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,sPrice:price,payment,vatOn,wh3On,vwhOn,_by:S.user};
+    const commission=parseFloat(document.getElementById('f-commission')?.value)||0;
+    const row={date,party,branch,id:itemId,name:item.name,desc:item.desc,qty,sPrice:price,payment,vatOn,wh3On,vwhOn,commission,_by:S.user};
     if(_cid)row._cid=_cid;
     if(mode==='add')S.sales.push(row);else S.sales[idx]={...S.sales[idx],...row};
   }
@@ -4741,13 +4901,13 @@ function renderItems(){
     <table>
       <thead><tr><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th></tr></thead>
       <tbody>
-        ${S.items.filter(r=>r.id||r.name).map((row,i)=>`
+        ${S.items.filter(r=>r.id||r.name).filter(r=>shouldUserSeeData(r)).map((row,i)=>`
           <tr oncontextmenu="showCtxMenu(event,${i},'items')" title="Right-click for options">
             <td class="td-mono" data-label="Part No.">${esc(row.id)}</td>
             <td style="font-weight:600" data-label="Item Name">${esc(row.name)}</td>
             <td style="color:var(--text3)" data-label="Description">${esc(row.desc)}</td>
           </tr>`).join('')}
-        ${!S.items.filter(r=>r.id||r.name).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">${L('emptyItems')}</td></tr>`:''}
+        ${!S.items.filter(r=>r.id||r.name).filter(r=>shouldUserSeeData(r)).length?`<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:32px">${L('emptyItems')}</td></tr>`:''}
       </tbody>
     </table>
   </div>`;
@@ -4761,8 +4921,8 @@ function renderTx(){
   const list=isP?S.purchase:S.sales;
   const branchF=document.getElementById('branch-filter')?.value||'';
   const effectiveBranchF=S.userBranch||branchF;
-  const visible=list.filter(r=>r.id||r.name||r.party||r.qty).filter(r=>!effectiveBranchF||r.branch===effectiveBranchF);
-  let totQty=0,totVal=0;
+  const visible=list.filter(r=>r.id||r.name||r.party||r.qty).filter(r=>!effectiveBranchF||r.branch===effectiveBranchF).filter(r=>shouldUserSeeData(r));
+  let totQty=0,totVal=0,totComm=0;
   const rows=visible.map(row=>{
     const i=list.indexOf(row);
     const qty=parseFloat(row.qty)||0;
@@ -4770,12 +4930,14 @@ function renderTx(){
     const base=qty*price;let total=base;
     if(row.vatOn)total+=base*0.15;
     if(!isP){if(row.wh3On)total-=base*0.03;if(row.vwhOn)total-=base*0.075;}
-    totQty+=qty;totVal+=total;
+    const comm=(!isP&&row.commission)?parseFloat(row.commission)||0:0;
+    totQty+=qty;totVal+=total;totComm+=comm;
     const pmBadge=m=>{
       if(m==='CREDIT'&&row._cid){const p=getCreditPaidAmt(row._cid);const fp=p>=total-0.001;const pp=p>0.001&&!fp;if(fp)return`<span class="td-badge badge-cash">✅ PAID</span>`;if(pp)return`<span class="td-badge" style="background:rgba(59,130,246,.14);color:var(--p2);border:1px solid rgba(59,130,246,.25);font-size:9px">⚡ PARTIAL</span>`;}
       return`<span class="td-badge ${m==='CASH'?'badge-cash':m==='CREDIT'?'badge-credit':m==='STORE TRANSFER'?'badge-store':'badge-other'}">${m||'CASH'}</span>`;
     };
     const taxCell=`<td class="num" data-label="Tax">${row.vatOn?`<span class="td-badge badge-cash" style="font-size:9px">VAT</span>`:''}</td>`;
+    const commCell=!isP?`<td class="num td-mono" data-label="Commission" style="color:var(--warn)">${comm?fmt(comm):''}</td>`:'';
     return`<tr oncontextmenu="showCtxMenu(event,${i},'${isP?'purchase':'sales'}')" title="Right-click to edit/delete/print">
       <td class="td-mono" data-label="Date" style="font-size:11.5px">${(row.date||'').replace('T',' ')}</td>
       <td data-label="${isP?'Supplier':'Customer'}" style="font-weight:500">${esc(row.party||'—')}</td>
@@ -4787,20 +4949,25 @@ function renderTx(){
       <td class="num td-mono" data-label="${isP?'Unit Price':'Price'}">${fmt(price)}</td>
       ${taxCell}
       <td class="num td-mono" data-label="Total" style="font-weight:700">${fmt(total)}</td>
+      ${commCell}
       <td data-label="Payment">${pmBadge(row.payment||'CASH')}</td>
     </tr>`;
   }).join('');
-  const cols=`<th>${L('date')}</th><th>${isP?L('supplier'):L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${isP?L('unitPrice'):L('price')}</th><th>${L('vat').split(' ')[0]}</th><th class="num">${L('totalPrice')}</th><th>${L('payment')}</th>`;
+  const commColHdr=!isP?`<th class="num">Commission</th>`:'';
+  const colCount=isP?11:12;
+  const cols=`<th>${L('date')}</th><th>${isP?L('supplier'):L('customer')}</th><th>${L('branch')}</th><th>${L('partNo')}</th><th>${L('itemName')}</th><th>${L('desc')}</th><th class="num">${L('qty')}</th><th class="num">${isP?L('unitPrice'):L('price')}</th><th>${L('vat').split(' ')[0]}</th><th class="num">${L('totalPrice')}</th>${commColHdr}<th>${L('payment')}</th>`;
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
       <thead><tr>${cols}</tr></thead>
       <tbody>
-        ${rows||`<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:32px">${L('emptyRecords')}</td></tr>`}
+        ${rows||`<tr><td colspan="${colCount}" style="text-align:center;color:var(--text3);padding:32px">${L('emptyRecords')}</td></tr>`}
         ${visible.length?`<tr class="summary-row">
           <td colspan="6" data-label="">${L('totals').toUpperCase()}</td>
           <td class="num td-mono" data-label="Qty">${fmtQ(totQty)}</td>
           <td data-label=""></td><td data-label=""></td>
-          <td class="num td-mono ${colorClass(totVal)}" data-label="Total">${fmt(totVal)}</td><td data-label=""></td>
+          <td class="num td-mono ${colorClass(totVal)}" data-label="Total">${fmt(totVal)}</td>
+          ${!isP?`<td class="num td-mono" data-label="Commission" style="color:var(--warn)">${totComm?fmt(totComm):''}</td>`:''}
+          <td data-label=""></td>
         </tr>`:''}
       </tbody>
     </table>
@@ -5265,7 +5432,7 @@ function renderCreditPage(){
    RENDER EXPENSE
 ═══════════════════════════════════════════════════════ */
 function renderExpense(){
-  const rows=S.expense.filter(r=>r.reason||r.amt);
+  const rows=S.expense.filter(r=>r.reason||r.amt).filter(r=>shouldUserSeeData(r));
   const total=rows.reduce((a,b)=>a+(parseFloat(b.amt)||0),0);
   document.getElementById('tab-content').innerHTML=`<div class="table-wrap">
     <table>
@@ -5511,6 +5678,7 @@ function openRowReceipt(idx,listType){
   const vatAmt=!isP&&row.vatOn?base*0.15:0;
   const wh3Amt=!isP&&row.wh3On?base*0.03:0;
   const vwhAmt=!isP&&row.vwhOn?base*0.075:0;
+  const commAmt=!isP&&row.commission?parseFloat(row.commission)||0:0;
   const grandTotal=base+vatAmt-wh3Amt-vwhAmt;
   document.getElementById('receipt-content').innerHTML=`
     <div class="rcpt-hdr"><div class="rcpt-biz">📦 ${getRegistry()[S.ownerId]?.shopName||'POWER-IMS'}</div><div class="rcpt-sub">${isP?L('receiptPurchase'):L('receiptSales')}</div><div class="rcpt-sub">${new Date().toLocaleString()}</div></div>
@@ -5526,6 +5694,7 @@ function openRowReceipt(idx,listType){
     ${vatAmt?`<div class="rcpt-line sub"><span>${L('vat')}</span><span>+${fmt(vatAmt)}</span></div>`:''}
     ${wh3Amt?`<div class="rcpt-line sub"><span>${L('wh3')}</span><span>-${fmt(wh3Amt)}</span></div>`:''}
     ${vwhAmt?`<div class="rcpt-line sub"><span>${L('vwh')}</span><span>-${fmt(vwhAmt)}</span></div>`:''}
+    ${commAmt?`<div class="rcpt-line sub"><span>Commission</span><span>${fmt(commAmt)}</span></div>`:''}
     <div class="rcpt-line bold"><span>${L('receiptTotal')}</span><span>${fmt(grandTotal)}</span></div>
     <div class="rcpt-line"><span>${L('payment')}</span><span>${esc(row.payment||'CASH')}</span></div>
     <div class="rcpt-total"><div style="font-size:10px;color:var(--text3);margin-bottom:4px">${L('receiptAmountDue')}</div><div class="rcpt-total-val">${fmt(grandTotal)}</div></div>
@@ -5691,8 +5860,8 @@ function exportXL(tab){
     data=S.purchase.filter(r=>r.id||r.party).map(r=>{const b=(parseFloat(r.qty)||0)*(parseFloat(r.uPrice)||0);const v=r.vatOn?b*0.15:0;return[r.date||'',r.party||'',r.branch||'',r.id||'',r.name||'',r.desc||'',r.qty||'',r.uPrice||'',v,b+v,r.payment||'CASH'];});
     const t=data.reduce((a,b)=>a+b[9],0);data.push(['','','','','','','TOTAL','','',t,'']);
   }else if(tab==='SALES'){
-    headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Total','Payment'];
-    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const wh=(s.wh3On?b*0.03:0)+(s.vwhOn?b*0.075:0);return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,b+v-wh,s.payment||'CASH'];});
+    headers=['Date','Customer','Branch','Part No.','Name','Desc','Qty','Price','VAT','Withhold 3%','VAT WH 7.5%','Total','Commission','Payment'];
+    data=S.sales.filter(r=>r.id||r.party).map(s=>{const b=(s.qty||0)*(s.sPrice||0);const v=s.vatOn?b*0.15:0;const w3=s.wh3On?b*0.03:0;const vw=s.vwhOn?b*0.075:0;return[s.date||'',s.party||'',s.branch||'',s.id||'',s.name||'',s.desc||'',s.qty||'',s.sPrice||'',v,w3,vw,b+v-w3-vw,s.commission||0,s.payment||'CASH'];});
   }else if(tab==='BALANCE'){
     headers=['Part No.','Name','Desc','Purchase Qty','Sales Qty','Balance','Inv. Value'];
     S.items.filter(m=>m.id).forEach(item=>{
@@ -5809,7 +5978,7 @@ function onImpFileChange(input){
   reader.onload=e=>{
     try{
       if(typeof XLSX==='undefined'){showToast('XLSX not loaded','error');return;}
-      const wb=XLSX.read(e.target.result,{type:'array'});
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       if(raw.length<2){document.getElementById('imp-preview').textContent='No data rows found.';_impRows=[];return;}
@@ -5826,6 +5995,21 @@ function onImpFileChange(input){
   reader.readAsArrayBuffer(file);
 }
 
+function _parseImpDate(v){
+  if(v instanceof Date)return isNaN(v.getTime())?new Date().toISOString().slice(0,10):new Date(v.getTime()-v.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if(typeof v==='number'&&v>0){const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);if(!isNaN(d.getTime()))return d.toISOString().slice(0,10);}
+  const s=String(v||'').trim();
+  if(!s)return new Date().toISOString().slice(0,10);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  if(/^\d{4}\/\d{2}\/\d{2}$/.test(s))return s.replace(/\//g,'-');
+  const dmy=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(dmy)return `${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`;
+  const p=new Date(s);return isNaN(p.getTime())?new Date().toISOString().slice(0,10):p.toISOString().slice(0,10);
+}
+function _normPayment(v){const u=String(v||'').trim().toUpperCase();return PAYMENT_METHODS.includes(u)?u:'CASH';}
+function _lookupItem(id){return(id!=null&&String(id).trim())?S.items.find(it=>String(it.id).trim()===String(id).trim())||null:null;}
+function _parseBool(v){if(v===true||v===1)return true;if(!v||v===false||v===0)return false;const s=String(v).trim().toLowerCase();return s==='yes'||s==='true'||s==='y'||s==='1'||parseFloat(s)>0;}
+
 function _parseImpRows(headers,dataRows,sheet){
   const _aliases={
     'part no.':['part no.','part no','part number','part#','partno','id','item id','item no','item no.','code'],
@@ -5839,6 +6023,10 @@ function _parseImpRows(headers,dataRows,sheet){
     'stock qty':['stock qty','qty','quantity','stock'],
     'unit cost':['unit cost','unit price','cost'],
     'date received':['date received','date','received date'],
+    'vat on':['vat on','vat','vat (15%)','vat15','vaton'],
+    'wh3 on':['wh3 on','wh3','withhold 3%','withhold3','withholding 3%','wh 3%','wh3on'],
+    'vwh on':['vwh on','vwh','vat wh 7.5%','vat wh','vwh7.5','vat withhold','vat withholding'],
+    'commission':['commission','comm','comm amount','commission amount','commision'],
   };
   const norm=s=>String(s).trim().toLowerCase();
   const idx=k=>{const aliases=_aliases[norm(k)]||[norm(k)];for(const a of aliases){const i=headers.findIndex(h=>norm(h)===a);if(i>=0)return i;}return -1;};
@@ -5846,25 +6034,36 @@ function _parseImpRows(headers,dataRows,sheet){
   const rows=[];
   if(sheet==='PURCHASE'){
     dataRows.forEach(r=>{
-      const party=g(r,'Supplier');const id=g(r,'Part No.');const name=g(r,'Name');
+      const party=g(r,'Supplier');const id=g(r,'Part No.');const rawName=g(r,'Name');
       const qty=parseFloat(g(r,'Qty'))||0;
-      if(!qty&&!id&&!name&&!party)return;
+      if(!qty&&!id&&!rawName&&!party)return;
       if(String(g(r,'Qty')).toUpperCase()==='TOTAL')return;
-      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(g(r,'Desc')),qty,uPrice:parseFloat(g(r,'Unit Price'))||0,payment:g(r,'Payment')||'CASH',vatOn:false,_by:S.user});
+      const found=_lookupItem(id);
+      const name=rawName||(found?found.name:'')||'';
+      const desc=g(r,'Desc')||(found?found.desc:'')||'';
+      rows.push({date:_parseImpDate(g(r,'Date')),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(desc),qty,uPrice:parseFloat(g(r,'Unit Price'))||0,payment:_normPayment(g(r,'Payment')),vatOn:false,_by:S.user});
     });
   }else if(sheet==='SALES'){
     dataRows.forEach(r=>{
-      const party=g(r,'Customer');const id=g(r,'Part No.');const name=g(r,'Name');
+      const party=g(r,'Customer');const id=g(r,'Part No.');const rawName=g(r,'Name');
       const qty=parseFloat(g(r,'Qty'))||0;
-      if(!qty&&!id&&!name&&!party)return;
+      if(!qty&&!id&&!rawName&&!party)return;
       if(String(g(r,'Qty')).toUpperCase()==='TOTAL')return;
-      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(g(r,'Desc')),qty,sPrice:parseFloat(g(r,'Price'))||0,payment:g(r,'Payment')||'CASH',vatOn:false,wh3On:false,vwhOn:false,_by:S.user});
+      const found=_lookupItem(id);
+      const name=rawName||(found?found.name:'')||'';
+      const desc=g(r,'Desc')||(found?found.desc:'')||'';
+      const vatRaw=g(r,'vat on');const wh3Raw=g(r,'wh3 on');const vwhRaw=g(r,'vwh on');
+      const vatOn=_parseBool(vatRaw);
+      const wh3On=_parseBool(wh3Raw);
+      const vwhOn=_parseBool(vwhRaw);
+      const commission=parseFloat(g(r,'commission'))||0;
+      rows.push({date:_parseImpDate(g(r,'Date')),party:String(party),branch:g(r,'Branch')||S.userBranch||(S.branches&&S.branches[0])||'Main',id:String(id),name:String(name),desc:String(desc),qty,sPrice:parseFloat(g(r,'Price'))||0,payment:_normPayment(g(r,'Payment')),vatOn,wh3On,vwhOn,commission,_by:S.user});
     });
   }else if(sheet==='EXPENSE'){
     dataRows.forEach(r=>{
       const reason=g(r,'Reason');const amt=parseFloat(g(r,'Amount'))||0;
       if(!reason&&!amt)return;
-      rows.push({date:g(r,'Date')||new Date().toISOString().slice(0,10),reason:String(reason),amt,payment:g(r,'Payment')||'CASH',_by:S.user});
+      rows.push({date:_parseImpDate(g(r,'Date')),reason:String(reason),amt,payment:_normPayment(g(r,'Payment')),_by:S.user});
     });
   }else if(sheet==='ITEMS'){
     dataRows.forEach(r=>{
@@ -5878,7 +6077,10 @@ function _parseImpRows(headers,dataRows,sheet){
       const itemId=g(r,'Part No.');const itemName=g(r,'Item Name');
       const qty=parseFloat(g(r,'Stock Qty'))||0;
       if(!itemId&&!itemName&&!qty)return;
-      rows.push({itemId:String(itemId),itemName:String(itemName),itemDesc:String(g(r,'Desc')),supplier:String(g(r,'Supplier')),date:g(r,'Date Received')||new Date().toISOString().slice(0,10),qty,cost:parseFloat(g(r,'Unit Cost'))||0});
+      const found=_lookupItem(itemId);
+      const resolvedName=itemName||(found?found.name:'')||'';
+      const resolvedDesc=g(r,'Desc')||(found?found.desc:'')||'';
+      rows.push({itemId:String(itemId),itemName:String(resolvedName),itemDesc:String(resolvedDesc),supplier:String(g(r,'Supplier')),date:_parseImpDate(g(r,'Date Received')),qty,cost:parseFloat(g(r,'Unit Cost'))||0});
     });
   }
   return rows;
@@ -5944,8 +6146,10 @@ async function submitChangePass(){
   if(nw.length<4){showMsg('cp-error','Min 4 characters');return;}
   if(nw!==con){showMsg('cp-error','Passwords do not match');return;}
   reg[S.user].password=await sha256Hex(nw);
-  saveRegistry(reg);syncToCloud();
-  closeModal('pass-modal');showToast('Password updated!','success');
+  reg[S.user].updatedAt=new Date().toISOString();
+  _lsSet('ims_reg',reg);
+  saveRegistryToCloud(reg,true);
+  closeModal('pass-modal');showToast('✅ Password updated and synced!','success');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -5999,25 +6203,42 @@ async function init(){
   let loggedIn=false;
   try{
     ensureDefaults();
+    const savedUser=localStorage.getItem('ims_currentUser');
+    const savedOwner=localStorage.getItem('ims_currentOwner');
+    const savedRole=localStorage.getItem('ims_currentRole');
+    const hasSession=!!(savedUser&&savedOwner&&savedRole);
     // Wait up to 3s for Firebase SDK to load — but proceed regardless so
     // the auth screen still appears if the user is offline.
     await _waitFor(()=>typeof firebase!=='undefined'&&firebase.firestore,3000);
     initEmailJS();initFirebase();
-    try{await Promise.race([loadRegistryFromCloud(),new Promise(r=>setTimeout(r,4000))]);}catch(e){}
-    const savedUser=localStorage.getItem('ims_currentUser');
-    const savedOwner=localStorage.getItem('ims_currentOwner');
-    const savedRole=localStorage.getItem('ims_currentRole');
-    if(savedUser&&savedOwner&&savedRole){
+    if(hasSession){
+      // Fast path for returning users: boot immediately from local cache so the
+      // loading screen disappears right away, then refresh the registry quietly
+      // in the background. This cuts perceived load from ~4-7 s to near-instant.
       if(savedUser===OWNER_USERNAME&&savedRole==='system_owner'){
         S.user=savedUser;S.ownerId=savedOwner;S.role=savedRole;
-        loggedIn=true;doLoginSystemOwner();return;
+        loggedIn=true;doLoginSystemOwner();
+        loadRegistryFromCloud().catch(()=>{});
+        return;
       }
       ensureDefaults();
       const reg=getRegistry();
       if(reg[savedUser]&&reg[savedUser].status!=='suspended'){
-        loggedIn=true;doLogin(savedUser,savedOwner,savedRole);return;
+        loggedIn=true;doLogin(savedUser,savedOwner,savedRole);
+        // Refresh registry in the background; suspend if account was revoked since last visit
+        loadRegistryFromCloud().then(()=>{
+          const fresh=getRegistry();
+          if(!fresh[savedUser]||fresh[savedUser].status==='suspended'){
+            showToast('Your account has been suspended.','error');
+            setTimeout(logout,1800);
+          }
+        }).catch(()=>{});
+        return;
       }
     }
+    // No valid local session — fetch fresh registry before showing the login form
+    // so authentication works against up-to-date account data.
+    try{await Promise.race([loadRegistryFromCloud(),new Promise(r=>setTimeout(r,4000))]);}catch(e){}
   }catch(e){console.error('init error',e);}finally{
     if(!loggedIn){hideLoader();document.getElementById('auth-screen').style.display='flex';}
   }
